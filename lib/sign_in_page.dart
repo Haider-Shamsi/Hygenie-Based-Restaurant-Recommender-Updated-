@@ -1,7 +1,22 @@
+<<<<<<< HEAD
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'sign_up_page.dart';
 import 'home_screen.dart';
+=======
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+import 'home_screen.dart';
+import 'sign_up_page.dart';
+import 'widgets/platform_google_sign_in_button.dart';
+>>>>>>> b6ab235 (Initial project commit)
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,20 +26,56 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+<<<<<<< HEAD
+=======
+  bool isGoogleLoading = false;
+>>>>>>> b6ab235 (Initial project commit)
   late TextEditingController emailController;
   late TextEditingController passwordController;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool isLoading = false;
 
+<<<<<<< HEAD
+=======
+  late final Future<void> _googleInit;
+  StreamSubscription<GoogleSignInAuthenticationEvent>? _googleAuthSub;
+
+>>>>>>> b6ab235 (Initial project commit)
   @override
   void initState() {
     super.initState();
     emailController = TextEditingController();
     passwordController = TextEditingController();
+<<<<<<< HEAD
+=======
+
+    // Required by google_sign_in ^7.
+    _googleInit = GoogleSignIn.instance.initialize();
+
+    // On Web, the sign-in flow is driven by the rendered Google button.
+    // We receive the ID token via authentication events.
+    if (kIsWeb) {
+      _googleAuthSub = GoogleSignIn.instance.authenticationEvents.listen(
+        (event) {
+          _onGoogleAuthEvent(event);
+        },
+        onError: (Object e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Google sign-in error: $e')),
+          );
+        },
+      );
+    }
+>>>>>>> b6ab235 (Initial project commit)
   }
 
   @override
   void dispose() {
+<<<<<<< HEAD
+=======
+    _googleAuthSub?.cancel();
+>>>>>>> b6ab235 (Initial project commit)
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -33,6 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleSignIn() async {
     if (_formKey.currentState!.validate()) {
       setState(() => isLoading = true);
+<<<<<<< HEAD
       
       // Simulate network request
       Future.delayed(const Duration(seconds: 2), () async {
@@ -52,14 +104,62 @@ class _LoginScreenState extends State<LoginScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Logged in as $email')),
+=======
+      String email = emailController.text.trim();
+      String password = passwordController.text.trim();
+      try {
+        final response = await http.post(
+          Uri.parse('http://localhost:8000/api/accounts/login/'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'username': email, 'password': password}),
+        );
+        setState(() => isLoading = false);
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body) as Map<String, dynamic>;
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('isLoggedIn', true);
+
+          final userEmail = (data['user'] is Map && (data['user'] as Map)['email'] != null)
+              ? (data['user'] as Map)['email'].toString()
+              : email;
+          await prefs.setString('userEmail', userEmail);
+
+          if (data['token'] != null) {
+            await prefs.setString('auth_token', data['token'].toString());
+          }
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Logged in as $userEmail')),
+>>>>>>> b6ab235 (Initial project commit)
             );
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const RestaurantListScreen()),
             );
           }
+<<<<<<< HEAD
         }
       });
+=======
+        } else {
+          final body = jsonDecode(response.body);
+          final errorMsg = (body is Map && body['error'] != null) ? body['error'].toString() : 'Login failed.';
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(errorMsg)),
+            );
+          }
+        }
+      } catch (e) {
+        setState(() => isLoading = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Network error: $e')),
+          );
+        }
+      }
+>>>>>>> b6ab235 (Initial project commit)
     }
   }
 
@@ -148,6 +248,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
+<<<<<<< HEAD
+=======
+                    PlatformGoogleSignInButton(
+                      onPressed: _handleGoogleSignIn,
+                      isLoading: isGoogleLoading,
+                    ),
+                    const SizedBox(height: 16),
+>>>>>>> b6ab235 (Initial project commit)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -170,6 +278,96 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+<<<<<<< HEAD
+=======
+  Future<void> _onGoogleAuthEvent(GoogleSignInAuthenticationEvent event) async {
+    if (event is GoogleSignInAuthenticationEventSignIn) {
+      if (isGoogleLoading) return;
+
+      final idToken = event.user.authentication.idToken;
+      if (idToken == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Google sign-in error: Missing ID token')),
+        );
+        return;
+      }
+
+      if (mounted) setState(() => isGoogleLoading = true);
+      await _sendGoogleTokenToBackend(idToken, event.user.email);
+    }
+  }
+
+  // Mobile/desktop sign-in flow. (Web uses the rendered Google button + authenticationEvents.)
+  Future<void> _handleGoogleSignIn() async {
+    if (kIsWeb) return;
+    if (isGoogleLoading) return;
+
+    setState(() => isGoogleLoading = true);
+
+    try {
+      await _googleInit;
+
+      final account = await GoogleSignIn.instance.authenticate(
+        scopeHint: const ['email', 'profile'],
+      );
+
+      final idToken = account.authentication.idToken;
+      if (idToken == null) throw Exception('No Google ID token');
+
+      await _sendGoogleTokenToBackend(idToken, account.email);
+    } on GoogleSignInException catch (e) {
+      if (mounted) {
+        setState(() => isGoogleLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Google sign-in error: ${e.code}')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => isGoogleLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Google sign-in error: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _sendGoogleTokenToBackend(String idToken, String email) async {
+    final response = await http.post(
+      Uri.parse('http://127.0.0.1:8000/api/accounts/google-signin/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'token': idToken}),
+    );
+
+    if (mounted) setState(() => isGoogleLoading = false);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setString('userEmail', data['user']['email']);
+      if (data['token'] != null) {
+        await prefs.setString('auth_token', data['token']);
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Signed in with Google as ${data['user']['email']}')),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const RestaurantListScreen()),
+        );
+      }
+    } else {
+      final error = jsonDecode(response.body)['detail'] ?? 'Google sign-in failed';
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+      }
+    }
+  }
+
+>>>>>>> b6ab235 (Initial project commit)
   Widget _buildTextField(TextEditingController controller, String hint, TextInputType type, {bool isPassword = false}) {
     return TextFormField(
       controller: controller,

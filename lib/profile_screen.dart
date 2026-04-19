@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 import 'my_reports_screen.dart';  
+<<<<<<< HEAD
 import 'my_reviews_screen.dart';  
 import 'preferences_screen.dart'; 
+=======
+
+import 'my_reviews_screen.dart';  
+import 'preferences_screen.dart'; 
+import 'sign_up_page.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+>>>>>>> b6ab235 (Initial project commit)
 
 
 
@@ -19,6 +28,29 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+<<<<<<< HEAD
+=======
+
+    Future<void> _handleLogout(BuildContext context) async {
+      try {
+        await http.post(
+          Uri.parse('http://localhost:8000/api/accounts/logout/'),
+          headers: {'Content-Type': 'application/json'},
+        );
+      } catch (e) {
+        // Ignore network errors for logout
+      }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const CreateAccountScreen()),
+          (route) => false,
+        );
+      }
+    }
+>>>>>>> b6ab235 (Initial project commit)
   // Mock Stats
   final int reportsSubmitted = 12;
   final int reviewsWritten = 8;
@@ -366,8 +398,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
           ElevatedButton(
             onPressed: () {
+<<<<<<< HEAD
               // TODO: Add Logout Logic (e.g., clear tokens)
               // Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => YourLoginScreen()), (route) => false);
+=======
+              // Logout logic: call backend, clear local session, and navigate to sign up
+              _handleLogout(context);
+>>>>>>> b6ab235 (Initial project commit)
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
             child: const Text("Logout"),

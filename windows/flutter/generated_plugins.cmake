@@ -3,9 +3,17 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+<<<<<<< HEAD
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
+=======
+  geolocator_windows
+)
+
+list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  jni
+>>>>>>> b6ab235 (Initial project commit)
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

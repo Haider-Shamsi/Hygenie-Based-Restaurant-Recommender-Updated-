@@ -1,7 +1,24 @@
+<<<<<<< HEAD
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // Ensure font_awesome_flutter is in your pubspec.yaml
 import 'sign_in_page.dart';
 import 'otp_page.dart';
+=======
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // Ensure font_awesome_flutter is in your pubspec.yaml
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'home_screen.dart';
+import 'otp_page.dart';
+import 'sign_in_page.dart';
+import 'widgets/platform_google_sign_in_button.dart';
+>>>>>>> b6ab235 (Initial project commit)
 
 // Define your app's main color scheme
 const Color appTeal = Color(0xFF67B5A3);
@@ -184,8 +201,41 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   bool _isConfirmPasswordVisible = false;
   bool _agreedToTerms = false;
 
+<<<<<<< HEAD
   @override
   void dispose() {
+=======
+  bool _isGoogleLoading = false;
+  late final Future<void> _googleInit;
+  StreamSubscription<GoogleSignInAuthenticationEvent>? _googleAuthSub;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Required by google_sign_in ^7.
+    _googleInit = GoogleSignIn.instance.initialize();
+
+    // On Web, the sign-in flow is driven by the rendered Google button.
+    if (kIsWeb) {
+      _googleAuthSub = GoogleSignIn.instance.authenticationEvents.listen(
+        (event) {
+          _onGoogleAuthEvent(event);
+        },
+        onError: (Object e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Google sign-in error: $e')),
+          );
+        },
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _googleAuthSub?.cancel();
+>>>>>>> b6ab235 (Initial project commit)
     _fullNameController.dispose();
     _emailController.dispose();
     _mobileController.dispose();
@@ -194,11 +244,142 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     super.dispose();
   }
 
+<<<<<<< HEAD
   void _onCreateAccountPressed() {
+=======
+  Future<void> _onGoogleAuthEvent(GoogleSignInAuthenticationEvent event) async {
+    if (event is GoogleSignInAuthenticationEventSignIn) {
+      if (_isGoogleLoading) return;
+
+      final idToken = event.user.authentication.idToken;
+      if (idToken == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Google sign-in error: Missing ID token')),
+        );
+        return;
+      }
+
+      if (mounted) setState(() => _isGoogleLoading = true);
+      await _sendGoogleTokenToBackend(idToken, event.user.email);
+    }
+  }
+
+  // Mobile/desktop sign-in flow. (Web uses the rendered Google button + authenticationEvents.)
+  Future<void> _handleGoogleSignIn() async {
+    if (kIsWeb) return;
+    if (_isGoogleLoading) return;
+
+    setState(() => _isGoogleLoading = true);
+
+    try {
+      await _googleInit;
+
+      final account = await GoogleSignIn.instance.authenticate(
+        scopeHint: const ['email', 'profile'],
+      );
+
+      final idToken = account.authentication.idToken;
+      if (idToken == null) throw Exception('No Google ID token');
+
+      await _sendGoogleTokenToBackend(idToken, account.email);
+    } on GoogleSignInException catch (e) {
+      if (mounted) {
+        setState(() => _isGoogleLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Google sign-in error: ${e.code}')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isGoogleLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Google sign-in error: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _sendGoogleTokenToBackend(String idToken, String email) async {
+    final response = await http.post(
+      Uri.parse('http://127.0.0.1:8000/api/accounts/google-signin/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'token': idToken}),
+    );
+
+    if (mounted) setState(() => _isGoogleLoading = false);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+
+      final userEmail = (data['user'] is Map && (data['user'] as Map)['email'] != null)
+          ? (data['user'] as Map)['email'].toString()
+          : email;
+      await prefs.setString('userEmail', userEmail);
+
+      if (data['token'] != null) {
+        await prefs.setString('auth_token', data['token'].toString());
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Signed in with Google as $userEmail')),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const RestaurantListScreen()),
+        );
+      }
+    } else {
+      String error = 'Google sign-in failed';
+      try {
+        final body = jsonDecode(response.body);
+        if (body is Map && body['detail'] != null) error = body['detail'].toString();
+      } catch (_) {}
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+      }
+    }
+  }
+
+  Widget _buildSocialButtons(BuildContext context) {
+    return Column(
+      children: [
+        const SizedBox(height: 20),
+        Row(
+          children: const [
+            Expanded(child: Divider(color: Colors.grey, thickness: 0.5)),
+            Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text('or')),
+            Expanded(child: Divider(color: Colors.grey, thickness: 0.5)),
+          ],
+        ),
+        const SizedBox(height: 20),
+        PlatformGoogleSignInButton(
+          onPressed: _handleGoogleSignIn,
+          isLoading: _isGoogleLoading,
+        ),
+        const SizedBox(height: 15),
+        CommonWidgets._buildSocialButton(
+          context,
+          FontAwesomeIcons.apple,
+          'Continue with Apple',
+          Colors.white,
+          backgroundColor: Colors.black,
+        ),
+      ],
+    );
+  }
+
+  void _onCreateAccountPressed() async {
+>>>>>>> b6ab235 (Initial project commit)
     if (_formKey.currentState!.validate() && _agreedToTerms) {
       setState(() {
         _isLoading = true;
       });
+<<<<<<< HEAD
 
       // Simulate network request
       Future.delayed(const Duration(seconds: 2), () {
@@ -218,6 +399,51 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
           );
         }
       });
+=======
+      String email = _emailController.text.trim();
+      String password = _passwordController.text.trim();
+      try {
+        final response = await http.post(
+          Uri.parse('http://localhost:8000/api/accounts/signup/'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'username': email, 'password': password}),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+        if (response.statusCode == 201) {
+          final data = jsonDecode(response.body);
+          final otp = data['otp'];
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Account created! OTP: $otp')), // For development
+            );
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OTPScreen(email: email),
+              ),
+            );
+          }
+        } else {
+          final errorMsg = jsonDecode(response.body)['error'] ?? 'Sign up failed.';
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(errorMsg)),
+            );
+          }
+        }
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Network error: $e')),
+          );
+        }
+      }
+>>>>>>> b6ab235 (Initial project commit)
     } else if (!_agreedToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please agree to terms & privacy policy')),
@@ -318,7 +544,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         const SizedBox(height: 15),
                         CommonWidgets.buildActionButton(context, 'Create Account', _isLoading, _onCreateAccountPressed),
                         const SizedBox(height: 20),
+<<<<<<< HEAD
                         CommonWidgets.buildSocialButtons(context),
+=======
+                        _buildSocialButtons(context),
+>>>>>>> b6ab235 (Initial project commit)
                       ],
                     ),
                   ),

@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'home_screen.dart';
+=======
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
+import 'home_screen.dart';
+
+>>>>>>> b6ab235 (Initial project commit)
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
@@ -9,6 +17,7 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+<<<<<<< HEAD
   late GoogleMapController mapController;
   final LatLng _center = const LatLng(31.5204, 74.3587);
 
@@ -30,6 +39,97 @@ class _MapScreenState extends State<MapScreen> {
       infoWindow: InfoWindow(title: 'Caution Area', snippet: 'Hygiene Score: 72'),
     ),
   };
+=======
+  LatLng? _userLocation;
+  bool _showFilterPanel = false;
+  final TextEditingController _hygieneController = TextEditingController(
+    text: "70",
+  );
+  final TextEditingController _cuisineController = TextEditingController();
+  final TextEditingController _radiusController = TextEditingController();
+  List<Marker> _markers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _initLocationAndMarkers();
+  }
+
+  Future<void> _initLocationAndMarkers() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition();
+      setState(() {
+        _userLocation = LatLng(position.latitude, position.longitude);
+      });
+      _loadNearbyRestaurants();
+    } catch (e) {
+      // Fallback to Lahore if location fails
+      setState(() {
+        _userLocation = LatLng(31.5204, 74.3587);
+      });
+      _loadNearbyRestaurants();
+    }
+  }
+
+  void _loadNearbyRestaurants() {
+    // Mock data: 3 restaurants near user
+    final base = _userLocation ?? LatLng(31.5204, 74.3587);
+    final List<Map<String, dynamic>> mockRestaurants = [
+      {
+        'id': '1',
+        'name': 'Safe Place',
+        'lat': base.latitude + 0.002,
+        'lng': base.longitude + 0.002,
+        'hygiene': 95,
+      },
+      {
+        'id': '2',
+        'name': 'Caution Area',
+        'lat': base.latitude - 0.003,
+        'lng': base.longitude - 0.001,
+        'hygiene': 72,
+      },
+      {
+        'id': '3',
+        'name': 'Low Hygiene',
+        'lat': base.latitude + 0.001,
+        'lng': base.longitude - 0.002,
+        'hygiene': 60,
+      },
+    ];
+    List<Marker> markers = [
+      Marker(
+        point: base,
+        width: 40,
+        height: 40,
+        child: const Icon(
+          Icons.person_pin_circle,
+          color: Colors.blue,
+          size: 36,
+        ),
+      ),
+      ...mockRestaurants.map(
+        (r) => Marker(
+          point: LatLng(r['lat'], r['lng']),
+          width: 40,
+          height: 40,
+          child: Icon(
+            Icons.location_on,
+            color: r['hygiene'] >= 85
+                ? Colors.green
+                : r['hygiene'] >= 70
+                ? Colors.orange
+                : Colors.red,
+            size: 36,
+          ),
+        ),
+      ),
+    ];
+    setState(() {
+      _markers = markers;
+    });
+  }
+>>>>>>> b6ab235 (Initial project commit)
 
   @override
   void dispose() {
@@ -39,13 +139,18 @@ class _MapScreenState extends State<MapScreen> {
     super.dispose();
   }
 
+<<<<<<< HEAD
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
   }
+=======
+  // No _onMapCreated needed for flutter_map
+>>>>>>> b6ab235 (Initial project commit)
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+<<<<<<< HEAD
       // ResizeToAvoidBottomInset ensures the keyboard doesn't break the layout 
       // when typing in the overlay fields
       resizeToAvoidBottomInset: false,
@@ -59,6 +164,28 @@ class _MapScreenState extends State<MapScreen> {
             myLocationEnabled: true,
             zoomControlsEnabled: false,
             mapType: MapType.normal,
+=======
+      resizeToAvoidBottomInset: false,
+      body: Stack(
+        children: [
+          // 1. Map Layer (flutter_map)
+          FlutterMap(
+            options: MapOptions(
+              initialCenter: _userLocation ?? LatLng(31.5204, 74.3587),
+              initialZoom: 14.0,
+              maxZoom: 18.0,
+              minZoom: 3.0,
+            ),
+            children: [
+              TileLayer(
+                urlTemplate:
+                    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                subdomains: const ['a', 'b', 'c'],
+                userAgentPackageName: 'com.example.app',
+              ),
+              MarkerLayer(markers: _markers),
+            ],
+>>>>>>> b6ab235 (Initial project commit)
           ),
 
           // 2. Top UI Layer
@@ -91,7 +218,10 @@ class _MapScreenState extends State<MapScreen> {
       ),
     );
   }
+<<<<<<< HEAD
   
+=======
+>>>>>>> b6ab235 (Initial project commit)
 
   Widget _buildFilterOverlay() {
     return Positioned(
@@ -108,7 +238,11 @@ class _MapScreenState extends State<MapScreen> {
               color: Colors.black.withOpacity(0.15),
               blurRadius: 20,
               offset: const Offset(0, 10),
+<<<<<<< HEAD
             )
+=======
+            ),
+>>>>>>> b6ab235 (Initial project commit)
           ],
         ),
         child: Column(
@@ -121,7 +255,15 @@ class _MapScreenState extends State<MapScreen> {
               children: [
                 const Text(
                   "Filters",
+<<<<<<< HEAD
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF2D3748)),
+=======
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D3748),
+                  ),
+>>>>>>> b6ab235 (Initial project commit)
                 ),
                 IconButton(
                   onPressed: () => setState(() => _showFilterPanel = false),
@@ -134,7 +276,11 @@ class _MapScreenState extends State<MapScreen> {
             // Hygiene Input
             _buildInputLabel("Minimum Hygiene Score"),
             _buildTextField(_hygieneController, "e.g. 70", isNumeric: true),
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> b6ab235 (Initial project commit)
             const SizedBox(height: 15),
 
             // Cuisine Input
@@ -160,17 +306,35 @@ class _MapScreenState extends State<MapScreen> {
                   debugPrint("Min Hygiene: ${_hygieneController.text}");
                   debugPrint("Cuisine: ${_cuisineController.text}");
                   debugPrint("Radius: ${_radiusController.text}");
+<<<<<<< HEAD
                   
+=======
+
+>>>>>>> b6ab235 (Initial project commit)
                   setState(() => _showFilterPanel = false);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00C48C),
+<<<<<<< HEAD
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+=======
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+>>>>>>> b6ab235 (Initial project commit)
                   elevation: 0,
                 ),
                 child: const Text(
                   "Apply Filters",
+<<<<<<< HEAD
                   style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+=======
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+>>>>>>> b6ab235 (Initial project commit)
                 ),
               ),
             ),
@@ -185,12 +349,28 @@ class _MapScreenState extends State<MapScreen> {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(
         label,
+<<<<<<< HEAD
         style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF4A5568), fontSize: 14),
+=======
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF4A5568),
+          fontSize: 14,
+        ),
+>>>>>>> b6ab235 (Initial project commit)
       ),
     );
   }
 
+<<<<<<< HEAD
   Widget _buildTextField(TextEditingController controller, String hint, {bool isNumeric = false}) {
+=======
+  Widget _buildTextField(
+    TextEditingController controller,
+    String hint, {
+    bool isNumeric = false,
+  }) {
+>>>>>>> b6ab235 (Initial project commit)
     return TextField(
       controller: controller,
       keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
@@ -198,7 +378,14 @@ class _MapScreenState extends State<MapScreen> {
         hintText: hint,
         filled: true,
         fillColor: const Color(0xFFF7FAFC),
+<<<<<<< HEAD
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+=======
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+>>>>>>> b6ab235 (Initial project commit)
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -210,7 +397,11 @@ class _MapScreenState extends State<MapScreen> {
   Widget _buildBackButton() {
     return InkWell(
       onTap: () {
+<<<<<<< HEAD
         // This ensures the navigation stack is cleared and you return 
+=======
+        // This ensures the navigation stack is cleared and you return
+>>>>>>> b6ab235 (Initial project commit)
         // specifically to the RestaurantListScreen (Home)
         Navigator.pushAndRemoveUntil(
           context,
@@ -244,7 +435,15 @@ class _MapScreenState extends State<MapScreen> {
           const Icon(Icons.location_on, color: Color(0xFF00C48C), size: 18),
           const SizedBox(width: 8),
           Flexible(
+<<<<<<< HEAD
             child: Text(location, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+=======
+            child: Text(
+              location,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
+            ),
+>>>>>>> b6ab235 (Initial project commit)
           ),
         ],
       ),
@@ -305,4 +504,8 @@ class _MapScreenState extends State<MapScreen> {
       ),
     );
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> b6ab235 (Initial project commit)

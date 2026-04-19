@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
+<<<<<<< HEAD
+=======
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+>>>>>>> b6ab235 (Initial project commit)
 
 class OTPScreen extends StatefulWidget {
   final String email;
@@ -51,7 +56,11 @@ class _OTPScreenState extends State<OTPScreen> {
     super.dispose();
   }
 
+<<<<<<< HEAD
   void _verifyOtp() {
+=======
+  void _verifyOtp() async {
+>>>>>>> b6ab235 (Initial project commit)
     String otp = controllers.map((e) => e.text).join();
     if (otp.length < otpLength) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -61,6 +70,7 @@ class _OTPScreenState extends State<OTPScreen> {
     }
 
     setState(() => isLoading = true);
+<<<<<<< HEAD
     
     // Simulate API Call
     Future.delayed(const Duration(seconds: 2), () async {
@@ -72,6 +82,19 @@ class _OTPScreenState extends State<OTPScreen> {
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userEmail', widget.email);
 
+=======
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:8000/api/accounts/verify-otp/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'username': widget.email, 'otp': otp}),
+      );
+      setState(() => isLoading = false);
+      if (response.statusCode == 200) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        await prefs.setString('userEmail', widget.email);
+>>>>>>> b6ab235 (Initial project commit)
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Account Created! OTP Verified Successfully")),
@@ -82,8 +105,27 @@ class _OTPScreenState extends State<OTPScreen> {
             (route) => false,
           );
         }
+<<<<<<< HEAD
       }
     });
+=======
+      } else {
+        final errorMsg = jsonDecode(response.body)['error'] ?? 'OTP verification failed.';
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMsg)),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() => isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Network error: $e')),
+        );
+      }
+    }
+>>>>>>> b6ab235 (Initial project commit)
   }
 
   @override
