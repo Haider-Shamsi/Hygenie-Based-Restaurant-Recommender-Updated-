@@ -1,10 +1,4 @@
-<<<<<<< HEAD
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'sign_up_page.dart';
-import 'home_screen.dart';
-=======
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -16,7 +10,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'home_screen.dart';
 import 'sign_up_page.dart';
 import 'widgets/platform_google_sign_in_button.dart';
->>>>>>> b6ab235 (Initial project commit)
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,28 +19,20 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-<<<<<<< HEAD
-=======
   bool isGoogleLoading = false;
->>>>>>> b6ab235 (Initial project commit)
   late TextEditingController emailController;
   late TextEditingController passwordController;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool isLoading = false;
 
-<<<<<<< HEAD
-=======
   late final Future<void> _googleInit;
   StreamSubscription<GoogleSignInAuthenticationEvent>? _googleAuthSub;
 
->>>>>>> b6ab235 (Initial project commit)
   @override
   void initState() {
     super.initState();
     emailController = TextEditingController();
     passwordController = TextEditingController();
-<<<<<<< HEAD
-=======
 
     // Required by google_sign_in ^7.
     _googleInit = GoogleSignIn.instance.initialize();
@@ -67,15 +52,11 @@ class _LoginScreenState extends State<LoginScreen> {
         },
       );
     }
->>>>>>> b6ab235 (Initial project commit)
   }
 
   @override
   void dispose() {
-<<<<<<< HEAD
-=======
     _googleAuthSub?.cancel();
->>>>>>> b6ab235 (Initial project commit)
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -84,27 +65,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleSignIn() async {
     if (_formKey.currentState!.validate()) {
       setState(() => isLoading = true);
-<<<<<<< HEAD
-      
-      // Simulate network request
-      Future.delayed(const Duration(seconds: 2), () async {
-        if (mounted) {
-          setState(() {
-            isLoading = false;
-          });
-          // Placeholder for your logic
-          String email = emailController.text;
-          String password = passwordController.text;
-          debugPrint('Simulating Sign In with Email: $email, Password: $password');
-          
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setBool('isLoggedIn', true);
-          await prefs.setString('userEmail', email);
-
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Logged in as $email')),
-=======
       String email = emailController.text.trim();
       String password = passwordController.text.trim();
       try {
@@ -131,17 +91,12 @@ class _LoginScreenState extends State<LoginScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Logged in as $userEmail')),
->>>>>>> b6ab235 (Initial project commit)
             );
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const RestaurantListScreen()),
             );
           }
-<<<<<<< HEAD
-        }
-      });
-=======
         } else {
           final body = jsonDecode(response.body);
           final errorMsg = (body is Map && body['error'] != null) ? body['error'].toString() : 'Login failed.';
@@ -159,7 +114,6 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         }
       }
->>>>>>> b6ab235 (Initial project commit)
     }
   }
 
@@ -248,14 +202,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-<<<<<<< HEAD
-=======
                     PlatformGoogleSignInButton(
                       onPressed: _handleGoogleSignIn,
                       isLoading: isGoogleLoading,
                     ),
                     const SizedBox(height: 16),
->>>>>>> b6ab235 (Initial project commit)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -278,8 +229,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-<<<<<<< HEAD
-=======
   Future<void> _onGoogleAuthEvent(GoogleSignInAuthenticationEvent event) async {
     if (event is GoogleSignInAuthenticationEventSignIn) {
       if (isGoogleLoading) return;
@@ -367,7 +316,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
->>>>>>> b6ab235 (Initial project commit)
   Widget _buildTextField(TextEditingController controller, String hint, TextInputType type, {bool isPassword = false}) {
     return TextFormField(
       controller: controller,

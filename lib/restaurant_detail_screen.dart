@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart'; 
 import 'models/restaurant.dart';
@@ -27,11 +27,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-<<<<<<< HEAD
-      builder: (context) => _WriteReviewSheet(restaurantName: widget.restaurant.name),
-=======
       builder: (context) => _WriteReviewSheet(restaurantName: widget.restaurant.businessName),
->>>>>>> b6ab235 (Initial project commit)
     );
   }
 
@@ -40,11 +36,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-<<<<<<< HEAD
-      builder: (context) => _ReportIssueSheet(restaurantName: widget.restaurant.name),
-=======
       builder: (context) => _ReportIssueSheet(restaurantName: widget.restaurant.businessName),
->>>>>>> b6ab235 (Initial project commit)
     );
   }
 
@@ -58,9 +50,6 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
             // Header Image Section
             Stack(
               children: [
-<<<<<<< HEAD
-                Image.network(widget.restaurant.imageUrl, height: 260, width: double.infinity, fit: BoxFit.cover),
-=======
                 widget.restaurant.imageUrl != null
                     ? Image.network(widget.restaurant.imageUrl!, height: 260, width: double.infinity, fit: BoxFit.cover)
                     : Container(
@@ -69,7 +58,6 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
                         color: Colors.grey[200],
                         child: const Icon(Icons.restaurant, size: 80, color: Colors.grey),
                       ),
->>>>>>> b6ab235 (Initial project commit)
                 SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -109,15 +97,6 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-<<<<<<< HEAD
-                            Text(widget.restaurant.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                            Text(widget.restaurant.category, style: const TextStyle(color: Colors.grey)),
-                            const SizedBox(height: 4),
-                            Text("${widget.restaurant.distance} away", style: const TextStyle(color: Colors.grey, fontSize: 13)),
-                          ],
-                        ),
-                        _buildHygieneGauge(widget.restaurant.rating.toDouble()),
-=======
                             Text(widget.restaurant.businessName, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                             Text(widget.restaurant.category ?? widget.restaurant.businessType, style: const TextStyle(color: Colors.grey)),
                             const SizedBox(height: 4),
@@ -125,7 +104,6 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
                           ],
                         ),
                         _buildHygieneGauge(widget.restaurant.hygieneScore),
->>>>>>> b6ab235 (Initial project commit)
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -183,11 +161,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
       children: [
         const Text("About", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         const SizedBox(height: 8),
-<<<<<<< HEAD
-        Text(widget.restaurant.description, style: const TextStyle(color: Colors.grey)),
-=======
         Text(widget.restaurant.description ?? 'No description available.', style: const TextStyle(color: Colors.grey)),
->>>>>>> b6ab235 (Initial project commit)
         const SizedBox(height: 20),
         const Text("Recent Reviews", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         const SizedBox(height: 12),

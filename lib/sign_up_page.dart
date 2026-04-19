@@ -1,10 +1,4 @@
-<<<<<<< HEAD
-import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // Ensure font_awesome_flutter is in your pubspec.yaml
-import 'sign_in_page.dart';
-import 'otp_page.dart';
-=======
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -18,7 +12,6 @@ import 'home_screen.dart';
 import 'otp_page.dart';
 import 'sign_in_page.dart';
 import 'widgets/platform_google_sign_in_button.dart';
->>>>>>> b6ab235 (Initial project commit)
 
 // Define your app's main color scheme
 const Color appTeal = Color(0xFF67B5A3);
@@ -201,10 +194,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   bool _isConfirmPasswordVisible = false;
   bool _agreedToTerms = false;
 
-<<<<<<< HEAD
-  @override
-  void dispose() {
-=======
   bool _isGoogleLoading = false;
   late final Future<void> _googleInit;
   StreamSubscription<GoogleSignInAuthenticationEvent>? _googleAuthSub;
@@ -235,7 +224,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   @override
   void dispose() {
     _googleAuthSub?.cancel();
->>>>>>> b6ab235 (Initial project commit)
     _fullNameController.dispose();
     _emailController.dispose();
     _mobileController.dispose();
@@ -244,9 +232,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     super.dispose();
   }
 
-<<<<<<< HEAD
-  void _onCreateAccountPressed() {
-=======
   Future<void> _onGoogleAuthEvent(GoogleSignInAuthenticationEvent event) async {
     if (event is GoogleSignInAuthenticationEventSignIn) {
       if (_isGoogleLoading) return;
@@ -374,32 +359,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   }
 
   void _onCreateAccountPressed() async {
->>>>>>> b6ab235 (Initial project commit)
     if (_formKey.currentState!.validate() && _agreedToTerms) {
       setState(() {
         _isLoading = true;
       });
-<<<<<<< HEAD
-
-      // Simulate network request
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-          // Placeholder for your logic
-          String fullName = _fullNameController.text;
-          String email = _emailController.text;
-          debugPrint('Simulating Account Creation for: $fullName');
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OTPScreen(email: email),
-            ),
-          );
-        }
-      });
-=======
       String email = _emailController.text.trim();
       String password = _passwordController.text.trim();
       try {
@@ -443,7 +406,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
           );
         }
       }
->>>>>>> b6ab235 (Initial project commit)
     } else if (!_agreedToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please agree to terms & privacy policy')),
@@ -544,11 +506,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         const SizedBox(height: 15),
                         CommonWidgets.buildActionButton(context, 'Create Account', _isLoading, _onCreateAccountPressed),
                         const SizedBox(height: 20),
-<<<<<<< HEAD
-                        CommonWidgets.buildSocialButtons(context),
-=======
                         _buildSocialButtons(context),
->>>>>>> b6ab235 (Initial project commit)
                       ],
                     ),
                   ),

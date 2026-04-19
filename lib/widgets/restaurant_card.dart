@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../models/restaurant.dart';
 
 class RestaurantCard extends StatelessWidget {
@@ -29,9 +29,6 @@ class RestaurantCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-<<<<<<< HEAD
-                  child: Image.network(restaurant.imageUrl, height: 180, width: double.infinity, fit: BoxFit.cover),
-=======
                   child: restaurant.imageUrl != null
                       ? Image.network(restaurant.imageUrl!, height: 180, width: double.infinity, fit: BoxFit.cover)
                       : Container(
@@ -40,7 +37,6 @@ class RestaurantCard extends StatelessWidget {
                           color: Colors.grey[200],
                           child: const Icon(Icons.restaurant, size: 60, color: Colors.grey),
                         ),
->>>>>>> b6ab235 (Initial project commit)
                 ),
                 Positioned(
                   top: 15,
@@ -49,12 +45,8 @@ class RestaurantCard extends StatelessWidget {
                     padding: const EdgeInsets.all(8),
                     decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
                     child: Text(
-<<<<<<< HEAD
-                      restaurant.rating.toString(),
-=======
                       // Show hygieneScore as the main rating
                       restaurant.hygieneScore.toStringAsFixed(0),
->>>>>>> b6ab235 (Initial project commit)
                       style: const TextStyle(color: Color(0xFF00C48C), fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -69,14 +61,6 @@ class RestaurantCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-<<<<<<< HEAD
-                      Text(restaurant.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      Text(restaurant.price, style: const TextStyle(color: Colors.grey)),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(restaurant.category, style: const TextStyle(color: Colors.grey, fontSize: 13)),
-=======
                       Text(
                         restaurant.businessName,
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -86,17 +70,12 @@ class RestaurantCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(restaurant.category ?? restaurant.businessType, style: const TextStyle(color: Colors.grey, fontSize: 13)),
->>>>>>> b6ab235 (Initial project commit)
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       const Icon(Icons.location_on_outlined, color: Colors.grey, size: 14),
                       const SizedBox(width: 4),
-<<<<<<< HEAD
-                      Text(restaurant.distance, style: const TextStyle(color: Colors.grey, fontSize: 13)),
-=======
                       Text(restaurant.distance ?? '', style: const TextStyle(color: Colors.grey, fontSize: 13)),
->>>>>>> b6ab235 (Initial project commit)
                     ],
                   ),
                 ],

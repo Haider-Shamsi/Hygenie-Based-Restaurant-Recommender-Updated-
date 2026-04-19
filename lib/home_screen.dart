@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-<<<<<<< HEAD
-import 'models/restaurant.dart';
-=======
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'models/restaurant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,7 +6,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
->>>>>>> b6ab235 (Initial project commit)
 import 'widgets/restaurant_card.dart';
 import 'widgets/custom_filter_chip.dart';
 import 'restaurant_detail_screen.dart';
@@ -18,10 +14,7 @@ import 'alert_screen.dart';
 import 'favorites_screen.dart';
 import 'profile_screen.dart'; 
 
-<<<<<<< HEAD
-=======
 
->>>>>>> b6ab235 (Initial project commit)
 class RestaurantListScreen extends StatefulWidget {
   const RestaurantListScreen({super.key});
 
@@ -32,10 +25,6 @@ class RestaurantListScreen extends StatefulWidget {
 class _RestaurantListScreenState extends State<RestaurantListScreen> {
   int _selectedIndex = 0;
 
-<<<<<<< HEAD
-  // Handles navigation switching
-=======
->>>>>>> b6ab235 (Initial project commit)
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -44,20 +33,11 @@ class _RestaurantListScreenState extends State<RestaurantListScreen> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    // We pass _onItemTapped to HomeTabContent so it can trigger tab switches
-    final List<Widget> _screens = [
-      HomeTabContent(onNavigate: _onItemTapped), 
-      const MapScreen(),
-      const AlertsScreen(),
-      const FavoritesScreen(),
-=======
     final List<Widget> _screens = [
       HomeTabContent(onNavigate: _onItemTapped),
       const MapScreen(),
       const AlertsScreen(),
       FavoritesScreen(), // Removed const
->>>>>>> b6ab235 (Initial project commit)
       const ProfileScreen(userRole: 'customer'),
     ];
 
@@ -93,42 +73,6 @@ class HomeTabContent extends StatefulWidget {
 }
 
 class _HomeTabContentState extends State<HomeTabContent> {
-<<<<<<< HEAD
-  String _selectedFilter = 'Highest Hygiene';
-  final TextEditingController _searchController = TextEditingController();
-  final List<String> _filters = ['Highest Hygiene', 'Nearby', 'Trending', 'Top Rated'];
-
-  final List<Restaurant> _restaurants = [
-    const Restaurant(
-      id: '1',
-      name: "The Green Table",
-      category: "Modern European",
-      distance: "1.2 km",
-      price: "\$\$",
-      rating: 95,
-      imageUrl: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500&q=80",
-    ),
-    const Restaurant(
-      id: '2',
-      name: "Sakura Sushi Bar",
-      category: "Japanese",
-      distance: "2.5 km",
-      price: "\$\$\$",
-      rating: 92,
-      imageUrl: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=500&q=80",
-    ),
-    const Restaurant(
-      id: '3',
-      name: "Bella Italia",
-      category: "Italian",
-      distance: "0.8 km",
-      price: "\$\$",
-      rating: 89,
-      imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
-    ),
-  ];
-
-=======
       // String? _userCity;
       // bool _isDetectingCity = true;
 
@@ -366,7 +310,6 @@ class _HomeTabContentState extends State<HomeTabContent> {
     }
   }
 
->>>>>>> b6ab235 (Initial project commit)
   @override
   void dispose() {
     _searchController.dispose();
@@ -375,8 +318,6 @@ class _HomeTabContentState extends State<HomeTabContent> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-=======
     // --- Filtering and Sorting Logic ---
     List<Restaurant> filteredRestaurants = _restaurants;
 
@@ -416,7 +357,6 @@ class _HomeTabContentState extends State<HomeTabContent> {
     // Defensive: avoid nulls and empty
     final mainList = filteredRestaurants.take(5).toList();
 
->>>>>>> b6ab235 (Initial project commit)
     return Scaffold(
       backgroundColor: const Color(0xFFF9FBFB),
       body: SafeArea(
@@ -427,39 +367,6 @@ class _HomeTabContentState extends State<HomeTabContent> {
             const SizedBox(height: 15),
             _buildFilterChips(),
             Expanded(
-<<<<<<< HEAD
-              child: ListView(
-                padding: const EdgeInsets.all(20),
-                children: [
-                  // Main Restaurant List
-                  ..._restaurants.map((restaurant) => RestaurantCard(
-                    restaurant: restaurant,
-                    onTap: () {
-                      // Navigate to Detail Screen
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => RestaurantDetailScreen(restaurant: restaurant)),
-                      );
-                    },
-                  )),
-                  
-                  const SizedBox(height: 10),
-                  const Text("Recommended for You", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 15),
-
-                  // Reusing the list for recommendation section
-                  ..._restaurants.reversed.map((restaurant) => RestaurantCard(
-                    restaurant: restaurant,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => RestaurantDetailScreen(restaurant: restaurant)),
-                      );
-                    },
-                  )),
-                ],
-              ),
-=======
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _error != null
@@ -525,7 +432,6 @@ class _HomeTabContentState extends State<HomeTabContent> {
                                             )),
                                       ],
                                     )),
->>>>>>> b6ab235 (Initial project commit)
             ),
           ],
         ),
@@ -552,15 +458,9 @@ class _HomeTabContentState extends State<HomeTabContent> {
                     Text("Location", style: TextStyle(color: Colors.grey, fontSize: 12)),
                   ],
                 ),
-<<<<<<< HEAD
-                const Text(
-                  "Lahore, Pakistan",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-=======
                 Text(
-                  _userCity == null ? 'Detecting location…' : '${_userCity!}, Pakistan',
+                  _userCity == null ? 'Detecting locationâ€¦' : '${_userCity!}, Pakistan',
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
->>>>>>> b6ab235 (Initial project commit)
                 ),
               ],
             ),
@@ -606,15 +506,12 @@ class _HomeTabContentState extends State<HomeTabContent> {
                       border: InputBorder.none,
                       icon: Icon(Icons.search, color: Colors.grey),
                     ),
-<<<<<<< HEAD
-=======
                     onChanged: (value) {
                       setState(() {});
                     },
                     onSubmitted: (value) {
                       setState(() {});
                     },
->>>>>>> b6ab235 (Initial project commit)
                   ),
                 ),
               ),
@@ -628,15 +525,6 @@ class _HomeTabContentState extends State<HomeTabContent> {
   }
 
   Widget _buildFilterIconButton() {
-<<<<<<< HEAD
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F2F6),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Icon(Icons.tune, color: Colors.grey),
-=======
     return InkWell(
       onTap: () => _showFilterDialog(),
       borderRadius: BorderRadius.circular(12),
@@ -717,7 +605,6 @@ class _HomeTabContentState extends State<HomeTabContent> {
           ],
         );
       },
->>>>>>> b6ab235 (Initial project commit)
     );
   }
 
@@ -733,9 +620,6 @@ class _HomeTabContentState extends State<HomeTabContent> {
           return CustomFilterChip(
             label: filterName,
             isSelected: _selectedFilter == filterName,
-<<<<<<< HEAD
-            onTap: () => setState(() => _selectedFilter = filterName),
-=======
             onTap: () {
               setState(() => _selectedFilter = filterName);
               if (filterName == 'Recommended for You') {
@@ -744,7 +628,6 @@ class _HomeTabContentState extends State<HomeTabContent> {
                 _fetchNearbyRestaurants();
               }
             },
->>>>>>> b6ab235 (Initial project commit)
           );
         },
       ),
