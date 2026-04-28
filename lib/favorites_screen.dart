@@ -1,61 +1,135 @@
-﻿import 'package:flutter/material.dart';
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'models/restaurant.dart';
 import 'widgets/restaurant_card.dart';
 
-class FavoritesScreen extends StatelessWidget {
-  FavoritesScreen({super.key});
+class FavoritesScreen extends StatefulWidget {
+  const FavoritesScreen({super.key});
 
-  // Mock data for saved restaurants (updated for new model)
-  final List<Restaurant> _savedRestaurants = [
-    Restaurant(
-      id: 1,
-      businessName: "The Green Table",
-      businessType: "Modern European",
-      address: "123 Main Street, Lahore",
-      postCode: "54000",
-      province: "Lahore",
-      userRating: 4.8,
-      hygieneScore: 95.0,
-      inspectionDate: "2024-01-01",
-      imageUrl: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500&q=80",
-      category: "Modern European",
-      distance: "1.2 km",
-      price: "\$\$",
-      description: "A fine dining experience with exceptional hygiene standards.",
-    ),
-    Restaurant(
-      id: 2,
-      businessName: "Sakura Sushi Bar",
-      businessType: "Japanese",
-      address: "456 Sushi Ave, Lahore",
-      postCode: "54001",
-      province: "Lahore",
-      userRating: 4.6,
-      hygieneScore: 92.0,
-      inspectionDate: "2024-01-02",
-      imageUrl: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=500&q=80",
-      category: "Japanese",
-      distance: "2.5 km",
-      price: "\$\$\$",
-      description: "Fresh sushi and a clean environment.",
-    ),
-    Restaurant(
-      id: 3,
-      businessName: "Bella Italia",
-      businessType: "Italian",
-      address: "789 Pasta Rd, Lahore",
-      postCode: "54002",
-      province: "Lahore",
-      userRating: 4.3,
-      hygieneScore: 88.0,
-      inspectionDate: "2024-01-03",
-      imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
-      category: "Italian",
-      distance: "0.8 km",
-      price: "\$\$",
-      description: "Authentic Italian cuisine with top hygiene.",
-    ),
-  ];
+  @override
+  State<FavoritesScreen> createState() => _FavoritesScreenState();
+}
+
+class _FavoritesScreenState extends State<FavoritesScreen> {
+  List<Restaurant> _savedRestaurants = [];
+  final Set<int> _deletingIds = <int>{};
+  bool _isLoading = true;
+  String? _error;
+
+  Future<void> refreshFavorites() => _fetchFavorites();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchFavorites();
+  }
+
+  Future<String?> _getAuthToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('auth_token');
+  }
+
+  Future<void> _fetchFavorites() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final token = await _getAuthToken();
+      if (token == null || token.isEmpty) {
+        setState(() {
+          _isLoading = false;
+          _savedRestaurants = [];
+          _error = 'Sign in to view your favorites.';
+        });
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/favorites/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> body = json.decode(response.body) as Map<String, dynamic>;
+        final List<dynamic> results = (body['results'] as List<dynamic>? ?? <dynamic>[]);
+        setState(() {
+          _savedRestaurants = results
+              .map((e) => Restaurant.fromJson(e as Map<String, dynamic>))
+              .toList(growable: false);
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _savedRestaurants = [];
+          _isLoading = false;
+          _error = 'Failed to load favorites (${response.statusCode}).';
+        });
+      }
+    } catch (_) {
+      setState(() {
+        _savedRestaurants = [];
+        _isLoading = false;
+        _error = 'Unable to load favorites right now.';
+      });
+    }
+  }
+
+  Future<void> _removeFavorite(Restaurant restaurant) async {
+    final token = await _getAuthToken();
+    if (token == null || token.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sign in to update favorites.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _deletingIds.add(restaurant.id);
+    });
+
+    try {
+      final response = await http.delete(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/favorites/${restaurant.id}/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token',
+        },
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 204) {
+        setState(() {
+          _savedRestaurants = _savedRestaurants.where((r) => r.id != restaurant.id).toList(growable: false);
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to remove favorite (${response.statusCode}).')),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not remove favorite. Try again.')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _deletingIds.remove(restaurant.id);
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,14 +143,13 @@ class FavoritesScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Favorites",
+          'Favorites',
           style: TextStyle(color: Color(0xFF323F4B), fontWeight: FontWeight.bold),
         ),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Saved Summary Header
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -85,54 +158,99 @@ class FavoritesScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "${_savedRestaurants.length} saved",
+                  '${_savedRestaurants.length} saved',
                   style: const TextStyle(fontSize: 16, color: Color(0xFF323F4B)),
                 ),
                 const Text(
-                  "restaurants",
+                  'restaurants',
                   style: TextStyle(fontSize: 16, color: Color(0xFF323F4B)),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 10),
+          Expanded(child: _buildContent()),
+        ],
+      ),
+    );
+  }
 
-          // 2. Scrollable List of Favorites
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              itemCount: _savedRestaurants.length,
-              itemBuilder: (context, index) {
-                final restaurant = _savedRestaurants[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: Stack(
-                    children: [
-                      // Reusing your existing RestaurantCard widget
-                      RestaurantCard(
-                        restaurant: restaurant,
-                        onTap: () {},
-                      ),
-                      // Trash Icon
-                      Positioned(
-                        bottom: 15,
-                        right: 15,
-                        child: InkWell(
-                          onTap: () => debugPrint("Remove ${restaurant.businessName}"),
-                          child: const Icon(
+  Widget _buildContent() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_error!, textAlign: TextAlign.center),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: _fetchFavorites,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_savedRestaurants.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            'No favorites yet. Save restaurants from the home feed.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Color(0xFF7A869A)),
+          ),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _fetchFavorites,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        itemCount: _savedRestaurants.length,
+        itemBuilder: (context, index) {
+          final restaurant = _savedRestaurants[index];
+          final isDeleting = _deletingIds.contains(restaurant.id);
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 20),
+            child: Stack(
+              children: [
+                RestaurantCard(
+                  restaurant: restaurant,
+                  onTap: () {},
+                ),
+                Positioned(
+                  bottom: 15,
+                  right: 15,
+                  child: InkWell(
+                    onTap: isDeleting ? null : () => _removeFavorite(restaurant),
+                    child: isDeleting
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(
                             Icons.delete_outline,
                             color: Colors.grey,
                             size: 24,
                           ),
-                        ),
-                      ),
-                    ],
                   ),
-                );
-              },
+                ),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

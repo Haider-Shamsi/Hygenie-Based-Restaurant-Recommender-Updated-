@@ -1,7 +1,81 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
-class MyReportsScreen extends StatelessWidget {
+class MyReportsScreen extends StatefulWidget {
   const MyReportsScreen({super.key});
+
+  @override
+  State<MyReportsScreen> createState() => _MyReportsScreenState();
+}
+
+class _MyReportsScreenState extends State<MyReportsScreen> {
+  List<Map<String, dynamic>> _reports = [];
+  Map<String, dynamic> _summary = {'total': 0, 'submitted': 0, 'reviewed': 0, 'resolved': 0};
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchReports();
+  }
+
+  Future<String?> _getAuthToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('auth_token');
+  }
+
+  Future<void> _fetchReports() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final token = await _getAuthToken();
+      if (token == null || token.isEmpty) {
+        setState(() {
+          _isLoading = false;
+          _reports = [];
+          _error = 'Sign in to view your reports.';
+        });
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/profile/reports/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        setState(() {
+          _isLoading = false;
+          _reports = [];
+          _error = 'Failed to load reports (${response.statusCode}).';
+        });
+        return;
+      }
+
+      final body = json.decode(response.body) as Map<String, dynamic>;
+      final List<dynamic> results = (body['results'] as List<dynamic>? ?? <dynamic>[]);
+      setState(() {
+        _reports = results.map((e) => e as Map<String, dynamic>).toList(growable: false);
+        _summary = (body['summary'] as Map<String, dynamic>? ?? {'total': 0, 'submitted': 0, 'reviewed': 0, 'resolved': 0});
+        _isLoading = false;
+      });
+    } catch (_) {
+      setState(() {
+        _isLoading = false;
+        _reports = [];
+        _error = 'Unable to load your reports right now.';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,20 +90,20 @@ class MyReportsScreen extends StatelessWidget {
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text("My Reports",
                 style: TextStyle(
                     color: Color(0xFF323F4B),
                     fontSize: 18,
                     fontWeight: FontWeight.bold)),
-            Text("5 hygiene reports",
-                style: TextStyle(color: Colors.grey, fontSize: 12)),
+            Text("${_summary['total'] ?? 0} hygiene reports",
+                style: const TextStyle(color: Colors.grey, fontSize: 12)),
           ],
         ),
       ),
       body: Column(
         children: [
-          // 1. Status Filter Header
+          // 1. Status Summary Header
           Container(
             color: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -37,11 +111,11 @@ class MyReportsScreen extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
-                children: const [
-                  _StatusChip(label: "Total", count: 5, color: Colors.grey),
-                  _StatusChip(label: "Pending", count: 1, color: Colors.orange, bgColor: Color(0xFFFFF7ED)),
-                  _StatusChip(label: "Active", count: 1, color: Colors.blue, bgColor: Color(0xFFEFF6FF)),
-                  _StatusChip(label: "Resolved", count: 2, color: Color(0xFF10B981), bgColor: Color(0xFFECFDF5)),
+                children: [
+                  _StatusChip(label: "Total", count: (_summary['total'] as num?)?.toInt() ?? 0, color: Colors.grey),
+                  _StatusChip(label: "Submitted", count: (_summary['submitted'] as num?)?.toInt() ?? 0, color: Colors.orange, bgColor: const Color(0xFFFFF7ED)),
+                  _StatusChip(label: "Reviewed", count: (_summary['reviewed'] as num?)?.toInt() ?? 0, color: Colors.blue, bgColor: const Color(0xFFEFF6FF)),
+                  _StatusChip(label: "Resolved", count: (_summary['resolved'] as num?)?.toInt() ?? 0, color: const Color(0xFF10B981), bgColor: const Color(0xFFECFDF5)),
                 ],
               ),
             ),
@@ -49,70 +123,84 @@ class MyReportsScreen extends StatelessWidget {
 
           // 2. Reports List
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: const [
-                ReportCard(
-                  restaurant: "Quick Bites",
-                  category: "Food Handling",
-                  time: "2 hours ago",
-                  description: "Staff not wearing gloves while preparing food. Observed multiple instances during lunch rush.",
-                  status: "Under Investigation",
-                  statusColor: Colors.blue,
-                  dotColor: Colors.red,
-                  icon: Icons.visibility_outlined,
-                ),
-                ReportCard(
-                  restaurant: "Ocean Breeze Café",
-                  category: "Cleanliness",
-                  time: "1 day ago",
-                  description: "Tables not properly sanitized between customers.",
-                  status: "Pending Review",
-                  statusColor: Colors.orange,
-                  dotColor: Colors.orange,
-                  icon: Icons.access_time,
-                ),
-                ReportCard(
-                  restaurant: "Spice Garden",
-                  category: "Storage",
-                  time: "3 days ago",
-                  description: "Food stored at incorrect temperatures in display case.",
-                  status: "Resolved",
-                  statusColor: Color(0xFF10B981),
-                  dotColor: Colors.red,
-                  icon: Icons.check_circle_outline,
-                  resolutionText: "This issue has been addressed by the restaurant management. Thank you for helping improve food safety!",
-                ),
-                ReportCard(
-                  restaurant: "The Green Table",
-                  category: "Pest Control",
-                  time: "1 week ago",
-                  description: "Noticed flies in the dining area near the kitchen entrance.",
-                  status: "Resolved",
-                  statusColor: Color(0xFF10B981),
-                  dotColor: Colors.orange,
-                  icon: Icons.check_circle_outline,
-                  resolutionText: "This issue has been addressed by the restaurant management. Thank you for helping improve food safety!",
-                ),
-                ReportCard(
-                  restaurant: "Downtown Diner",
-                  category: "Waste Management",
-                  time: "2 weeks ago",
-                  description: "Overflowing trash bins visible from dining area.",
-                  status: "Dismissed",
-                  statusColor: Colors.blueGrey,
-                  dotColor: Colors.blue,
-                  icon: Icons.cancel_outlined,
-                  resolutionText: "This report was reviewed and deemed not to violate hygiene standards.",
-                  isDismissed: true,
-                ),
-              ],
-            ),
+            child: _buildContent(),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildContent() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_error!, textAlign: TextAlign.center),
+            const SizedBox(height: 10),
+            ElevatedButton(onPressed: _fetchReports, child: const Text('Retry')),
+          ],
+        ),
+      );
+    }
+    if (_reports.isEmpty) {
+      return const Center(child: Text('No reports submitted yet.'));
+    }
+
+    return RefreshIndicator(
+      onRefresh: _fetchReports,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(20),
+        itemCount: _reports.length,
+        itemBuilder: (context, index) {
+          final report = _reports[index];
+          final status = (report['status'] as String?) ?? 'submitted';
+          final statusData = _statusView(status);
+          final category = (report['category_display'] as String?) ?? 'Issue';
+          final time = (report['time_since'] as String?) ?? 'recently';
+          final restaurant = (report['restaurant_name'] as String?) ?? 'Restaurant';
+          final description = (report['description'] as String?) ?? '';
+          final statusLabel = (report['status_display'] as String?) ?? status;
+
+          return ReportCard(
+            restaurant: restaurant,
+            category: category,
+            time: time,
+            description: description,
+            status: statusLabel,
+            statusColor: statusData.color,
+            dotColor: statusData.dotColor,
+            icon: statusData.icon,
+            resolutionText: status == 'resolved'
+                ? 'This issue has been marked as resolved. Thank you for reporting hygiene concerns.'
+                : null,
+          );
+        },
+      ),
+    );
+  }
+
+  _StatusViewData _statusView(String status) {
+    switch (status) {
+      case 'resolved':
+        return const _StatusViewData(icon: Icons.check_circle_outline, color: Color(0xFF10B981), dotColor: Colors.green);
+      case 'reviewed':
+        return const _StatusViewData(icon: Icons.visibility_outlined, color: Colors.blue, dotColor: Colors.blue);
+      default:
+        return const _StatusViewData(icon: Icons.access_time, color: Colors.orange, dotColor: Colors.orange);
+    }
+  }
+}
+
+class _StatusViewData {
+  final IconData icon;
+  final Color color;
+  final Color dotColor;
+
+  const _StatusViewData({required this.icon, required this.color, required this.dotColor});
 }
 
 class ReportCard extends StatelessWidget {
@@ -169,9 +257,9 @@ class ReportCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
+              color: statusColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: statusColor.withOpacity(0.2)),
+              border: Border.all(color: statusColor.withValues(alpha: 0.2)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -232,7 +320,7 @@ class _StatusChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: bgColor ?? Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [

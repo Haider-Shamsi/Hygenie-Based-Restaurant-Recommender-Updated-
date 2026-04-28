@@ -1,6 +1,24 @@
 from django.urls import path
 from . import views
-from .views import UserInteractionCreateView, UserInteractionListView, RecommendedRestaurantsView
+from .views import AlertPreferenceView
+from .views import FavoriteRestaurantDeleteView
+from .views import FavoriteRestaurantListCreateView
+from .views import HygieneAlertListView
+from .views import HygieneAlertMarkReadView
+from .views import HygieneIssueReportListCreateView
+from .views import ProfileAccountSettingsView
+from .views import ProfileNotificationSettingsView
+from .views import ProfilePreferencesView
+from .views import ProfileReportListView
+from .views import ProfileReviewDeleteView
+from .views import ProfileReviewListView
+from .views import ProfileView
+from .views import RecommendedRestaurantsView
+from .views import RestaurantDetailDataView
+from .views import RestaurantMenuListView
+from .views import RestaurantReviewListCreateView
+from .views import UserInteractionCreateView
+from .views import UserInteractionListView
 
 urlpatterns = [
     path('signup/', views.SignUpView.as_view(), name='signup'),
@@ -14,4 +32,20 @@ urlpatterns = [
     path('user-interactions/', UserInteractionCreateView.as_view(), name='user-interaction-create'),
     path('user-interactions/history/', UserInteractionListView.as_view(), name='user-interaction-list'),
     path('recommendations/item-based/', RecommendedRestaurantsView.as_view(), name='item-based-recommendations'),
+    path('alerts/', HygieneAlertListView.as_view(), name='hygiene-alerts-list'),
+    path('alerts/<int:alert_id>/read/', HygieneAlertMarkReadView.as_view(), name='hygiene-alert-read'),
+    path('alerts/preferences/', AlertPreferenceView.as_view(), name='hygiene-alert-preferences'),
+    path('favorites/', FavoriteRestaurantListCreateView.as_view(), name='favorites-list-create'),
+    path('favorites/<int:restaurant_id>/', FavoriteRestaurantDeleteView.as_view(), name='favorites-delete'),
+    path('restaurants/<int:restaurant_id>/detail/', RestaurantDetailDataView.as_view(), name='restaurant-detail-data'),
+    path('restaurants/<int:restaurant_id>/reviews/', RestaurantReviewListCreateView.as_view(), name='restaurant-reviews'),
+    path('restaurants/<int:restaurant_id>/reports/', HygieneIssueReportListCreateView.as_view(), name='restaurant-reports'),
+    path('restaurants/<int:restaurant_id>/menu/', RestaurantMenuListView.as_view(), name='restaurant-menu'),
+    path('profile/', ProfileView.as_view(), name='profile-detail'),
+    path('profile/preferences/', ProfilePreferencesView.as_view(), name='profile-preferences'),
+    path('profile/notification-settings/', ProfileNotificationSettingsView.as_view(), name='profile-notification-settings'),
+    path('profile/account-settings/', ProfileAccountSettingsView.as_view(), name='profile-account-settings'),
+    path('profile/reviews/', ProfileReviewListView.as_view(), name='profile-reviews'),
+    path('profile/reviews/<int:review_id>/', ProfileReviewDeleteView.as_view(), name='profile-review-delete'),
+    path('profile/reports/', ProfileReportListView.as_view(), name='profile-reports'),
 ]

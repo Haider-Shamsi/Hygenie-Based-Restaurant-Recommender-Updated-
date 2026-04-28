@@ -24,20 +24,42 @@ class RestaurantListScreen extends StatefulWidget {
 
 class _RestaurantListScreenState extends State<RestaurantListScreen> {
   int _selectedIndex = 0;
+  final GlobalKey _homeTabKey = GlobalKey();
+  final GlobalKey _favoritesScreenKey = GlobalKey();
+
+  void _refreshFavoritesTab() {
+    final state = _favoritesScreenKey.currentState;
+    if (state != null) {
+      (state as dynamic).refreshFavorites();
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+    if (index == 0) {
+      final state = _homeTabKey.currentState;
+      if (state != null) {
+        (state as dynamic).refreshUserPreferences();
+      }
+    }
+    if (index == 3) {
+      _refreshFavoritesTab();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> _screens = [
-      HomeTabContent(onNavigate: _onItemTapped),
+      HomeTabContent(
+        key: _homeTabKey,
+        onNavigate: _onItemTapped,
+        onFavoritesChanged: _refreshFavoritesTab,
+      ),
       const MapScreen(),
       const AlertsScreen(),
-      FavoritesScreen(), // Removed const
+      FavoritesScreen(key: _favoritesScreenKey),
       const ProfileScreen(userRole: 'customer'),
     ];
 
@@ -66,7 +88,13 @@ class _RestaurantListScreenState extends State<RestaurantListScreen> {
 
 class HomeTabContent extends StatefulWidget {
   final Function(int) onNavigate; // Callback to switch tabs
-  const HomeTabContent({super.key, required this.onNavigate});
+  final VoidCallback? onFavoritesChanged;
+
+  const HomeTabContent({
+    super.key,
+    required this.onNavigate,
+    this.onFavoritesChanged,
+  });
 
   @override
   State<HomeTabContent> createState() => _HomeTabContentState();
@@ -93,6 +121,8 @@ class _HomeTabContentState extends State<HomeTabContent> {
   List<Restaurant> _restaurants = [];
   List<Restaurant> _recommendedRestaurants = [];
   List<Restaurant> _nearbyRestaurants = [];
+  final Set<int> _favoriteIds = <int>{};
+  final Set<int> _favoriteBusyIds = <int>{};
   bool _isLoading = true;
   bool _isLoadingRecommended = false;
   bool _isLoadingNearby = false;
@@ -105,9 +135,13 @@ class _HomeTabContentState extends State<HomeTabContent> {
   @override
   void initState() {
     super.initState();
+    _fetchUserPreferences();
     _fetchRestaurants();
     _fetchRecommendedRestaurants();
+    _fetchFavoriteIds();
   }
+
+  Future<void> refreshUserPreferences() => _fetchUserPreferences();
 
   Future<String?> _getAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -160,6 +194,37 @@ class _HomeTabContentState extends State<HomeTabContent> {
         _recommendedError = 'Error: $e';
         _isLoadingRecommended = false;
       });
+    }
+  }
+
+  Future<void> _fetchUserPreferences() async {
+    try {
+      final token = await _getAuthToken();
+      if (token == null || token.isEmpty) return;
+
+      final response = await http.get(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/profile/preferences/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode != 200 || !mounted) return;
+
+      final body = json.decode(response.body) as Map<String, dynamic>;
+      final cuisinePrefs = (body['cuisine_preferences'] as List<dynamic>? ?? <dynamic>[])
+          .map((e) => e.toString())
+          .where((e) => e.trim().isNotEmpty)
+          .toList(growable: false);
+
+      setState(() {
+        _minHygieneScore = (body['min_hygiene_score'] as num?)?.toDouble();
+        _distanceKm = (body['distance_radius_km'] as num?)?.toDouble();
+        _cuisineType = cuisinePrefs.isEmpty ? null : cuisinePrefs.join(', ');
+      });
+    } catch (_) {
+      // Ignore preferences fetch failures.
     }
   }
 
@@ -280,6 +345,120 @@ class _HomeTabContentState extends State<HomeTabContent> {
     }
   }
 
+  Future<void> _fetchFavoriteIds() async {
+    try {
+      final token = await _getAuthToken();
+      if (token == null || token.isEmpty) {
+        if (!mounted) return;
+        setState(() {
+          _favoriteIds.clear();
+        });
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/favorites/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode != 200 || !mounted) return;
+
+      final Map<String, dynamic> body = json.decode(response.body) as Map<String, dynamic>;
+      final List<dynamic> results = (body['results'] as List<dynamic>? ?? <dynamic>[]);
+
+      setState(() {
+        _favoriteIds
+          ..clear()
+          ..addAll(
+            results
+                .map((item) => (item as Map<String, dynamic>)['id'])
+                .whereType<num>()
+                .map((id) => id.toInt()),
+          );
+      });
+    } catch (_) {
+      // Ignore favorite prefetch failures.
+    }
+  }
+
+  Future<void> _toggleFavorite(Restaurant restaurant) async {
+    if (_favoriteBusyIds.contains(restaurant.id)) return;
+
+    final token = await _getAuthToken();
+    if (token == null || token.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sign in to update favorites.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _favoriteBusyIds.add(restaurant.id);
+    });
+
+    try {
+      final isFavorite = _favoriteIds.contains(restaurant.id);
+      late http.Response response;
+
+      if (isFavorite) {
+        response = await http.delete(
+          Uri.parse('http://127.0.0.1:8000/api/accounts/favorites/${restaurant.id}/'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Token $token',
+          },
+        );
+
+        if ((response.statusCode == 204 || response.statusCode == 404) && mounted) {
+          setState(() {
+            _favoriteIds.remove(restaurant.id);
+          });
+          widget.onFavoritesChanged?.call();
+          return;
+        }
+      } else {
+        response = await http.post(
+          Uri.parse('http://127.0.0.1:8000/api/accounts/favorites/'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Token $token',
+          },
+          body: json.encode({'restaurant_id': restaurant.id}),
+        );
+
+        if ((response.statusCode == 200 || response.statusCode == 201) && mounted) {
+          setState(() {
+            _favoriteIds.add(restaurant.id);
+          });
+          widget.onFavoritesChanged?.call();
+          return;
+        }
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update favorite (${response.statusCode}).')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not update favorite. Try again.')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _favoriteBusyIds.remove(restaurant.id);
+        });
+      }
+    }
+  }
+
 
   // City detection removed for web compatibility
 
@@ -310,6 +489,36 @@ class _HomeTabContentState extends State<HomeTabContent> {
     }
   }
 
+  List<Restaurant> _applyActiveFilters(List<Restaurant> input) {
+    var output = List<Restaurant>.from(input);
+
+    final searchText = _searchController.text.trim().toLowerCase();
+    if (searchText.isNotEmpty) {
+      output = output.where((r) => r.businessName.toLowerCase().contains(searchText)).toList();
+    }
+
+    if (_minHygieneScore != null) {
+      output = output.where((r) => r.hygieneScore >= _minHygieneScore!).toList();
+    }
+
+    if (_cuisineType != null && _cuisineType!.trim().isNotEmpty) {
+      final cuisineList = _cuisineType!
+          .toLowerCase()
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      if (cuisineList.isNotEmpty) {
+        output = output.where((r) {
+          final cat = ((r.category ?? r.businessType)).toLowerCase();
+          return cuisineList.any((c) => cat.contains(c));
+        }).toList();
+      }
+    }
+
+    return output;
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -319,27 +528,9 @@ class _HomeTabContentState extends State<HomeTabContent> {
   @override
   Widget build(BuildContext context) {
     // --- Filtering and Sorting Logic ---
-    List<Restaurant> filteredRestaurants = _restaurants;
-
-    // Search by businessName
-    final searchText = _searchController.text.trim().toLowerCase();
-    if (searchText.isNotEmpty) {
-      filteredRestaurants = filteredRestaurants.where((r) => r.businessName.toLowerCase().contains(searchText)).toList();
-    }
-
-    // Apply filter dialog values
-    if (_minHygieneScore != null) {
-      filteredRestaurants = filteredRestaurants.where((r) => r.hygieneScore >= _minHygieneScore!).toList();
-    }
-    if (_cuisineType != null && _cuisineType!.trim().isNotEmpty) {
-      final cuisineList = _cuisineType!.toLowerCase().split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
-      if (cuisineList.isNotEmpty) {
-        filteredRestaurants = filteredRestaurants.where((r) {
-          final cat = (r.category ?? '').toLowerCase();
-          return cuisineList.any((c) => cat.contains(c));
-        }).toList();
-      }
-    }
+    List<Restaurant> filteredRestaurants = _applyActiveFilters(_restaurants);
+    List<Restaurant> filteredRecommended = _applyActiveFilters(_recommendedRestaurants);
+    List<Restaurant> filteredNearby = _applyActiveFilters(_nearbyRestaurants);
     // Distance filter is a placeholder (requires coordinates)
 
     // Apply selected filter
@@ -376,13 +567,16 @@ class _HomeTabContentState extends State<HomeTabContent> {
                               ? const Center(child: CircularProgressIndicator())
                               : _recommendedError != null
                                   ? Center(child: Text(_recommendedError!))
-                                  : _recommendedRestaurants.isEmpty
+                                : filteredRecommended.isEmpty
                                       ? const Center(child: Text('No recommendations found.'))
                                       : ListView(
                                           padding: const EdgeInsets.all(20),
                                           children: [
-                                            ..._recommendedRestaurants.map((restaurant) => RestaurantCard(
+                                    ...filteredRecommended.map((restaurant) => RestaurantCard(
                                                   restaurant: restaurant,
+                                                      isFavorite: _favoriteIds.contains(restaurant.id),
+                                                      isFavoriteLoading: _favoriteBusyIds.contains(restaurant.id),
+                                                      onFavoriteTap: () => _toggleFavorite(restaurant),
                                                   onTap: () {
                                                     _recordInteraction(restaurant.id, 'view');
                                                     Navigator.push(
@@ -398,13 +592,16 @@ class _HomeTabContentState extends State<HomeTabContent> {
                                   ? const Center(child: CircularProgressIndicator())
                                   : _nearbyError != null
                                       ? Center(child: Text(_nearbyError!))
-                                      : _nearbyRestaurants.isEmpty
+                                      : filteredNearby.isEmpty
                                           ? const Center(child: Text('No nearby restaurants found.'))
                                           : ListView(
                                               padding: const EdgeInsets.all(20),
                                               children: [
-                                                ..._nearbyRestaurants.map((restaurant) => RestaurantCard(
+                                          ...filteredNearby.map((restaurant) => RestaurantCard(
                                                       restaurant: restaurant,
+                                                  isFavorite: _favoriteIds.contains(restaurant.id),
+                                                  isFavoriteLoading: _favoriteBusyIds.contains(restaurant.id),
+                                                  onFavoriteTap: () => _toggleFavorite(restaurant),
                                                       onTap: () {
                                                         _recordInteraction(restaurant.id, 'view');
                                                         Navigator.push(
@@ -422,6 +619,9 @@ class _HomeTabContentState extends State<HomeTabContent> {
                                       children: [
                                         ...mainList.map((restaurant) => RestaurantCard(
                                               restaurant: restaurant,
+                                              isFavorite: _favoriteIds.contains(restaurant.id),
+                                              isFavoriteLoading: _favoriteBusyIds.contains(restaurant.id),
+                                              onFavoriteTap: () => _toggleFavorite(restaurant),
                                               onTap: () {
                                                 _recordInteraction(restaurant.id, 'view');
                                                 Navigator.push(

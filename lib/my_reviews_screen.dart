@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyReviewsScreen extends StatefulWidget {
   const MyReviewsScreen({super.key});
@@ -8,42 +11,121 @@ class MyReviewsScreen extends StatefulWidget {
 }
 
 class _MyReviewsScreenState extends State<MyReviewsScreen> {
-  // Mock Data
-  // change to real data from backend in future
-  final List<Map<String, dynamic>> _myReviews = [
-    {
-      "id": 1,
-      "name": "The Green Table",
-      "date": "2 days ago",
-      "rating": 5,
-      "comment": "Excellent hygiene standards! Kitchen was spotless and staff followed all protocols.",
-      "status": "Published",
-    },
-    {
-      "id": 2,
-      "name": "Ocean Breeze Café",
-      "date": "1 week ago",
-      "rating": 4,
-      "comment": "Good overall cleanliness. Staff wears gloves and masks properly.",
-      "status": "Published",
-    },
-    {
-      "id": 3,
-      "name": "Quick Bites",
-      "date": "2 weeks ago",
-      "rating": 2,
-      "comment": "Noticed some hygiene concerns in the food prep area. Needs improvement.",
-      "status": "Under Review",
-    },
-    {
-      "id": 4,
-      "name": "Spice Garden",
-      "date": "3 weeks ago",
-      "rating": 5,
-      "comment": "Impeccable cleanliness and very transparent about their hygiene practices.",
-      "status": "Published",
-    },
-  ];
+  List<Map<String, dynamic>> _myReviews = [];
+  final Set<int> _deletingIds = <int>{};
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMyReviews();
+  }
+
+  Future<String?> _getAuthToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('auth_token');
+  }
+
+  Future<void> _fetchMyReviews() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final token = await _getAuthToken();
+      if (token == null || token.isEmpty) {
+        setState(() {
+          _isLoading = false;
+          _myReviews = [];
+          _error = 'Sign in to view your reviews.';
+        });
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/profile/reviews/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        setState(() {
+          _isLoading = false;
+          _myReviews = [];
+          _error = 'Failed to load reviews (${response.statusCode}).';
+        });
+        return;
+      }
+
+      final body = json.decode(response.body) as Map<String, dynamic>;
+      final List<dynamic> results = (body['results'] as List<dynamic>? ?? <dynamic>[]);
+      setState(() {
+        _myReviews = results.map((e) => e as Map<String, dynamic>).toList(growable: false);
+        _isLoading = false;
+      });
+    } catch (_) {
+      setState(() {
+        _isLoading = false;
+        _myReviews = [];
+        _error = 'Unable to load your reviews right now.';
+      });
+    }
+  }
+
+  Future<void> _deleteReview(int reviewId) async {
+    if (_deletingIds.contains(reviewId)) return;
+
+    final token = await _getAuthToken();
+    if (token == null || token.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sign in to delete reviews.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _deletingIds.add(reviewId);
+    });
+
+    try {
+      final response = await http.delete(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/profile/reviews/$reviewId/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token',
+        },
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 204) {
+        setState(() {
+          _myReviews = _myReviews.where((r) => (r['id'] as num?)?.toInt() != reviewId).toList(growable: false);
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete review (${response.statusCode}).')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not delete review. Try again.')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _deletingIds.remove(reviewId);
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,12 +149,33 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
         ),
       ),
       body: _myReviews.isEmpty
-          ? _buildEmptyState()
+          ? (_isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : (_error != null
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(_error!, textAlign: TextAlign.center),
+                          const SizedBox(height: 10),
+                          ElevatedButton(onPressed: _fetchMyReviews, child: const Text('Retry')),
+                        ],
+                      ),
+                    )
+                  : _buildEmptyState()))
           : ListView.builder(
               padding: const EdgeInsets.all(20),
               itemCount: _myReviews.length,
               itemBuilder: (context, index) {
-                return _ReviewCard(review: _myReviews[index]);
+                return _ReviewCard(
+                  review: _myReviews[index],
+                  isDeleting: _deletingIds.contains((_myReviews[index]['id'] as num?)?.toInt() ?? -1),
+                  onDelete: () {
+                    final id = (_myReviews[index]['id'] as num?)?.toInt();
+                    if (id == null) return;
+                    _showDeleteDialog(id);
+                  },
+                );
               },
             ),
     );
@@ -95,7 +198,10 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
 
 class _ReviewCard extends StatelessWidget {
   final Map<String, dynamic> review;
-  const _ReviewCard({required this.review});
+  final bool isDeleting;
+  final VoidCallback onDelete;
+
+  const _ReviewCard({required this.review, required this.isDeleting, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +216,7 @@ class _ReviewCard extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade100),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -127,20 +233,20 @@ class _ReviewCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(review['name'],
+                    Text(review['restaurant_name'] ?? 'Restaurant',
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF323F4B))),
                     const SizedBox(height: 4),
                     Row(
                       children: [
                         const Icon(Icons.access_time, size: 14, color: Colors.grey),
                         const SizedBox(width: 4),
-                        Text(review['date'], style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                        Text(review['time_since'] ?? 'recently', style: const TextStyle(color: Colors.grey, fontSize: 12)),
                       ],
                     ),
                   ],
                 ),
               ),
-              _buildStatusBadge(review['status']),
+              _buildStatusBadge('Published'),
             ],
           ),
           const SizedBox(height: 16),
@@ -149,8 +255,8 @@ class _ReviewCard extends StatelessWidget {
           Row(
             children: List.generate(5, (index) {
               return Icon(
-                index < review['rating'] ? Icons.star : Icons.star_border,
-                color: index < review['rating'] ? const Color(0xFFFBBF24) : Colors.grey[300],
+                index < ((review['rating'] as num?)?.toInt() ?? 0) ? Icons.star : Icons.star_border,
+                color: index < ((review['rating'] as num?)?.toInt() ?? 0) ? const Color(0xFFFBBF24) : Colors.grey[300],
                 size: 20,
               );
             }),
@@ -159,7 +265,7 @@ class _ReviewCard extends StatelessWidget {
 
           // Comment
           Text(
-            review['comment'],
+            (review['comment'] as String?) ?? '',
             style: const TextStyle(color: Color(0xFF4A5568), height: 1.5, fontSize: 14),
           ),
           const SizedBox(height: 20),
@@ -169,7 +275,7 @@ class _ReviewCard extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: null,
                   icon: const Icon(Icons.edit_outlined, size: 16),
                   label: const Text("Edit"),
                   style: OutlinedButton.styleFrom(
@@ -182,9 +288,11 @@ class _ReviewCard extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _showDeleteDialog(context),
-                  icon: const Icon(Icons.delete_outline, size: 16),
-                  label: const Text("Delete"),
+                  onPressed: isDeleting ? null : onDelete,
+                  icon: isDeleting
+                      ? const SizedBox(height: 14, width: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.delete_outline, size: 16),
+                  label: Text(isDeleting ? 'Deleting' : 'Delete'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.redAccent,
                     side: const BorderSide(color: Color(0xFFFEE2E2)),
@@ -218,7 +326,10 @@ class _ReviewCard extends StatelessWidget {
     );
   }
 
-  void _showDeleteDialog(BuildContext context) {
+}
+
+extension on _MyReviewsScreenState {
+  void _showDeleteDialog(int reviewId) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -228,7 +339,10 @@ class _ReviewCard extends StatelessWidget {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteReview(reviewId);
+            },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
             child: const Text("Delete"),
           ),

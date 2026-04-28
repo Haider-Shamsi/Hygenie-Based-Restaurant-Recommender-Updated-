@@ -1,8 +1,12 @@
 ﻿import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'my_reports_screen.dart';  
 
 import 'my_reviews_screen.dart';  
 import 'preferences_screen.dart'; 
+import 'notification_settings_screen.dart';
+import 'account_settings_screen.dart';
+import 'favorites_screen.dart';
 import 'sign_up_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,8 +27,79 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  String _name = 'User';
+  String _email = '';
+  String _role = 'customer';
+  int _reportsSubmitted = 0;
+  int _reviewsWritten = 0;
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfile();
+  }
+
+  Future<String?> _getAuthToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('auth_token');
+  }
+
+  Future<void> _fetchProfile() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final token = await _getAuthToken();
+      if (token == null || token.isEmpty) {
+        setState(() {
+          _isLoading = false;
+          _error = 'Sign in to view profile.';
+        });
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/profile/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        setState(() {
+          _isLoading = false;
+          _error = 'Failed to load profile (${response.statusCode}).';
+        });
+        return;
+      }
+
+      final body = json.decode(response.body) as Map<String, dynamic>;
+      final profile = body['profile'] as Map<String, dynamic>? ?? <String, dynamic>{};
+      final metrics = profile['metrics'] as Map<String, dynamic>? ?? <String, dynamic>{};
+
+      setState(() {
+        _name = (profile['name'] as String?) ?? 'User';
+        _email = (profile['email'] as String?) ?? '';
+        _role = (profile['role'] as String?) ?? 'customer';
+        _reportsSubmitted = (metrics['reports_submitted'] as num?)?.toInt() ?? 0;
+        _reviewsWritten = (metrics['reviews_written'] as num?)?.toInt() ?? 0;
+        _isLoading = false;
+      });
+    } catch (_) {
+      setState(() {
+        _isLoading = false;
+        _error = 'Unable to load profile right now.';
+      });
+    }
+  }
 
     Future<void> _handleLogout(BuildContext context) async {
+      final navigator = Navigator.of(context);
       try {
         await http.post(
           Uri.parse('http://localhost:8000/api/accounts/logout/'),
@@ -35,17 +110,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
+      if (mounted && navigator.mounted) {
+        navigator.pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const CreateAccountScreen()),
           (route) => false,
         );
       }
     }
-  // Mock Stats
-  final int reportsSubmitted = 12;
-  final int reviewsWritten = 8;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +125,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.only(top: 200),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_error != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 200),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_error!, textAlign: TextAlign.center),
+                    const SizedBox(height: 12),
+                    ElevatedButton(onPressed: _fetchProfile, child: const Text('Retry')),
+                  ],
+                ),
+              )
+            else
+              ...[
             _buildHeader(),
             const SizedBox(height: 20),
             _buildStatsCard(),
@@ -64,28 +154,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: Icons.settings_outlined,
                 title: "Preferences",
                 subtitle: "Manage hygiene thresholds and filters",
-                onTap: () {
-                  // TODO: Redirect to Preferences Screen
-                  // Navigator.push(context, MaterialPageRoute(builder: (context) => YourPreferencesScreen()));
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => UserPreferencesScreen()));
+                onTap: () async {
+                  await Navigator.push(context, MaterialPageRoute(builder: (context) => const UserPreferencesScreen()));
+                  _fetchProfile();
                 },
               ),
               _ProfileOptionTile(
                 icon: Icons.notifications_none_outlined,
                 title: "Notification Settings",
                 subtitle: "Control hygiene alerts and updates",
-                onTap: () {
-                  // TODO: Redirect to Notification Settings Screen
-                  // Navigator.push(context, MaterialPageRoute(builder: (context) => YourNotificationSettingsScreen()));
+                onTap: () async {
+                  await Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationSettingsScreen()));
+                  _fetchProfile();
                 },
               ),
               _ProfileOptionTile(
                 icon: Icons.manage_accounts_outlined,
                 title: "Account Settings",
                 subtitle: "Update profile, email, and password",
-                onTap: () {
-                  // TODO: Redirect to Account Settings Screen
-                  // Navigator.push(context, MaterialPageRoute(builder: (context) => YourAccountSettingsScreen()));
+                onTap: () async {
+                  await Navigator.push(context, MaterialPageRoute(builder: (context) => const AccountSettingsScreen()));
+                  _fetchProfile();
                 },
               ),
             ]),
@@ -96,9 +185,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: Icons.message_outlined,
                 title: "My Reviews",
                 subtitle: "View all reviews you've submitted",
-                onTap: () {
-                  // TODO: Redirect to My Reviews Screen
-                   Navigator.push(context, MaterialPageRoute(builder: (context) => MyReviewsScreen()));
+                 onTap: () async {
+                   await Navigator.push(context, MaterialPageRoute(builder: (context) => const MyReviewsScreen()));
+                   _fetchProfile();
                 },
                 iconColor: const Color(0xFF10B981),
                 iconBgColor: const Color(0xFFECFDF5),
@@ -107,22 +196,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: Icons.report_problem_outlined,
                 title: "My Reports",
                 subtitle: "Track reported hygiene issues",
-                onTap: () {
-                  // TODO: Redirect to My Reports Screen
-                  // Navigator.push(context, MaterialPageRoute(builder: (context) => YourReportsScreen()));
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => MyReportsScreen()));
+                onTap: () async {
+                  await Navigator.push(context, MaterialPageRoute(builder: (context) => const MyReportsScreen()));
+                  _fetchProfile();
                 },
                 iconColor: const Color(0xFF10B981),
                 iconBgColor: const Color(0xFFECFDF5),
               ),
-              if (widget.userRole == 'customer')
+              if (_role == 'customer')
                 _ProfileOptionTile(
                   icon: Icons.favorite_border,
                   title: "Saved Restaurants",
                   subtitle: "View your favorites list",
-                  onTap: () {
-                    // TODO: Redirect to Saved Restaurants Screen
-                    // Navigator.push(context, MaterialPageRoute(builder: (context) => YourSavedRestaurantsScreen()));
+                  onTap: () async {
+                    await Navigator.push(context, MaterialPageRoute(builder: (context) => const FavoritesScreen()));
+                    _fetchProfile();
                   },
                   iconColor: const Color(0xFF10B981),
                   iconBgColor: const Color(0xFFECFDF5),
@@ -135,8 +223,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildLogoutButton(),
             const SizedBox(height: 20),
             const Text("Version 1.0.0", style: TextStyle(color: Colors.grey, fontSize: 12)),
-            const Text("Â© 2026 Restaurant Hygiene App", style: TextStyle(color: Colors.grey, fontSize: 12)),
+            const Text("(c) 2026 Restaurant Hygiene App", style: TextStyle(color: Colors.grey, fontSize: 12)),
             const SizedBox(height: 100), // Space for bottom nav
+            ],
           ],
         ),
       ),
@@ -168,8 +257,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("Lets Testcode", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  Text("Letstestcode@gmail.com", style: TextStyle(color: Colors.grey[600])),
+                  Text(_name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text(_email, style: TextStyle(color: Colors.grey[600])),
                 ],
               )
             ],
@@ -184,10 +273,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildRoleBadge() {
     Color color;
     String label;
-    if (widget.userRole == 'owner') {
+    if (_role == 'owner') {
       color = const Color(0xFF10B981);
       label = "Restaurant Owner";
-    } else if (widget.userRole == 'admin') {
+    } else if (_role == 'admin') {
       color = Colors.purple;
       label = "Administrator";
     } else {
@@ -218,22 +307,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Stat item: Reports
               Expanded(
                 child: InkWell(
-                  onTap: () {
-                    // TODO: Redirect to My Reports Screen
-                     Navigator.push(context, MaterialPageRoute(builder: (context) => MyReportsScreen()));
+                  onTap: () async {
+                    await Navigator.push(context, MaterialPageRoute(builder: (context) => const MyReportsScreen()));
+                    _fetchProfile();
                   },
-                  child: _buildStatItem(Icons.report_problem_outlined, "$reportsSubmitted", "Reports Submitted", Colors.green),
+                  child: _buildStatItem(Icons.report_problem_outlined, "$_reportsSubmitted", "Reports Submitted", Colors.green),
                 ),
               ),
               VerticalDivider(color: Colors.grey[200], thickness: 1),
               // Stat item: Reviews
               Expanded(
                 child: InkWell(
-                  onTap: () {
-                    // TODO: Redirect to My Reviews Screen
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => MyReviewsScreen()));
+                  onTap: () async {
+                    await Navigator.push(context, MaterialPageRoute(builder: (context) => const MyReviewsScreen()));
+                    _fetchProfile();
                   },
-                  child: _buildStatItem(Icons.star_outline, "$reviewsWritten", "Reviews Written", Colors.teal),
+                  child: _buildStatItem(Icons.star_outline, "$_reviewsWritten", "Reviews Written", Colors.teal),
                 ),
               ),
             ],
