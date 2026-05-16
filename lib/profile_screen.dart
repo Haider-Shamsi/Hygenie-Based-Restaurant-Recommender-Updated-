@@ -1,7 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'my_reports_screen.dart';  
-
 import 'my_reviews_screen.dart';  
 import 'preferences_screen.dart'; 
 import 'notification_settings_screen.dart';
@@ -10,13 +9,7 @@ import 'favorites_screen.dart';
 import 'sign_up_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-
-
-
-
-
-
-
+import 'OwnerDashboardScreen.dart' ;
 class ProfileScreen extends StatefulWidget {
   final String userRole; // 'customer', 'owner', 'admin'
 
@@ -98,25 +91,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-    Future<void> _handleLogout(BuildContext context) async {
-      final navigator = Navigator.of(context);
-      try {
-        await http.post(
-          Uri.parse('http://localhost:8000/api/accounts/logout/'),
-          headers: {'Content-Type': 'application/json'},
-        );
-      } catch (e) {
-        // Ignore network errors for logout
-      }
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-      if (mounted && navigator.mounted) {
-        navigator.pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const CreateAccountScreen()),
-          (route) => false,
-        );
-      }
+  Future<void> _handleLogout(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    try {
+      await http.post(
+        Uri.parse('http://localhost:8000/api/accounts/logout/'),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (e) {
+      // Ignore network errors for logout
     }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    if (mounted && navigator.mounted) {
+      navigator.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const CreateAccountScreen()),
+        (route) => false,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -144,88 +137,89 @@ class _ProfileScreenState extends State<ProfileScreen> {
               )
             else
               ...[
-            _buildHeader(),
-            const SizedBox(height: 20),
-            _buildStatsCard(),
-            const SizedBox(height: 24),
-            _buildSectionTitle("Account & Settings"),
-            _buildSettingsGroup([
-              _ProfileOptionTile(
-                icon: Icons.settings_outlined,
-                title: "Preferences",
-                subtitle: "Manage hygiene thresholds and filters",
-                onTap: () async {
-                  await Navigator.push(context, MaterialPageRoute(builder: (context) => const UserPreferencesScreen()));
-                  _fetchProfile();
-                },
-              ),
-              _ProfileOptionTile(
-                icon: Icons.notifications_none_outlined,
-                title: "Notification Settings",
-                subtitle: "Control hygiene alerts and updates",
-                onTap: () async {
-                  await Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationSettingsScreen()));
-                  _fetchProfile();
-                },
-              ),
-              _ProfileOptionTile(
-                icon: Icons.manage_accounts_outlined,
-                title: "Account Settings",
-                subtitle: "Update profile, email, and password",
-                onTap: () async {
-                  await Navigator.push(context, MaterialPageRoute(builder: (context) => const AccountSettingsScreen()));
-                  _fetchProfile();
-                },
-              ),
-            ]),
-            const SizedBox(height: 24),
-            _buildSectionTitle("Activity & History"),
-            _buildSettingsGroup([
-              _ProfileOptionTile(
-                icon: Icons.message_outlined,
-                title: "My Reviews",
-                subtitle: "View all reviews you've submitted",
-                 onTap: () async {
-                   await Navigator.push(context, MaterialPageRoute(builder: (context) => const MyReviewsScreen()));
-                   _fetchProfile();
-                },
-                iconColor: const Color(0xFF10B981),
-                iconBgColor: const Color(0xFFECFDF5),
-              ),
-              _ProfileOptionTile(
-                icon: Icons.report_problem_outlined,
-                title: "My Reports",
-                subtitle: "Track reported hygiene issues",
-                onTap: () async {
-                  await Navigator.push(context, MaterialPageRoute(builder: (context) => const MyReportsScreen()));
-                  _fetchProfile();
-                },
-                iconColor: const Color(0xFF10B981),
-                iconBgColor: const Color(0xFFECFDF5),
-              ),
-              if (_role == 'customer')
-                _ProfileOptionTile(
-                  icon: Icons.favorite_border,
-                  title: "Saved Restaurants",
-                  subtitle: "View your favorites list",
-                  onTap: () async {
-                    await Navigator.push(context, MaterialPageRoute(builder: (context) => const FavoritesScreen()));
-                    _fetchProfile();
-                  },
-                  iconColor: const Color(0xFF10B981),
-                  iconBgColor: const Color(0xFFECFDF5),
-                ),
-            ]),
-            const SizedBox(height: 24),
-           // _buildSectionTitle("Role Actions"),
-           // _buildRoleActions(),
-            const SizedBox(height: 30),
-            _buildLogoutButton(),
-            const SizedBox(height: 20),
-            const Text("Version 1.0.0", style: TextStyle(color: Colors.grey, fontSize: 12)),
-            const Text("(c) 2026 Restaurant Hygiene App", style: TextStyle(color: Colors.grey, fontSize: 12)),
-            const SizedBox(height: 100), // Space for bottom nav
-            ],
+                _buildHeader(),
+                const SizedBox(height: 20),
+                _buildStatsCard(),
+                const SizedBox(height: 24),
+                _buildSectionTitle("Account & Settings"),
+                _buildSettingsGroup([
+                  _ProfileOptionTile(
+                    icon: Icons.settings_outlined,
+                    title: "Preferences",
+                    subtitle: "Manage hygiene thresholds and filters",
+                    onTap: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (context) => const UserPreferencesScreen()));
+                      _fetchProfile();
+                    },
+                  ),
+                  _ProfileOptionTile(
+                    icon: Icons.notifications_none_outlined,
+                    title: "Notification Settings",
+                    subtitle: "Control hygiene alerts and updates",
+                    onTap: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationSettingsScreen()));
+                      _fetchProfile();
+                    },
+                  ),
+                  _ProfileOptionTile(
+                    icon: Icons.manage_accounts_outlined,
+                    title: "Account Settings",
+                    subtitle: "Update profile, email, and password",
+                    onTap: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (context) => const AccountSettingsScreen()));
+                      _fetchProfile();
+                    },
+                  ),
+                ]),
+                const SizedBox(height: 24),
+                _buildSectionTitle("Activity & History"),
+                _buildSettingsGroup([
+                  _ProfileOptionTile(
+                    icon: Icons.message_outlined,
+                    title: "My Reviews",
+                    subtitle: "View all reviews you've submitted",
+                    onTap: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (context) => const MyReviewsScreen()));
+                      _fetchProfile();
+                    },
+                    iconColor: const Color(0xFF10B981),
+                    iconBgColor: const Color(0xFFECFDF5),
+                  ),
+                  _ProfileOptionTile(
+                    icon: Icons.report_problem_outlined,
+                    title: "My Reports",
+                    subtitle: "Track reported hygiene issues",
+                    onTap: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (context) => const MyReportsScreen()));
+                      _fetchProfile();
+                    },
+                    iconColor: const Color(0xFF10B981),
+                    iconBgColor: const Color(0xFFECFDF5),
+                  ),
+                  if (_role == 'customer')
+                    _ProfileOptionTile(
+                      icon: Icons.favorite_border,
+                      title: "Saved Restaurants",
+                      subtitle: "View your favorites list",
+                      onTap: () async {
+                        await Navigator.push(context, MaterialPageRoute(builder: (context) => const FavoritesScreen()));
+                        _fetchProfile();
+                      },
+                      iconColor: const Color(0xFF10B981),
+                      iconBgColor: const Color(0xFFECFDF5),
+                    ),
+                ]),
+                const SizedBox(height: 24),
+                // Re-integrated Role Actions Section
+                _buildSectionTitle("Role Actions"),
+                _buildRoleActions(),
+                const SizedBox(height: 30),
+                _buildLogoutButton(),
+                const SizedBox(height: 20),
+                const Text("Version 1.0.0", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                const Text("(c) 2026 Restaurant Hygiene App", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                const SizedBox(height: 100), // Space for bottom nav
+              ],
           ],
         ),
       ),
@@ -286,7 +280,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
       child: Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
     );
   }
@@ -304,7 +298,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: IntrinsicHeight(
           child: Row(
             children: [
-              // Stat item: Reports
               Expanded(
                 child: InkWell(
                   onTap: () async {
@@ -315,7 +308,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               VerticalDivider(color: Colors.grey[200], thickness: 1),
-              // Stat item: Reviews
               Expanded(
                 child: InkWell(
                   onTap: () async {
@@ -365,89 +357,88 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // --- Role Actions Implementation ---
+  Widget _buildRoleActions() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          _buildRoleActionButton(
+            icon: Icons.business_outlined, 
+            title: "Switch to Owner View", 
+            sub: "Manage your restaurant dashboard", 
+            color: const Color(0xFF10B981), // Emerald Teal
+            onTap: () {
+          
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OwnerDashboardScreen(
+                    onBack: () => Navigator.pop(context),
+                  ),
+                ),
+              );
+            }
+          ),
+          const SizedBox(height: 12),
+          _buildRoleActionButton(
+            icon: Icons.shield_outlined, 
+            title: "Switch to Admin View", 
+            sub: "Access system administration", 
+            color: Colors.purple, // Purple
+            onTap: () {
+              // TODO: Add navigation to Admin Dashboard
+              // Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminDashboardScreen()));
+            }
+          ),
+        ],
+      ),
+    );
+  }
 
-    //shamsi ive commented this part as this is for demo purposes only and we 
-    //have to mkae thosee seperately
-
-
-  // Widget _buildRoleActions() {
-  //   return Padding(
-  //     padding: const EdgeInsets.symmetric(horizontal: 20),
-  //     child: Column(
-  //       children: [
-  //         if (widget.userRole != 'owner')
-  //           _buildRoleActionButton(
-  //             Icons.business_outlined, 
-  //             "Switch to Owner View", 
-  //             "Manage your restaurant dashboard", 
-  //             const Color(0xFF10B981),
-  //             onTap: () {
-  //               // TODO: Redirect to Owner View
-  //               // Navigator.push(context, MaterialPageRoute(builder: (context) => YourOwnerViewScreen()));
-  //             }
-  //           ),
-  //         const SizedBox(height: 12),
-  //         if (widget.userRole != 'admin')
-  //           _buildRoleActionButton(
-  //             Icons.shield_outlined, 
-  //             "Switch to Admin View", 
-  //             "Access system administration", 
-  //             Colors.purple,
-  //             onTap: () {
-  //               // TODO: Redirect to Admin View
-  //               // Navigator.push(context, MaterialPageRoute(builder: (context) => YourAdminViewScreen()));
-  //             }
-  //           ),
-  //         const SizedBox(height: 12),
-  //         _buildRoleActionButton(
-  //           Icons.description_outlined, 
-  //           "Audit Demo Mode", 
-  //           "View sample hygiene audit", 
-  //           Colors.blue,
-  //           onTap: () {
-  //             // TODO: Redirect to Audit Demo Screen
-  //             // Navigator.push(context, MaterialPageRoute(builder: (context) => YourAuditDemoScreen()));
-  //           }
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  // Widget _buildRoleActionButton(IconData icon, String title, String sub, Color color, {required VoidCallback onTap}) {
-  //   return InkWell(
-  //     onTap: onTap,
-  //     borderRadius: BorderRadius.circular(20),
-  //     child: Container(
-  //       padding: const EdgeInsets.all(16),
-  //       decoration: BoxDecoration(
-  //         color: Colors.white,
-  //         borderRadius: BorderRadius.circular(20),
-  //         border: Border.all(color: Colors.grey[100]!),
-  //       ),
-  //       child: Row(
-  //         children: [
-  //           Container(
-  //             padding: const EdgeInsets.all(10),
-  //             decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-  //             child: Icon(icon, color: color),
-  //           ),
-  //           const SizedBox(width: 16),
-  //           Expanded(
-  //             child: Column(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: [
-  //                 Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-  //                 Text(sub, style: TextStyle(color: Colors.grey[500], fontSize: 12)),
-  //               ],
-  //             ),
-  //           ),
-  //           const Icon(Icons.chevron_right, color: Colors.grey),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
+  Widget _buildRoleActionButton({
+    required IconData icon, 
+    required String title, 
+    required String sub, 
+    required Color color, 
+    required VoidCallback onTap
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1), 
+                borderRadius: BorderRadius.circular(12)
+              ),
+              child: Icon(icon, color: color),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF323F4B))),
+                  Text(sub, style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildLogoutButton() {
     return Padding(
@@ -479,7 +470,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
           ElevatedButton(
             onPressed: () {
-              // Logout logic: call backend, clear local session, and navigate to sign up
               _handleLogout(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
@@ -517,7 +507,7 @@ class _ProfileOptionTile extends StatelessWidget {
         decoration: BoxDecoration(color: iconBgColor ?? Colors.grey[100], shape: BoxShape.circle),
         child: Icon(icon, color: iconColor ?? Colors.grey[700], size: 20),
       ),
-      title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+      title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF323F4B))),
       subtitle: Text(subtitle, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
       trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
       onTap: onTap,
