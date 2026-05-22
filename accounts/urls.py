@@ -19,6 +19,15 @@ from .views import RestaurantMenuListView
 from .views import RestaurantReviewListCreateView
 from .views import UserInteractionCreateView
 from .views import UserInteractionListView
+from .views import OwnerAnalyticsView
+from .views import OwnerDashboardView
+from .views import OwnerHygieneReportResponseView
+from .views import OwnerHygieneReportsView
+from .views import OwnerRestaurantMenuItemView
+from .views import OwnerRestaurantMenuView
+from .views import OwnerRestaurantProfileView
+from .views import OwnerReviewResponseView
+from .views import OwnerReviewsView
 
 urlpatterns = [
     path('signup/', views.SignUpView.as_view(), name='signup'),
@@ -48,4 +57,13 @@ urlpatterns = [
     path('profile/reviews/', ProfileReviewListView.as_view(), name='profile-reviews'),
     path('profile/reviews/<int:review_id>/', ProfileReviewDeleteView.as_view(), name='profile-review-delete'),
     path('profile/reports/', ProfileReportListView.as_view(), name='profile-reports'),
+    path('owner/dashboard/', OwnerDashboardView.as_view(), name='owner-dashboard'),
+    path('owner/reviews/', OwnerReviewsView.as_view(), name='owner-reviews'),
+    path('owner/reviews/<int:review_id>/response/', OwnerReviewResponseView.as_view(), name='owner-review-response'),
+    path('owner/reports/', OwnerHygieneReportsView.as_view(), name='owner-reports'),
+    path('owner/reports/<int:report_id>/response/', OwnerHygieneReportResponseView.as_view(), name='owner-report-response'),
+    path('owner/analytics/', OwnerAnalyticsView.as_view(), name='owner-analytics'),
+    path('owner/restaurant/', OwnerRestaurantProfileView.as_view(), name='owner-restaurant'),
+    path('owner/menu/', OwnerRestaurantMenuView.as_view(), name='owner-menu'),
+    path('owner/menu/<int:item_id>/', OwnerRestaurantMenuItemView.as_view(), name='owner-menu-item'),
 ]

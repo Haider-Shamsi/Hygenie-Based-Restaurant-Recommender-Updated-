@@ -25,7 +25,8 @@ SECRET_KEY = 'django-insecure-9uyl=^o+i%y!+@iz)r%3m-og*a9#s&7@8c7ixz1wy4dc+m^68m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# Allow all hosts for deployment (update for production as needed)
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -52,6 +53,7 @@ REST_FRAMEWORK = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -126,7 +128,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
+
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # CORS settings for API access from Flutter frontend
 CORS_ALLOW_ALL_ORIGINS = True

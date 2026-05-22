@@ -142,7 +142,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
 
       // Replace with your actual Django endpoint
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/owner/dashboard/'),
+        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/dashboard/'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Token $token',
@@ -156,43 +156,17 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
           _isLoading = false;
         });
       } else {
-        // Fallback to mock data for demonstration if backend isn't running
-        _loadMockData();
+        setState(() {
+          _errorMessage = 'Failed to load dashboard data.';
+          _isLoading = false;
+        });
       }
     } catch (e) {
-      // Network or parsing error -> Fallback to mock data for UI testing
-      _loadMockData();
+      setState(() {
+        _errorMessage = 'Unable to reach the server.';
+        _isLoading = false;
+      });
     }
-  }
-
-  void _loadMockData() {
-    setState(() {
-      _dashboardData = OwnerDashboardData(
-        restaurantName: "The Green Table",
-        lastInspectionDate: "Dec 15, 2025",
-        hygieneScore: 95,
-        totalReviews: 248,
-        reviewTrend: "+12%",
-        averageRating: 4.6,
-        monthlyVisitors: 3421,
-        visitorTrend: "+8.3%",
-        hygieneTrend: [
-          HygieneDataPoint(month: 'Jan', score: 82), HygieneDataPoint(month: 'Feb', score: 85),
-          HygieneDataPoint(month: 'Mar', score: 83), HygieneDataPoint(month: 'Apr', score: 87),
-          HygieneDataPoint(month: 'May', score: 89), HygieneDataPoint(month: 'Jun', score: 88),
-          HygieneDataPoint(month: 'Jul', score: 90), HygieneDataPoint(month: 'Aug', score: 92),
-          HygieneDataPoint(month: 'Sep', score: 91), HygieneDataPoint(month: 'Oct', score: 93),
-          HygieneDataPoint(month: 'Nov', score: 94), HygieneDataPoint(month: 'Dec', score: 95),
-        ],
-        recentActivities: [
-          ActivityItem(type: 'review', description: 'New 5-star review from Sarah M.', timeAgo: '2 hours ago'),
-          ActivityItem(type: 'report', description: 'Hygiene report submitted by health inspector', timeAgo: '1 day ago'),
-          ActivityItem(type: 'inspection', description: 'Passed monthly health inspection', timeAgo: '3 days ago'),
-          ActivityItem(type: 'review', description: 'New review from Michael K.', timeAgo: '5 days ago'),
-        ],
-      );
-      _isLoading = false;
-    });
   }
 
   @override

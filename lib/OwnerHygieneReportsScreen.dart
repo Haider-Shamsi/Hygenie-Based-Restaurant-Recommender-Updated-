@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 // --- DATA MODELS ---
 
@@ -38,6 +42,25 @@ class HygieneReport {
     this.ownerResponse,
     required this.timeline,
   });
+
+  factory HygieneReport.fromJson(Map<String, dynamic> json) {
+    return HygieneReport(
+      id: json['id']?.toString() ?? '',
+      reportId: json['report_id'] ?? '',
+      dateSubmitted: json['date_submitted'] ?? '',
+      issueType: json['issue_type'] ?? '',
+      priority: json['priority'] ?? 'Medium',
+      description: json['description'] ?? '',
+      status: json['status'] ?? 'Open',
+      ownerResponse: json['owner_response'] != null
+          ? OwnerResponse(
+              text: json['owner_response']['text'] ?? '',
+              timestamp: json['owner_response']['date'] ?? '',
+            )
+          : null,
+      timeline: [TimelineEvent(status: 'Submitted', date: json['date_submitted'] ?? '')],
+    );
+  }
 }
 
 // --- SCREEN WIDGET ---
@@ -65,73 +88,14 @@ class _OwnerHygieneReportsScreenState extends State<OwnerHygieneReportsScreen> {
   final TextEditingController _responseController = TextEditingController();
   final Set<String> _expandedDescriptions = {};
 
-  // Mock Data
-  late List<HygieneReport> _reports;
+  bool _isLoading = true;
+  String? _errorMessage;
+  List<HygieneReport> _reports = [];
 
   @override
   void initState() {
     super.initState();
-    _reports = [
-      HygieneReport(
-        id: '1',
-        reportId: '#RPT-2025-001',
-        dateSubmitted: 'Dec 10, 2025',
-        issueType: 'Food Safety',
-        priority: 'High',
-        description: 'Observed improper food storage temperatures in the refrigeration unit. Multiple items were stored above the recommended safe temperature threshold, which could lead to bacterial growth and food safety concerns.',
-        status: 'Open',
-        timeline: [TimelineEvent(status: 'Submitted', date: 'Dec 10, 2025')],
-      ),
-      HygieneReport(
-        id: '2',
-        reportId: '#RPT-2025-002',
-        dateSubmitted: 'Dec 5, 2025',
-        issueType: 'Cleanliness',
-        priority: 'Medium',
-        description: 'Floor in the kitchen area needs more frequent cleaning. Noticed some buildup in corners and under equipment.',
-        status: 'Investigating',
-        timeline: [
-          TimelineEvent(status: 'Submitted', date: 'Dec 5, 2025'),
-          TimelineEvent(status: 'Under Investigation', date: 'Dec 6, 2025'),
-        ],
-      ),
-      HygieneReport(
-        id: '3',
-        reportId: '#RPT-2024-098',
-        dateSubmitted: 'Nov 20, 2025',
-        issueType: 'Staff Hygiene',
-        priority: 'Medium',
-        description: 'Staff member observed not following proper handwashing protocol after handling raw ingredients.',
-        status: 'Resolved',
-        ownerResponse: OwnerResponse(
-          text: 'Thank you for bringing this to our attention. We have conducted immediate staff retraining on proper handwashing procedures and have installed additional signage as reminders. All staff have been retrained and certified.',
-          timestamp: 'Nov 21, 2025',
-        ),
-        timeline: [
-          TimelineEvent(status: 'Submitted', date: 'Nov 20, 2025'),
-          TimelineEvent(status: 'Under Investigation', date: 'Nov 21, 2025'),
-          TimelineEvent(status: 'Resolved', date: 'Nov 25, 2025'),
-        ],
-      ),
-      HygieneReport(
-        id: '4',
-        reportId: '#RPT-2024-092',
-        dateSubmitted: 'Nov 10, 2025',
-        issueType: 'Cleanliness',
-        priority: 'Low',
-        description: 'Some minor cleaning needed in the dining area. Tables could be wiped more thoroughly between seatings.',
-        status: 'Resolved',
-        ownerResponse: OwnerResponse(
-          text: 'We appreciate your feedback. We have increased our cleaning frequency and added a checklist system to ensure all surfaces are properly sanitized between guests.',
-          timestamp: 'Nov 11, 2025',
-        ),
-        timeline: [
-          TimelineEvent(status: 'Submitted', date: 'Nov 10, 2025'),
-          TimelineEvent(status: 'Under Investigation', date: 'Nov 11, 2025'),
-          TimelineEvent(status: 'Resolved', date: 'Nov 12, 2025'),
-        ],
-      ),
-    ];
+    _fetchReports();
   }
 
   @override
@@ -179,20 +143,89 @@ class _OwnerHygieneReportsScreenState extends State<OwnerHygieneReportsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a response'), backgroundColor: Colors.red));
       return;
     }
+    _sendResponse(id, _responseController.text.trim());
+  }
 
+  Future<void> _fetchReports() async {
     setState(() {
-      final reportIndex = _reports.indexWhere((r) => r.id == id);
-      if (reportIndex != -1) {
-        _reports[reportIndex].ownerResponse = OwnerResponse(
-          text: _responseController.text.trim(),
-          timestamp: 'Just now',
-        );
-      }
-      _respondingToId = null;
-      _responseController.clear();
+      _isLoading = true;
+      _errorMessage = null;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Response submitted successfully!'), backgroundColor: Colors.green));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.get(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/reports/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        final results = (data['results'] as List<dynamic>? ?? [])
+            .map((item) => HygieneReport.fromJson(item))
+            .toList();
+        setState(() {
+          _reports = results;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Failed to load reports.';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Unable to reach the server.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _sendResponse(String id, String text) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.post(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/reports/$id/response/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+        body: json.encode({'text': text}),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          final reportIndex = _reports.indexWhere((r) => r.id == id);
+          if (reportIndex != -1) {
+            _reports[reportIndex].ownerResponse = OwnerResponse(
+              text: text,
+              timestamp: 'Just now',
+            );
+          }
+          _respondingToId = null;
+          _responseController.clear();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Response submitted successfully!'), backgroundColor: Colors.green),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to submit response.'), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to reach the server.'), backgroundColor: Colors.red),
+      );
+    }
   }
 
   void _toggleExpand(String id) {
@@ -239,6 +272,20 @@ class _OwnerHygieneReportsScreenState extends State<OwnerHygieneReportsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Scaffold(
+        body: Center(
+          child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: _bgGray,
       appBar: AppBar(

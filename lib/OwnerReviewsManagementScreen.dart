@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 // --- DATA MODELS ---
 
@@ -22,6 +26,24 @@ class OwnerReview {
     required this.helpfulCount,
     this.ownerResponse,
   });
+
+  factory OwnerReview.fromJson(Map<String, dynamic> json) {
+    return OwnerReview(
+      id: json['id']?.toString() ?? '',
+      userName: json['user_name'] ?? 'Anonymous',
+      rating: json['rating'] ?? 0,
+      date: json['date'] ?? '',
+      reviewText: json['review_text'] ?? '',
+      sentiment: json['sentiment'] ?? 'Neutral',
+      helpfulCount: json['helpful_count'] ?? 0,
+      ownerResponse: json['owner_response'] != null
+          ? {
+              'text': json['owner_response']['text'] ?? '',
+              'date': json['owner_response']['date'] ?? '',
+            }
+          : null,
+    );
+  }
 }
 
 // --- SCREEN WIDGET ---
@@ -47,76 +69,14 @@ class _OwnerReviewsManagementScreenState extends State<OwnerReviewsManagementScr
   String? _respondingToId;
   final TextEditingController _responseController = TextEditingController();
 
-  // Mock Data
-  late List<OwnerReview> _reviews;
+  bool _isLoading = true;
+  String? _errorMessage;
+  List<OwnerReview> _reviews = [];
 
   @override
   void initState() {
     super.initState();
-    _reviews = [
-      OwnerReview(
-        id: '1',
-        userName: 'Sarah Mitchell',
-        rating: 5,
-        date: 'Dec 10, 2025',
-        reviewText: 'Absolutely fantastic experience! The food was fresh, delicious, and beautifully presented. The staff was incredibly attentive and friendly. Will definitely be coming back!',
-        sentiment: 'Positive',
-        helpfulCount: 12,
-        ownerResponse: {
-          'text': "Thank you so much for your kind words, Sarah! We're thrilled you enjoyed your experience with us. We look forward to serving you again soon!",
-          'date': 'Dec 11, 2025',
-        },
-      ),
-      OwnerReview(
-        id: '2',
-        userName: 'Michael Chen',
-        rating: 4,
-        date: 'Dec 8, 2025',
-        reviewText: 'Great food and atmosphere. The hygiene standards are clearly excellent. Only minor issue was the wait time, but the quality made up for it.',
-        sentiment: 'Positive',
-        helpfulCount: 8,
-      ),
-      OwnerReview(
-        id: '3',
-        userName: 'Emma Rodriguez',
-        rating: 2,
-        date: 'Dec 5, 2025',
-        reviewText: 'Disappointed with the service. Food was okay but took too long to arrive. The restaurant seemed understaffed during our visit.',
-        sentiment: 'Negative',
-        helpfulCount: 3,
-      ),
-      OwnerReview(
-        id: '4',
-        userName: 'David Park',
-        rating: 5,
-        date: 'Dec 3, 2025',
-        reviewText: 'Outstanding! Every dish exceeded expectations. The attention to cleanliness and hygiene is impressive. Highly recommend the salmon!',
-        sentiment: 'Positive',
-        helpfulCount: 15,
-        ownerResponse: {
-          'text': "We're so happy you loved the salmon, David! Our chef takes great pride in sourcing the freshest ingredients. Thank you for the recommendation!",
-          'date': 'Dec 4, 2025',
-        },
-      ),
-      OwnerReview(
-        id: '5',
-        userName: 'Lisa Thompson',
-        rating: 3,
-        date: 'Dec 1, 2025',
-        reviewText: 'Mixed feelings about this place. The food quality is good and the place is clean, but prices are a bit high for the portion sizes. Service was friendly though.',
-        sentiment: 'Mixed',
-        helpfulCount: 5,
-      ),
-      OwnerReview(
-        id: '6',
-        userName: 'James Wilson',
-        rating: 5,
-        date: 'Nov 28, 2025',
-        reviewText: 'Best restaurant in the area! Consistently excellent food, impeccable cleanliness, and wonderful staff. Been coming here for months and it never disappoints.',
-        sentiment: 'Positive',
-        helpfulCount: 20,
-      ),
-    ];
+    _fetchReviews();
   }
 
   @override
@@ -149,20 +109,89 @@ class _OwnerReviewsManagementScreenState extends State<OwnerReviewsManagementScr
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a response'), backgroundColor: Colors.red));
       return;
     }
+    _sendResponse(id, _responseController.text.trim());
+  }
 
+  Future<void> _fetchReviews() async {
     setState(() {
-      final reviewIndex = _reviews.indexWhere((r) => r.id == id);
-      if (reviewIndex != -1) {
-        _reviews[reviewIndex].ownerResponse = {
-          'text': _responseController.text.trim(),
-          'date': 'Just now',
-        };
-      }
-      _respondingToId = null;
-      _responseController.clear();
+      _isLoading = true;
+      _errorMessage = null;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Response submitted successfully!'), backgroundColor: Colors.green));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.get(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/reviews/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        final results = (data['results'] as List<dynamic>? ?? [])
+            .map((item) => OwnerReview.fromJson(item))
+            .toList();
+        setState(() {
+          _reviews = results;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Failed to load reviews.';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Unable to reach the server.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _sendResponse(String id, String text) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.post(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/reviews/$id/response/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+        body: json.encode({'text': text}),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          final reviewIndex = _reviews.indexWhere((r) => r.id == id);
+          if (reviewIndex != -1) {
+            _reviews[reviewIndex].ownerResponse = {
+              'text': text,
+              'date': 'Just now',
+            };
+          }
+          _respondingToId = null;
+          _responseController.clear();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Response submitted successfully!'), backgroundColor: Colors.green),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to submit response.'), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to reach the server.'), backgroundColor: Colors.red),
+      );
+    }
   }
 
   String _getInitials(String name) {
@@ -177,6 +206,20 @@ class _OwnerReviewsManagementScreenState extends State<OwnerReviewsManagementScr
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Scaffold(
+        body: Center(
+          child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: _bgGray,
       appBar: AppBar(

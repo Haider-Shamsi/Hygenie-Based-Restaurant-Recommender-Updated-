@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 // --- DATA MODELS ---
 
@@ -9,6 +13,15 @@ class MenuItem {
   final String category;
 
   MenuItem({required this.id, required this.name, required this.price, required this.category});
+
+  factory MenuItem.fromJson(Map<String, dynamic> json) {
+    return MenuItem(
+      id: json['id']?.toString() ?? '',
+      name: json['name'] ?? '',
+      price: json['price']?.toString() ?? '',
+      category: json['category'] ?? 'Other',
+    );
+  }
 }
 
 class PhotoItem {
@@ -43,18 +56,20 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
   final Color _inputBg = const Color(0xFFF3F4F6);
 
   bool _isSaving = false;
+  bool _isLoading = true;
+  String? _errorMessage;
   String _selectedPriceRange = '\$\$';
-  String _selectedCuisine = 'Mediterranean';
+  String _selectedCuisine = 'Other';
 
   // Controllers
-  final _nameController = TextEditingController(text: 'The Green Table');
-  final _descController = TextEditingController(text: 'A modern farm-to-table restaurant focusing on organic, locally-sourced ingredients with a seasonal menu.');
-  final _phoneController = TextEditingController(text: '(555) 123-4567');
-  final _emailController = TextEditingController(text: 'contact@greentable.com');
-  final _streetController = TextEditingController(text: '123 Main Street');
-  final _cityController = TextEditingController(text: 'San Francisco');
-  final _stateController = TextEditingController(text: 'CA');
-  final _zipController = TextEditingController(text: '94102');
+  final _nameController = TextEditingController();
+  final _descController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _streetController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _stateController = TextEditingController();
+  final _zipController = TextEditingController();
 
   // Menu Add Form Controllers
   bool _showAddMenuItem = false;
@@ -70,19 +85,10 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
   late Map<String, OperatingHour> _operatingHours;
 
   // Photos State
-  List<PhotoItem> _photos = [
-    PhotoItem(id: '1', url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400'),
-    PhotoItem(id: '2', url: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400'),
-    PhotoItem(id: '3', url: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400'),
-  ];
+  List<PhotoItem> _photos = [];
 
   // Menu State
-  List<MenuItem> _menuItems = [
-    MenuItem(id: '1', name: 'Caesar Salad', price: '12.99', category: 'Appetizers'),
-    MenuItem(id: '2', name: 'Grilled Salmon', price: '28.99', category: 'Main Course'),
-    MenuItem(id: '3', name: 'Chocolate Lava Cake', price: '9.99', category: 'Desserts'),
-    MenuItem(id: '4', name: 'Fresh Lemonade', price: '4.99', category: 'Beverages'),
-  ];
+  List<MenuItem> _menuItems = [];
 
   @override
   void initState() {
@@ -96,6 +102,8 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
       'Saturday': OperatingHour(openTime: '10:00 AM', closeTime: '11:00 PM', isClosed: false),
       'Sunday': OperatingHour(openTime: '10:00 AM', closeTime: '09:00 PM', isClosed: false),
     };
+    _fetchRestaurantProfile();
+    _fetchMenuItems();
   }
 
   @override
@@ -117,13 +125,7 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
 
   void _handleSaveChanges() async {
     setState(() => _isSaving = true);
-    await Future.delayed(const Duration(seconds: 2)); // Simulate API Call
-    if (mounted) {
-      setState(() => _isSaving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Restaurant details updated successfully!'), backgroundColor: Colors.green),
-      );
-    }
+    await _saveRestaurantProfile();
   }
 
   void _handleAddPhoto() {
@@ -151,26 +153,186 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill in all fields'), backgroundColor: Colors.red));
       return;
     }
-    setState(() {
-      _menuItems.add(MenuItem(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        name: _newItemNameController.text,
-        price: _newItemPriceController.text,
-        category: _newItemCategory,
-      ));
-      _showAddMenuItem = false;
-      _newItemNameController.clear();
-      _newItemPriceController.clear();
-      _newItemCategory = 'Appetizers';
-    });
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Menu item added')));
+    _createMenuItem();
   }
 
   void _handleDeleteMenuItem(String id) {
+    _deleteMenuItem(id);
+  }
+
+  Future<void> _fetchRestaurantProfile() async {
     setState(() {
-      _menuItems.removeWhere((item) => item.id == id);
+      _isLoading = true;
+      _errorMessage = null;
     });
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Menu item deleted')));
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      final response = await http.get(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/restaurant/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        setState(() {
+          _nameController.text = data['name'] ?? '';
+          _descController.text = data['description'] ?? '';
+          _streetController.text = data['street'] ?? '';
+          _cityController.text = data['city'] ?? '';
+          _stateController.text = data['state'] ?? '';
+          _zipController.text = data['zip'] ?? '';
+          _phoneController.text = data['phone'] ?? '';
+          _emailController.text = data['email'] ?? '';
+          _selectedCuisine = data['cuisine'] ?? _selectedCuisine;
+          _selectedPriceRange = data['price_range'] ?? _selectedPriceRange;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Failed to load restaurant profile.';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Unable to reach the server.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _saveRestaurantProfile() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      final response = await http.patch(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/restaurant/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+        body: json.encode({
+          'name': _nameController.text,
+          'cuisine': _selectedCuisine,
+          'street': _streetController.text,
+          'city': _cityController.text,
+          'state': _stateController.text,
+          'zip': _zipController.text,
+          'description': _descController.text,
+          'phone': _phoneController.text,
+          'email': _emailController.text,
+          'price_range': _selectedPriceRange,
+        }),
+      );
+
+      setState(() => _isSaving = false);
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Restaurant details updated successfully!'), backgroundColor: Colors.green),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update restaurant details.'), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to reach the server.'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  Future<void> _fetchMenuItems() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      final response = await http.get(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/menu/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        final results = (data['results'] as List<dynamic>? ?? [])
+            .map((item) => MenuItem.fromJson(item))
+            .toList();
+        setState(() {
+          _menuItems = results;
+        });
+      }
+    } catch (e) {
+      // Keep existing items if fetch fails
+    }
+  }
+
+  Future<void> _createMenuItem() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      final response = await http.post(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/menu/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+        body: json.encode({
+          'name': _newItemNameController.text,
+          'price': _newItemPriceController.text,
+          'category': _newItemCategory,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        setState(() {
+          _menuItems.add(MenuItem.fromJson(data));
+          _showAddMenuItem = false;
+          _newItemNameController.clear();
+          _newItemPriceController.clear();
+          _newItemCategory = 'Appetizers';
+        });
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Menu item added')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to add menu item'), backgroundColor: Colors.red));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unable to reach the server'), backgroundColor: Colors.red));
+    }
+  }
+
+  Future<void> _deleteMenuItem(String id) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      final response = await http.delete(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/menu/$id/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _menuItems.removeWhere((item) => item.id == id);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Menu item deleted')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to delete menu item'), backgroundColor: Colors.red));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unable to reach the server'), backgroundColor: Colors.red));
+    }
   }
 
   Future<void> _selectTime(BuildContext context, String day, bool isOpening) async {
@@ -190,6 +352,20 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Scaffold(
+        body: Center(
+          child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: _bgGray,
       appBar: AppBar(

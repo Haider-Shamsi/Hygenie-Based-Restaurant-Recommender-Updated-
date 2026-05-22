@@ -8,6 +8,8 @@ from .models import HygieneIssueReport
 from .models import NotificationSetting
 from .models import Restaurant
 from .models import RestaurantMenuItem
+from .models import OwnerReportResponse
+from .models import OwnerReviewResponse
 from .models import RestaurantReview
 from .models import HygieneIssueReport
 from .models import UserInteraction
@@ -281,7 +283,19 @@ class AccountSettingsReadSerializer(serializers.ModelSerializer):
 class RestaurantMenuItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = RestaurantMenuItem
-        fields = ['id', 'name', 'description', 'price', 'is_available']
+        fields = ['id', 'name', 'category', 'description', 'price', 'is_available']
+
+
+class OwnerReviewResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OwnerReviewResponse
+        fields = ['text', 'created_at']
+
+
+class OwnerReportResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OwnerReportResponse
+        fields = ['text', 'created_at']
 
 
 class RestaurantReviewSerializer(serializers.ModelSerializer):

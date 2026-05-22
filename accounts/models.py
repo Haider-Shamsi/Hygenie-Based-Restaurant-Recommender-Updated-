@@ -139,6 +139,7 @@ class HygieneAlert(models.Model):
 class RestaurantMenuItem(models.Model):
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='menu_items')
     name = models.CharField(max_length=120)
+    category = models.CharField(max_length=80, default='Other')
     description = models.CharField(max_length=255, blank=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)
     is_available = models.BooleanField(default=True)
@@ -198,5 +199,25 @@ class HygieneIssueReport(models.Model):
 
     def __str__(self):
         return f"IssueReport<{self.user.username}:{self.restaurant_id}:{self.category}>"
+
+
+class OwnerReviewResponse(models.Model):
+    review = models.OneToOneField(RestaurantReview, on_delete=models.CASCADE, related_name='owner_response')
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"OwnerReviewResponse<{self.review_id}>"
+
+
+class OwnerReportResponse(models.Model):
+    report = models.OneToOneField(HygieneIssueReport, on_delete=models.CASCADE, related_name='owner_response')
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"OwnerReportResponse<{self.report_id}>"
 
 # Create your models here.

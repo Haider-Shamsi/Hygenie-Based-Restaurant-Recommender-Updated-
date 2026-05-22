@@ -1,6 +1,10 @@
+import 'dart:convert';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'dart:math' as math;
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 // --- SCREEN WIDGET ---
 
@@ -21,8 +25,11 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
 
   // State
   String _selectedPeriod = '30d';
+  bool _isLoading = true;
+  String? _errorMessage;
+  Map<String, dynamic> _analyticsData = {};
 
-  // --- MOCK DATA ---
+  // --- UI OPTIONS ---
   final List<Map<String, String>> _timePeriods = [
     {'id': '7d', 'label': '7 Days'},
     {'id': '30d', 'label': '30 Days'},
@@ -30,50 +37,90 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
     {'id': '12m', 'label': '12 Months'},
   ];
 
-  final List<Map<String, dynamic>> _hygieneBreakdown = [
-    {'category': 'Food Safety', 'score': 98.0},
-    {'category': 'Cleanliness', 'score': 95.0},
-    {'category': 'Staff Hygiene', 'score': 92.0},
-    {'category': 'Kitchen Conditions', 'score': 96.0},
-    {'category': 'Pest Control', 'score': 100.0},
-    {'category': 'Storage', 'score': 94.0},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchAnalytics();
+  }
 
-  final List<Map<String, dynamic>> _sentimentData = [
-    {'name': 'Positive', 'value': 156.0, 'percentage': 65, 'color': const Color(0xFF10B981)},
-    {'name': 'Neutral', 'value': 48.0, 'percentage': 20, 'color': const Color(0xFF9CA3AF)},
-    {'name': 'Negative', 'value': 24.0, 'percentage': 10, 'color': const Color(0xFFEF4444)},
-    {'name': 'Mixed', 'value': 12.0, 'percentage': 5, 'color': const Color(0xFFF59E0B)},
-  ];
+  Future<void> _fetchAnalytics() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-  final List<FlSpot> _reviewsOverTime = const [
-    FlSpot(0, 8), FlSpot(1, 12), FlSpot(2, 10), FlSpot(3, 14),
-  ];
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
 
-  final List<Map<String, dynamic>> _topKeywords = [
-    {'word': 'delicious', 'count': 45, 'sentiment': 'positive'},
-    {'word': 'clean', 'count': 38, 'sentiment': 'positive'},
-    {'word': 'fresh', 'count': 32, 'sentiment': 'positive'},
-    {'word': 'friendly', 'count': 28, 'sentiment': 'positive'},
-    {'word': 'amazing', 'count': 25, 'sentiment': 'positive'},
-    {'word': 'slow service', 'count': 12, 'sentiment': 'negative'},
-    {'word': 'expensive', 'count': 8, 'sentiment': 'negative'},
-    {'word': 'cozy', 'count': 20, 'sentiment': 'positive'},
-    {'word': 'tasty', 'count': 18, 'sentiment': 'positive'},
-    {'word': 'wait time', 'count': 10, 'sentiment': 'negative'},
-  ];
+      final response = await http.get(
+        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/analytics/?period=$_selectedPeriod'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+      );
 
-  final List<Map<String, dynamic>> _inspectionHistory = [
-    {'date': 'Dec 15, 2025', 'inspector': 'Sarah Johnson', 'score': 95, 'status': 'Passed', 'color': 'emerald'},
-    {'date': 'Nov 20, 2025', 'inspector': 'Michael Chen', 'score': 93, 'status': 'Passed', 'color': 'emerald'},
-    {'date': 'Oct 18, 2025', 'inspector': 'Emma Rodriguez', 'score': 78, 'status': 'Warning', 'color': 'amber'},
-    {'date': 'Sep 22, 2025', 'inspector': 'David Park', 'score': 90, 'status': 'Passed', 'color': 'emerald'},
-  ];
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        setState(() {
+          _analyticsData = data;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Failed to load analytics.';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Unable to reach the server.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<Map<String, dynamic>> get _hygieneBreakdown =>
+      (_analyticsData['hygiene_breakdown'] as List<dynamic>? ?? [])
+          .cast<Map<String, dynamic>>();
+
+  List<Map<String, dynamic>> get _sentimentData =>
+      (_analyticsData['sentiment'] as List<dynamic>? ?? [])
+          .cast<Map<String, dynamic>>();
+
+  List<FlSpot> get _reviewsOverTime {
+    final points = (_analyticsData['reviews_over_time'] as List<dynamic>? ?? [])
+        .cast<Map<String, dynamic>>();
+    return points.map((p) => FlSpot((p['x'] ?? 0).toDouble(), (p['y'] ?? 0).toDouble())).toList();
+  }
+
+  List<Map<String, dynamic>> get _topKeywords =>
+      (_analyticsData['top_keywords'] as List<dynamic>? ?? [])
+          .cast<Map<String, dynamic>>();
+
+  List<Map<String, dynamic>> get _inspectionHistory =>
+      (_analyticsData['inspection_history'] as List<dynamic>? ?? [])
+          .cast<Map<String, dynamic>>();
 
   // --- UI BUILDERS ---
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Scaffold(
+        body: Center(
+          child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: _bgGray,
       appBar: AppBar(
@@ -124,7 +171,10 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
             bool isSelected = _selectedPeriod == period['id'];
             return Expanded(
               child: GestureDetector(
-                onTap: () => setState(() => _selectedPeriod = period['id']!),
+                onTap: () {
+                  setState(() => _selectedPeriod = period['id']!);
+                  _fetchAnalytics();
+                },
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
@@ -163,6 +213,11 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
   }
 
   Widget _buildKeyMetricsGrid() {
+    final keyMetrics = _analyticsData['key_metrics'] as Map<String, dynamic>? ?? {};
+    final reviewsReceived = keyMetrics['reviews_received']?.toString() ?? '0';
+    final avgHygieneScore = keyMetrics['avg_hygiene_score']?.toString() ?? '0';
+    final customerSatisfaction = keyMetrics['customer_satisfaction']?.toString() ?? '0';
+    final reportsFiled = keyMetrics['reports_filed']?.toString() ?? '0';
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -171,10 +226,10 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
       mainAxisSpacing: 12,
       childAspectRatio: 1.4,
       children: [
-        _buildMetricCard("Reviews Received", "42", "+12%", true, sparklineData: const [FlSpot(0, 20), FlSpot(1, 25), FlSpot(2, 22), FlSpot(3, 30), FlSpot(4, 28), FlSpot(5, 35), FlSpot(6, 42)]),
-        _buildMetricCard("Avg Hygiene Score", "95", "+3 pts", true, sparklineData: const [FlSpot(0, 88), FlSpot(1, 90), FlSpot(2, 89), FlSpot(3, 92), FlSpot(4, 93), FlSpot(5, 94), FlSpot(6, 95)]),
-        _buildMetricCard("Customer Satisfaction", "87%", "+5%", true, percentage: 87),
-        _buildMetricCard("Reports Filed", "2", "-1 vs last period", true, sparklineData: const [FlSpot(0, 5), FlSpot(1, 4), FlSpot(2, 3), FlSpot(3, 4), FlSpot(4, 3), FlSpot(5, 2), FlSpot(6, 2)]),
+        _buildMetricCard("Reviews Received", reviewsReceived, "", true),
+        _buildMetricCard("Avg Hygiene Score", avgHygieneScore, "", true),
+        _buildMetricCard("Customer Satisfaction", "$customerSatisfaction%", "", true, percentage: int.tryParse(customerSatisfaction) ?? 0),
+        _buildMetricCard("Reports Filed", reportsFiled, "", true),
       ],
     );
   }
@@ -233,6 +288,18 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
   }
 
   Widget _buildRadarChartCard() {
+    if (_hygieneBreakdown.isEmpty) {
+      return _buildCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Hygiene Score Breakdown", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: _textDark)),
+            const SizedBox(height: 16),
+            Text("No data available", style: TextStyle(color: _textGray)),
+          ],
+        ),
+      );
+    }
     return _buildCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -273,6 +340,18 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
   }
 
   Widget _buildSentimentCard() {
+    if (_sentimentData.isEmpty) {
+      return _buildCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Review Sentiment Analysis", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: _textDark)),
+            const SizedBox(height: 16),
+            Text("No data available", style: TextStyle(color: _textGray)),
+          ],
+        ),
+      );
+    }
     return _buildCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,9 +373,10 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
                     sectionsSpace: 2,
                     centerSpaceRadius: 40,
                     sections: _sentimentData.map((e) {
+                      final color = _sentimentColor(e['name']);
                       return PieChartSectionData(
                         value: e['value'],
-                        color: e['color'],
+                        color: color,
                         radius: 30,
                         showTitle: false,
                       );
@@ -316,7 +396,7 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
                         children: [
                           Row(
                             children: [
-                              Container(width: 10, height: 10, decoration: BoxDecoration(shape: BoxShape.circle, color: e['color'])),
+                              Container(width: 10, height: 10, decoration: BoxDecoration(shape: BoxShape.circle, color: _sentimentColor(e['name']))),
                               const SizedBox(width: 8),
                               Text(e['name'], style: TextStyle(color: _textDark, fontSize: 13)),
                             ],
@@ -342,6 +422,18 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
   }
 
   Widget _buildAreaChartCard() {
+    if (_reviewsOverTime.isEmpty) {
+      return _buildCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Reviews Over Time", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: _textDark)),
+            const SizedBox(height: 16),
+            Text("No data available", style: TextStyle(color: _textGray)),
+          ],
+        ),
+      );
+    }
     return _buildCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -406,7 +498,34 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
     );
   }
 
+  Color _sentimentColor(String? name) {
+    switch (name?.toLowerCase()) {
+      case 'positive':
+        return const Color(0xFF10B981);
+      case 'neutral':
+        return const Color(0xFF9CA3AF);
+      case 'negative':
+        return const Color(0xFFEF4444);
+      case 'mixed':
+        return const Color(0xFFF59E0B);
+      default:
+        return _brandTeal;
+    }
+  }
+
   Widget _buildKeywordsCard() {
+    if (_topKeywords.isEmpty) {
+      return _buildCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Top Keywords", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: _textDark)),
+            const SizedBox(height: 16),
+            Text("No data available", style: TextStyle(color: _textGray)),
+          ],
+        ),
+      );
+    }
     return _buildCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -458,6 +577,18 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
   }
 
   Widget _buildInspectionHistoryCard() {
+    if (_inspectionHistory.isEmpty) {
+      return _buildCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Inspection History", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: _textDark)),
+            const SizedBox(height: 16),
+            Text("No data available", style: TextStyle(color: _textGray)),
+          ],
+        ),
+      );
+    }
     return _buildCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
