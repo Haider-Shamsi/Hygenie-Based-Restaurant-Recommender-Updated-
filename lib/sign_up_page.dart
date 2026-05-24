@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -287,7 +287,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
   Future<void> _sendGoogleTokenToBackend(String idToken, String email) async {
     final response = await http.post(
-      Uri.parse('http://127.0.0.1:8000/api/accounts/google-signin/'),
+      Uri.parse('http://192.168.1.46:8000/api/accounts/google-signin/'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'token': idToken}),
     );
@@ -367,7 +367,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       String password = _passwordController.text.trim();
       try {
         final response = await http.post(
-          Uri.parse('http://localhost:8000/api/accounts/signup/'),
+          Uri.parse('http://192.168.1.46:8000/api/accounts/signup/'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'username': email, 'password': password}),
         );

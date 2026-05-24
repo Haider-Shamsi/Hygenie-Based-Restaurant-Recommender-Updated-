@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'my_reports_screen.dart';  
 import 'my_reviews_screen.dart';  
@@ -56,7 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/profile/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/profile/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -95,7 +95,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final navigator = Navigator.of(context);
     try {
       await http.post(
-        Uri.parse('http://localhost:8000/api/accounts/logout/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/logout/'),
         headers: {'Content-Type': 'application/json'},
       );
     } catch (e) {

@@ -45,7 +45,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
       }
 
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/profile/reports/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/profile/reports/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',

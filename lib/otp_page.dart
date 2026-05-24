@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
@@ -65,15 +65,19 @@ class _OTPScreenState extends State<OTPScreen> {
     setState(() => isLoading = true);
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8000/api/accounts/verify-otp/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/verify-otp/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'username': widget.email, 'otp': otp}),
       );
       setState(() => isLoading = false);
       if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userEmail', widget.email);
+        if (data['token'] != null) {
+          await prefs.setString('auth_token', data['token'].toString());
+        }
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Account Created! OTP Verified Successfully")),

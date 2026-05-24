@@ -59,7 +59,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       }
 
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/profile/account-settings/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/profile/account-settings/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -118,7 +118,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
     try {
       final response = await http.patch(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/profile/account-settings/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/profile/account-settings/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',

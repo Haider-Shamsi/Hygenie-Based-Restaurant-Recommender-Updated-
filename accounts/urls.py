@@ -17,6 +17,7 @@ from .views import RecommendedRestaurantsView
 from .views import RestaurantDetailDataView
 from .views import RestaurantMenuListView
 from .views import RestaurantReviewListCreateView
+from .views import trending_restaurants
 from .views import UserInteractionCreateView
 from .views import UserInteractionListView
 from .views import OwnerAnalyticsView
@@ -36,6 +37,8 @@ urlpatterns = [
     path('verify-otp/', views.verify_otp, name='verify_otp'),
     path('recommendations/top/', views.top_restaurants, name='top_restaurants'),
     path('recommendations/hygiene/', views.restaurants_by_hygiene, name='restaurants_by_hygiene'),
+    path('recommendations/top-rated/', views.restaurants_by_top_rating, name='restaurants_by_top_rating'),
+    path('recommendations/trending/', views.trending_restaurants, name='trending_restaurants'),
     path('recommendations/city/', views.restaurants_by_city, name='restaurants_by_city'),
     path('google-signin/', views.GoogleSignInView.as_view(), name='google_signin'),
     path('user-interactions/', UserInteractionCreateView.as_view(), name='user-interaction-create'),

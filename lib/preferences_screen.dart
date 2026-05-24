@@ -55,7 +55,7 @@ class _UserPreferencesScreenState extends State<UserPreferencesScreen> {
       }
 
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/profile/preferences/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/profile/preferences/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -110,7 +110,7 @@ class _UserPreferencesScreenState extends State<UserPreferencesScreen> {
 
     try {
       final response = await http.patch(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/profile/preferences/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/profile/preferences/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',

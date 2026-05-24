@@ -1,3 +1,4 @@
+import math
 import random
 from datetime import timedelta
 
@@ -5,7 +6,7 @@ import requests
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
-from django.db.models import Avg
+from django.db.models import Avg, Count
 from django.utils import timezone
 from rest_framework import generics
 from rest_framework import permissions
@@ -76,6 +77,101 @@ def _get_restaurant_from_request(request):
     return Restaurant.objects.first()
 
 
+def _cosine_similarity(vec_a, vec_b):
+    dot = 0.0
+    norm_a = 0.0
+    norm_b = 0.0
+    for a, b in zip(vec_a, vec_b):
+        dot += a * b
+        norm_a += a * a
+        norm_b += b * b
+    if norm_a == 0.0 or norm_b == 0.0:
+        return 0.0
+    return dot / (math.sqrt(norm_a) * math.sqrt(norm_b))
+
+
+def _build_dish_vectors():
+    restaurants = list(Restaurant.objects.all())
+    restaurant_ids = [r.id for r in restaurants]
+    if not restaurant_ids:
+        return [], {}, {}
+
+    menu_items = list(
+        RestaurantMenuItem.objects.filter(is_available=True)
+        .values('restaurant_id', 'name', 'rating')
+    )
+
+    ratings_by_restaurant = {}
+    for item in menu_items:
+        rest_id = item['restaurant_id']
+        ratings_by_restaurant.setdefault(rest_id, []).append(float(item.get('rating') or 0.0))
+
+    mean_by_restaurant = {
+        rest_id: (sum(ratings) / len(ratings) if ratings else 0.0)
+        for rest_id, ratings in ratings_by_restaurant.items()
+    }
+
+    dish_vectors = {}
+    for item in menu_items:
+        dish = item['name']
+        rest_id = item['restaurant_id']
+        mean_rating = mean_by_restaurant.get(rest_id, 0.0)
+        adjusted = float(item.get('rating') or 0.0) - mean_rating
+        if dish not in dish_vectors:
+            dish_vectors[dish] = [0.0 for _ in restaurant_ids]
+        dish_vectors[dish][restaurant_ids.index(rest_id)] = adjusted
+
+    return restaurant_ids, dish_vectors, mean_by_restaurant
+
+
+def _rank_restaurants_by_dish_similarity(user_restaurant_ids, limit=10):
+    # Item-based collaborative filtering (dish-to-dish cosine similarity)
+    restaurant_ids, dish_vectors, _ = _build_dish_vectors()
+    if not restaurant_ids or not dish_vectors:
+        return []
+
+    user_dishes = set(
+        RestaurantMenuItem.objects.filter(
+            restaurant_id__in=user_restaurant_ids,
+            is_available=True,
+        ).values_list('name', flat=True)
+    )
+
+    if not user_dishes:
+        return []
+
+    user_dish_vectors = [dish_vectors[d] for d in user_dishes if d in dish_vectors]
+    if not user_dish_vectors:
+        return []
+
+    candidate_ids = [rid for rid in restaurant_ids if rid not in user_restaurant_ids]
+    scores = []
+    for rest_id in candidate_ids:
+        candidate_dishes = list(
+            RestaurantMenuItem.objects.filter(
+                restaurant_id=rest_id,
+                is_available=True,
+            ).values_list('name', flat=True)
+        )
+        if not candidate_dishes:
+            continue
+
+        dish_scores = []
+        for dish in candidate_dishes:
+            vec = dish_vectors.get(dish)
+            if vec is None:
+                continue
+            sims = [_cosine_similarity(vec, user_vec) for user_vec in user_dish_vectors]
+            if sims:
+                dish_scores.append(sum(sims) / len(sims))
+
+        if dish_scores:
+            scores.append((rest_id, sum(dish_scores) / len(dish_scores)))
+
+    scores.sort(key=lambda x: x[1], reverse=True)
+    return [rid for rid, _ in scores[:limit]]
+
+
 class RecommendedRestaurantsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -87,31 +183,19 @@ class RecommendedRestaurantsView(APIView):
         )
 
         interacted_ids = list(interactions.values_list('restaurant', flat=True))
-        if not interacted_ids:
-            qs = Restaurant.objects.all()
-            ranked = [(r, _score(r)) for r in qs]
-            ranked.sort(key=lambda x: x[1], reverse=True)
-            top = [r for r, _score_value in ranked[:10]]
-            serializer = RestaurantSerializer(top, many=True)
-            return Response(serializer.data)
+        if interacted_ids:
+            ranked_ids = _rank_restaurants_by_dish_similarity(interacted_ids, limit=10)
+            if ranked_ids:
+                ranked_restaurants = list(Restaurant.objects.filter(id__in=ranked_ids))
+                ranked_restaurants.sort(key=lambda r: ranked_ids.index(r.id))
+                serializer = RestaurantSerializer(ranked_restaurants, many=True)
+                return Response(serializer.data)
 
-        liked_types = Restaurant.objects.filter(id__in=interacted_ids).values_list('business_type', flat=True).distinct()
-
-        recommended = Restaurant.objects.filter(
-            business_type__in=liked_types
-        ).exclude(
-            id__in=interacted_ids
-        )
-
-        if not recommended.exists():
-            qs = Restaurant.objects.exclude(id__in=interacted_ids)
-            ranked = [(r, _score(r)) for r in qs]
-            ranked.sort(key=lambda x: x[1], reverse=True)
-            recommended = [r for r, _score_value in ranked[:10]]
-            serializer = RestaurantSerializer(recommended, many=True)
-            return Response(serializer.data)
-
-        serializer = RestaurantSerializer(recommended[:10], many=True)
+        qs = Restaurant.objects.all()
+        ranked = [(r, _score(r)) for r in qs]
+        ranked.sort(key=lambda x: x[1], reverse=True)
+        top = [r for r, _score_value in ranked[:10]]
+        serializer = RestaurantSerializer(top, many=True)
         return Response(serializer.data)
 
 
@@ -141,7 +225,17 @@ def verify_otp(request):
     real_otp = OTP_STORE.get(username)
     if real_otp and otp == real_otp:
         del OTP_STORE[username]
-        return Response({'message': 'OTP verified.'}, status=status.HTTP_200_OK)
+        user = User.objects.filter(username=username).first()
+        if user is None:
+            return Response({'message': 'OTP verified.'}, status=status.HTTP_200_OK)
+
+        _ensure_user_state(user)
+        token, _ = Token.objects.get_or_create(user=user)
+        user_data = UserSerializer(user).data
+        return Response(
+            {'message': 'OTP verified.', 'token': token.key, 'user': user_data},
+            status=status.HTTP_200_OK,
+        )
 
     return Response({'error': 'Invalid OTP.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -235,6 +329,38 @@ def top_restaurants(request):
 def restaurants_by_hygiene(request):
     qs = Restaurant.objects.all().order_by('-hygiene_score')
     serializer = RestaurantSerializer(qs, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def restaurants_by_top_rating(request):
+    qs = Restaurant.objects.all().order_by('-user_rating')
+    serializer = RestaurantSerializer(qs, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def trending_restaurants(request):
+    limit = int(request.query_params.get('n', 10))
+    interactions = (
+        UserInteraction.objects.values('restaurant')
+        .annotate(total=Count('id'))
+        .order_by('-total')
+    )
+    ranked_ids = [row['restaurant'] for row in interactions[:limit] if row['restaurant']]
+    if not ranked_ids:
+        qs = Restaurant.objects.all()
+        ranked = [(r, _score(r)) for r in qs]
+        ranked.sort(key=lambda x: x[1], reverse=True)
+        top = [r for r, _score_value in ranked[:limit]]
+        serializer = RestaurantSerializer(top, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    ranked_restaurants = list(Restaurant.objects.filter(id__in=ranked_ids))
+    ranked_restaurants.sort(key=lambda r: ranked_ids.index(r.id))
+    serializer = RestaurantSerializer(ranked_restaurants, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -978,6 +1104,8 @@ class OwnerRestaurantMenuView(APIView):
             category=request.data.get('category', 'Other'),
             description=request.data.get('description', ''),
             price=request.data.get('price', 0),
+            rating=request.data.get('rating', 0) or 0,
+            order_count=request.data.get('order_count', 0) or 0,
             is_available=bool(request.data.get('is_available', True)),
         )
         serializer = RestaurantMenuItemSerializer(item)

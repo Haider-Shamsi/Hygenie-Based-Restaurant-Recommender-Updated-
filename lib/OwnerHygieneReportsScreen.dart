@@ -157,7 +157,7 @@ class _OwnerHygieneReportsScreenState extends State<OwnerHygieneReportsScreen> {
       final token = prefs.getString('auth_token');
 
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/reports/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/owner/reports/'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Token $token',
@@ -193,7 +193,7 @@ class _OwnerHygieneReportsScreenState extends State<OwnerHygieneReportsScreen> {
       final token = prefs.getString('auth_token');
 
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/reports/$id/response/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/owner/reports/$id/response/'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Token $token',

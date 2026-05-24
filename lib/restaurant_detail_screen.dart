@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'dart:convert';
 import 'package:fl_chart/fl_chart.dart'; 
@@ -47,7 +47,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
 
     try {
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/restaurants/${widget.restaurant.id}/detail/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/restaurants/${widget.restaurant.id}/detail/'),
       );
       if (response.statusCode != 200) {
         setState(() {
@@ -123,7 +123,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
     }
 
     final response = await http.post(
-      Uri.parse('http://127.0.0.1:8000/api/accounts/restaurants/${widget.restaurant.id}/reviews/'),
+      Uri.parse('http://192.168.1.46:8000/api/accounts/restaurants/${widget.restaurant.id}/reviews/'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Token $token',
@@ -159,7 +159,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
     }
 
     final response = await http.post(
-      Uri.parse('http://127.0.0.1:8000/api/accounts/restaurants/${widget.restaurant.id}/reports/'),
+      Uri.parse('http://192.168.1.46:8000/api/accounts/restaurants/${widget.restaurant.id}/reports/'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Token $token',
@@ -184,7 +184,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
     return false;
   }
 
-  Future<void> _showMenuBottomSheet() async {
+  Future<void> _openMenuScreen() async {
     if (_menuItems.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -193,44 +193,10 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
       return;
     }
 
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => _MenuScreen(restaurantName: widget.restaurant.businessName, items: _menuItems),
       ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Menu', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 10),
-                SizedBox(
-                  height: 340,
-                  child: ListView.separated(
-                    itemCount: _menuItems.length,
-                    separatorBuilder: (context, _) => const Divider(),
-                    itemBuilder: (context, index) {
-                      final item = _menuItems[index];
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(item.name),
-                        subtitle: Text(item.description.isEmpty ? 'No description' : item.description),
-                        trailing: Text('PKR ${item.price.toStringAsFixed(0)}'),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -316,8 +282,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
                             const SizedBox(height: 4),
                             Text(
                               _averageRating > 0
-                                  ? 'Avg rating ${_averageRating.toStringAsFixed(1)} • $_recentReportsCount reports'
-                                  : 'No ratings yet • $_recentReportsCount reports',
+                                  ? 'Avg rating ${_averageRating.toStringAsFixed(1)}  $_recentReportsCount reports'
+                                  : 'No ratings yet  $_recentReportsCount reports',
                               style: const TextStyle(color: Colors.grey, fontSize: 12),
                             ),
                           ],
@@ -349,7 +315,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
                         minimumSize: const Size(double.infinity, 55),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      onPressed: _showMenuBottomSheet,
+                      onPressed: _openMenuScreen,
                       child: const Text("View Menu & Order", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 12),
@@ -415,7 +381,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
           Row(
             children: [
               Expanded(child: Text(user, style: const TextStyle(fontWeight: FontWeight.bold))),
-              Text('$rating/5 • $timeSince', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              Text('$rating/5  $timeSince', style: const TextStyle(color: Colors.grey, fontSize: 12)),
             ],
           ),
           Text(comment, style: const TextStyle(color: Colors.grey, fontSize: 13)),
@@ -778,8 +744,16 @@ class _MenuItem {
   final String name;
   final String description;
   final double price;
+  final double rating;
+  final int orderCount;
 
-  const _MenuItem({required this.name, required this.description, required this.price});
+  const _MenuItem({
+    required this.name,
+    required this.description,
+    required this.price,
+    required this.rating,
+    required this.orderCount,
+  });
 
   factory _MenuItem.fromJson(Map<String, dynamic> json) {
     final rawPrice = json['price'];
@@ -791,6 +765,113 @@ class _MenuItem {
       name: (json['name'] as String?) ?? 'Menu item',
       description: (json['description'] as String?) ?? '',
       price: parsedPrice,
+      rating: (json['rating'] as num?)?.toDouble() ?? 0,
+      orderCount: (json['order_count'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+class _MenuScreen extends StatelessWidget {
+  final String restaurantName;
+  final List<_MenuItem> items;
+
+  const _MenuScreen({required this.restaurantName, required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F8),
+      appBar: AppBar(
+        title: Text('$restaurantName Menu'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return _MenuCard(item: item);
+        },
+      ),
+    );
+  }
+}
+
+class _MenuCard extends StatelessWidget {
+  final _MenuItem item;
+
+  const _MenuCard({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                child: Container(
+                  height: 180,
+                  width: double.infinity,
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.restaurant_menu, size: 60, color: Colors.grey),
+                ),
+              ),
+              Positioned(
+                top: 15,
+                right: 15,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                  child: Text(
+                    item.rating.toStringAsFixed(1),
+                    style: const TextStyle(color: Color(0xFF00C48C), fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.name,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text('PKR ${item.price.toStringAsFixed(0)}', style: const TextStyle(color: Colors.grey)),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  item.description.isEmpty ? 'No description available.' : item.description,
+                  style: const TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+                const SizedBox(height: 6),
+                Text('Rating ${item.rating.toStringAsFixed(1)}', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

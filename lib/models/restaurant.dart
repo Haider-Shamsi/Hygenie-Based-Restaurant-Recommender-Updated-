@@ -1,4 +1,4 @@
-﻿class Restaurant {
+class Restaurant {
   // Backend fields
   final int id;
   final String businessName;

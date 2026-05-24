@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'models/restaurant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -110,6 +110,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
   double? _minHygieneScore;
   String? _cuisineType;
   double? _distanceKm;
+  bool _filtersApplied = false;
   final List<String> _filters = [
     'Recommended for You',
     'Highest Hygiene',
@@ -121,14 +122,20 @@ class _HomeTabContentState extends State<HomeTabContent> {
   List<Restaurant> _restaurants = [];
   List<Restaurant> _recommendedRestaurants = [];
   List<Restaurant> _nearbyRestaurants = [];
+  List<Restaurant> _trendingRestaurants = [];
+  List<Restaurant> _topRatedRestaurants = [];
   final Set<int> _favoriteIds = <int>{};
   final Set<int> _favoriteBusyIds = <int>{};
   bool _isLoading = true;
   bool _isLoadingRecommended = false;
   bool _isLoadingNearby = false;
+  bool _isLoadingTrending = false;
+  bool _isLoadingTopRated = false;
   String? _error;
   String? _recommendedError;
   String? _nearbyError;
+  String? _trendingError;
+  String? _topRatedError;
   String? _userCity;
 
 
@@ -138,6 +145,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
     _fetchUserPreferences();
     _fetchRestaurants();
     _fetchRecommendedRestaurants();
+    _fetchTopRatedRestaurants();
     _fetchFavoriteIds();
   }
 
@@ -168,7 +176,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
         'Authorization': 'Token $token',
       };
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/recommendations/item-based/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/recommendations/item-based/'),
         headers: headers,
       );
       if (response.statusCode == 200) {
@@ -203,7 +211,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
       if (token == null || token.isEmpty) return;
 
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/profile/preferences/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/profile/preferences/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -300,7 +308,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
       }
 
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/recommendations/city/?city=${Uri.encodeComponent(city)}'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/recommendations/city/?city=${Uri.encodeComponent(city)}'),
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -324,13 +332,77 @@ class _HomeTabContentState extends State<HomeTabContent> {
     }
   }
 
+  Future<void> _fetchTrendingRestaurants() async {
+    setState(() {
+      _isLoadingTrending = true;
+      _trendingError = null;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://192.168.1.46:8000/api/accounts/recommendations/trending/'),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _trendingRestaurants = data.map((json) => Restaurant.fromJson(json)).toList();
+          _isLoadingTrending = false;
+        });
+      } else {
+        setState(() {
+          _trendingRestaurants = [];
+          _trendingError = 'Failed to load trending restaurants';
+          _isLoadingTrending = false;
+        });
+      }
+    } catch (_) {
+      setState(() {
+        _trendingRestaurants = [];
+        _trendingError = 'Unable to load trending restaurants.';
+        _isLoadingTrending = false;
+      });
+    }
+  }
+
+  Future<void> _fetchTopRatedRestaurants() async {
+    setState(() {
+      _isLoadingTopRated = true;
+      _topRatedError = null;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://192.168.1.46:8000/api/accounts/recommendations/top-rated/'),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _topRatedRestaurants = data.map((json) => Restaurant.fromJson(json)).toList();
+          _isLoadingTopRated = false;
+        });
+      } else {
+        setState(() {
+          _topRatedRestaurants = [];
+          _topRatedError = 'Failed to load top rated restaurants';
+          _isLoadingTopRated = false;
+        });
+      }
+    } catch (_) {
+      setState(() {
+        _topRatedRestaurants = [];
+        _topRatedError = 'Unable to load top rated restaurants.';
+        _isLoadingTopRated = false;
+      });
+    }
+  }
+
   Future<void> _recordInteraction(int restaurantId, String interactionType) async {
     try {
       final token = await _getAuthToken();
       if (token == null || token.isEmpty) return;
 
       await http.post(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/user-interactions/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/user-interactions/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -357,7 +429,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
       }
 
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/favorites/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/favorites/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -406,7 +478,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
 
       if (isFavorite) {
         response = await http.delete(
-          Uri.parse('http://127.0.0.1:8000/api/accounts/favorites/${restaurant.id}/'),
+          Uri.parse('http://192.168.1.46:8000/api/accounts/favorites/${restaurant.id}/'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Token $token',
@@ -422,7 +494,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
         }
       } else {
         response = await http.post(
-          Uri.parse('http://127.0.0.1:8000/api/accounts/favorites/'),
+          Uri.parse('http://192.168.1.46:8000/api/accounts/favorites/'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Token $token',
@@ -468,7 +540,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
       _error = null;
     });
     try {
-      final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/accounts/recommendations/hygiene/'));
+      final response = await http.get(Uri.parse('http://192.168.1.46:8000/api/accounts/recommendations/hygiene/'));
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
@@ -528,25 +600,43 @@ class _HomeTabContentState extends State<HomeTabContent> {
   @override
   Widget build(BuildContext context) {
     // --- Filtering and Sorting Logic ---
-    List<Restaurant> filteredRestaurants = _applyActiveFilters(_restaurants);
-    List<Restaurant> filteredRecommended = _applyActiveFilters(_recommendedRestaurants);
-    List<Restaurant> filteredNearby = _applyActiveFilters(_nearbyRestaurants);
+    final baseRestaurants = _filtersApplied
+      ? _applyActiveFilters(_restaurants)
+      : List<Restaurant>.from(_restaurants);
+    final baseRecommended = _filtersApplied
+        ? _applyActiveFilters(_recommendedRestaurants)
+        : List<Restaurant>.from(_recommendedRestaurants);
+    final baseTrending = _filtersApplied
+      ? _applyActiveFilters(_trendingRestaurants)
+      : List<Restaurant>.from(_trendingRestaurants);
+    final baseNearby = _filtersApplied
+      ? _applyActiveFilters(_nearbyRestaurants)
+      : List<Restaurant>.from(_nearbyRestaurants);
+    final baseTopRated = _filtersApplied
+      ? _applyActiveFilters(_topRatedRestaurants)
+      : List<Restaurant>.from(_topRatedRestaurants);
+    List<Restaurant> filteredRecommended = baseRecommended;
+    final fallbackBase = baseRestaurants;
+    final fallbackRecommended = List<Restaurant>.from(fallbackBase)
+      ..sort((a, b) => b.hygieneScore.compareTo(a.hygieneScore));
+    List<Restaurant> filteredNearby = baseNearby;
+    List<Restaurant> filteredTrending = baseTrending;
+    List<Restaurant> filteredTopRated = baseTopRated;
     // Distance filter is a placeholder (requires coordinates)
 
     // Apply selected filter
     if (_selectedFilter == 'Highest Hygiene') {
-      filteredRestaurants.sort((a, b) => b.hygieneScore.compareTo(a.hygieneScore));
+      // Highest hygiene list is already sorted by the backend.
     } else if (_selectedFilter == 'Nearby') {
       // Nearby is handled via _nearbyRestaurants fetched from backend.
     } else if (_selectedFilter == 'Trending') {
-      // Trending logic removed for now
-      // You can add trending logic here later
+      // Trending uses interaction counts from the backend.
     } else if (_selectedFilter == 'Top Rated') {
-      filteredRestaurants.sort((a, b) => b.userRating.compareTo(a.userRating));
+      // Top rated list is already sorted by the backend.
     }
 
     // Defensive: avoid nulls and empty
-    final mainList = filteredRestaurants.take(5).toList();
+    final mainList = baseRestaurants.take(5).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FBFB),
@@ -562,32 +652,35 @@ class _HomeTabContentState extends State<HomeTabContent> {
                   ? const Center(child: CircularProgressIndicator())
                   : _error != null
                       ? Center(child: Text(_error!))
-                      : _selectedFilter == 'Recommended for You'
+                          : _selectedFilter == 'Recommended for You'
                           ? (_isLoadingRecommended
                               ? const Center(child: CircularProgressIndicator())
                               : _recommendedError != null
                                   ? Center(child: Text(_recommendedError!))
-                                : filteredRecommended.isEmpty
+                                : (filteredRecommended.isEmpty && fallbackRecommended.isEmpty)
                                       ? const Center(child: Text('No recommendations found.'))
                                       : ListView(
                                           padding: const EdgeInsets.all(20),
                                           children: [
-                                    ...filteredRecommended.map((restaurant) => RestaurantCard(
-                                                  restaurant: restaurant,
+                                            ...(filteredRecommended.isNotEmpty
+                                                    ? filteredRecommended
+                                                    : fallbackRecommended)
+                                                .map((restaurant) => RestaurantCard(
+                                                      restaurant: restaurant,
                                                       isFavorite: _favoriteIds.contains(restaurant.id),
                                                       isFavoriteLoading: _favoriteBusyIds.contains(restaurant.id),
                                                       onFavoriteTap: () => _toggleFavorite(restaurant),
-                                                  onTap: () {
-                                                    _recordInteraction(restaurant.id, 'view');
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(builder: (context) => RestaurantDetailScreen(restaurant: restaurant)),
-                                                    );
-                                                  },
-                                                )),
+                                                      onTap: () {
+                                                        _recordInteraction(restaurant.id, 'view');
+                                                        Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(builder: (context) => RestaurantDetailScreen(restaurant: restaurant)),
+                                                        );
+                                                      },
+                                                    )),
                                           ],
                                         ))
-                          : _selectedFilter == 'Nearby'
+                            : _selectedFilter == 'Nearby'
                               ? (_isLoadingNearby
                                   ? const Center(child: CircularProgressIndicator())
                                   : _nearbyError != null
@@ -612,6 +705,77 @@ class _HomeTabContentState extends State<HomeTabContent> {
                                                     )),
                                               ],
                                             ))
+                              : _selectedFilter == 'Trending'
+                                  ? (_isLoadingTrending
+                                      ? const Center(child: CircularProgressIndicator())
+                                      : _trendingError != null
+                                          ? Center(child: Text(_trendingError!))
+                                          : filteredTrending.isEmpty
+                                              ? const Center(child: Text('No trending restaurants found.'))
+                                              : ListView(
+                                                  padding: const EdgeInsets.all(20),
+                                                  children: [
+                                                    ...filteredTrending.map((restaurant) => RestaurantCard(
+                                                          restaurant: restaurant,
+                                                          isFavorite: _favoriteIds.contains(restaurant.id),
+                                                          isFavoriteLoading: _favoriteBusyIds.contains(restaurant.id),
+                                                          onFavoriteTap: () => _toggleFavorite(restaurant),
+                                                          onTap: () {
+                                                            _recordInteraction(restaurant.id, 'view');
+                                                            Navigator.push(
+                                                              context,
+                                                              MaterialPageRoute(builder: (context) => RestaurantDetailScreen(restaurant: restaurant)),
+                                                            );
+                                                          },
+                                                        )),
+                                                  ],
+                                                ))
+                              : _selectedFilter == 'Highest Hygiene'
+                                  ? (baseRestaurants.isEmpty
+                                      ? const Center(child: Text('No restaurants found.'))
+                                      : ListView(
+                                          padding: const EdgeInsets.all(20),
+                                          children: [
+                                            ...baseRestaurants.map((restaurant) => RestaurantCard(
+                                                  restaurant: restaurant,
+                                                  isFavorite: _favoriteIds.contains(restaurant.id),
+                                                  isFavoriteLoading: _favoriteBusyIds.contains(restaurant.id),
+                                                  onFavoriteTap: () => _toggleFavorite(restaurant),
+                                                  onTap: () {
+                                                    _recordInteraction(restaurant.id, 'view');
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(builder: (context) => RestaurantDetailScreen(restaurant: restaurant)),
+                                                    );
+                                                  },
+                                                )),
+                                          ],
+                                        ))
+                              : _selectedFilter == 'Top Rated'
+                                  ? (_isLoadingTopRated
+                                      ? const Center(child: CircularProgressIndicator())
+                                      : _topRatedError != null
+                                          ? Center(child: Text(_topRatedError!))
+                                          : filteredTopRated.isEmpty
+                                              ? const Center(child: Text('No top rated restaurants found.'))
+                                              : ListView(
+                                                  padding: const EdgeInsets.all(20),
+                                                  children: [
+                                                    ...filteredTopRated.map((restaurant) => RestaurantCard(
+                                                          restaurant: restaurant,
+                                                          isFavorite: _favoriteIds.contains(restaurant.id),
+                                                          isFavoriteLoading: _favoriteBusyIds.contains(restaurant.id),
+                                                          onFavoriteTap: () => _toggleFavorite(restaurant),
+                                                          onTap: () {
+                                                            _recordInteraction(restaurant.id, 'view');
+                                                            Navigator.push(
+                                                              context,
+                                                              MaterialPageRoute(builder: (context) => RestaurantDetailScreen(restaurant: restaurant)),
+                                                            );
+                                                          },
+                                                        )),
+                                                  ],
+                                                ))
                               : (mainList.isEmpty
                                   ? const Center(child: Text('No restaurants found.'))
                                   : ListView(
@@ -659,7 +823,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
                   ],
                 ),
                 Text(
-                  _userCity == null ? 'Detecting locationâ€¦' : '${_userCity!}, Pakistan',
+                  _userCity == null ? 'Detecting location…' : '${_userCity!}, Pakistan',
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ],
@@ -797,6 +961,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
                   _cuisineType = cuisine.isNotEmpty ? cuisine : null;
                   final dist = double.tryParse(distanceController.text);
                   _distanceKm = (dist != null && dist > 0) ? dist : null;
+                  _filtersApplied = true;
                 });
                 Navigator.of(context).pop();
               },
@@ -824,6 +989,10 @@ class _HomeTabContentState extends State<HomeTabContent> {
               setState(() => _selectedFilter = filterName);
               if (filterName == 'Recommended for You') {
                 _fetchRecommendedRestaurants();
+              } else if (filterName == 'Trending') {
+                _fetchTrendingRestaurants();
+              } else if (filterName == 'Top Rated') {
+                _fetchTopRatedRestaurants();
               } else if (filterName == 'Nearby') {
                 _fetchNearbyRestaurants();
               }

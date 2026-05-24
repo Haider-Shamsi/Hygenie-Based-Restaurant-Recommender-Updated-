@@ -170,7 +170,7 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/restaurant/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/owner/restaurant/'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Token $token',
@@ -211,7 +211,7 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       final response = await http.patch(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/restaurant/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/owner/restaurant/'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Token $token',
@@ -254,7 +254,7 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/menu/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/owner/menu/'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Token $token',
@@ -280,7 +280,7 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/menu/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/owner/menu/'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Token $token',
@@ -315,7 +315,7 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       final response = await http.delete(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/menu/$id/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/owner/menu/$id/'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Token $token',

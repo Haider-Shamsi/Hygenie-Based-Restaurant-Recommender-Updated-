@@ -45,7 +45,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
       }
 
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/profile/reviews/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/profile/reviews/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -94,7 +94,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
 
     try {
       final response = await http.delete(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/profile/reviews/$reviewId/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/profile/reviews/$reviewId/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',

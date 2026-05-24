@@ -142,7 +142,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
 
       // Replace with your actual Django endpoint
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/owner/dashboard/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/owner/dashboard/'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Token $token',

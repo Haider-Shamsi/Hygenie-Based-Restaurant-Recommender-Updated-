@@ -47,7 +47,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
       }
 
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/alerts/?sort=recent'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/alerts/?sort=recent'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -86,7 +86,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
       if (token == null || token.isEmpty) return;
 
       final response = await http.patch(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/alerts/$alertId/read/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/alerts/$alertId/read/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -111,7 +111,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
     if (token == null || token.isEmpty) return null;
 
     final response = await http.get(
-      Uri.parse('http://127.0.0.1:8000/api/accounts/alerts/preferences/'),
+      Uri.parse('http://192.168.1.46:8000/api/accounts/alerts/preferences/'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Token $token',
@@ -131,7 +131,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
     if (token == null || token.isEmpty) return false;
 
     final response = await http.patch(
-      Uri.parse('http://127.0.0.1:8000/api/accounts/alerts/preferences/'),
+      Uri.parse('http://192.168.1.46:8000/api/accounts/alerts/preferences/'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Token $token',

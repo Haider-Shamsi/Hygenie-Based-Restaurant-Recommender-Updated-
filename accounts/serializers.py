@@ -283,7 +283,7 @@ class AccountSettingsReadSerializer(serializers.ModelSerializer):
 class RestaurantMenuItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = RestaurantMenuItem
-        fields = ['id', 'name', 'category', 'description', 'price', 'is_available']
+        fields = ['id', 'name', 'category', 'description', 'price', 'rating', 'order_count', 'is_available']
 
 
 class OwnerReviewResponseSerializer(serializers.ModelSerializer):

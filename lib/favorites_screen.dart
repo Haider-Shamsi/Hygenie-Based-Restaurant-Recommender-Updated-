@@ -51,7 +51,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       }
 
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/favorites/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/favorites/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -99,7 +99,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
     try {
       final response = await http.delete(
-        Uri.parse('http://127.0.0.1:8000/api/accounts/favorites/${restaurant.id}/'),
+        Uri.parse('http://192.168.1.46:8000/api/accounts/favorites/${restaurant.id}/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
