@@ -20,7 +20,7 @@ class _OTPScreenState extends State<OTPScreen> {
   late List<FocusNode> focusNodes;
   
   Timer? _timer;
-  int _start = 50; // Resend timer
+  int _start = 60; // Resend timer
   bool isLoading = false;
 
   @override

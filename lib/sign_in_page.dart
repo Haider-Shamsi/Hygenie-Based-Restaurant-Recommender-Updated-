@@ -24,6 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
   late TextEditingController passwordController;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool isLoading = false;
+  bool _obscurePassword = true;
 
   late final Future<void> _googleInit;
   StreamSubscription<GoogleSignInAuthenticationEvent>? _googleAuthSub;
@@ -169,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const Text("Email Address", style: TextStyle(fontWeight: FontWeight.w500)),
                     const SizedBox(height: 8),
-                    _buildTextField(emailController, "your.email@example.com", TextInputType.emailAddress),
+                    _buildTextField(emailController, "example@gmail.com", TextInputType.emailAddress),
                     const SizedBox(height: 20),
                     const Text("Password", style: TextStyle(fontWeight: FontWeight.w500)),
                     const SizedBox(height: 8),
@@ -188,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: ElevatedButton(
                         onPressed: isLoading ? null : _handleSignIn,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFA2D9D1),
+                          backgroundColor: const Color(0xFF00C48C),
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
@@ -319,7 +320,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildTextField(TextEditingController controller, String hint, TextInputType type, {bool isPassword = false}) {
     return TextFormField(
       controller: controller,
-      obscureText: isPassword,
+      obscureText: isPassword ? _obscurePassword : false,
       keyboardType: type,
       validator: (value) {
         if (value?.isEmpty ?? true) return 'This field is required';
@@ -332,7 +333,14 @@ class _LoginScreenState extends State<LoginScreen> {
         hintText: hint,
         filled: true,
         fillColor: const Color(0xFFF1F2F6),
-        suffixIcon: isPassword ? const Icon(Icons.visibility_outlined, color: Colors.grey) : null,
+        suffixIcon: isPassword ? IconButton(
+          icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.grey),
+          onPressed: () {
+            setState(() {
+              _obscurePassword = !_obscurePassword;
+            });
+          },
+        ) : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,

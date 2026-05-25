@@ -40,7 +40,7 @@ class CommonWidgets {
         ),
         const SizedBox(height: 30),
         Image.network( // Use image asset in real app
-          'https://w7.pngwing.com/pngs/351/319/png-transparent-logo-safe-food-brand-dining-cutlery-green-safety-label-text-rectangle.png',
+          'https://imgs.search.brave.com/78Zxol2K-kDEL8FVgzqDYkzKIgYwKJj1JdmgxuBuUnQ/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzE1LzIxLzEyLzc0/LzM2MF9GXzE1MjEx/Mjc0NzhfeG1OeUhq/QmYzQXVLVjJLejJr/MlBuR1F4ZE96UTJo/QkMuanBn',
           height: 120,
         ),
         const SizedBox(height: 20),

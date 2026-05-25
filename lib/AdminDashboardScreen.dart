@@ -163,6 +163,52 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return Scaffold(
       backgroundColor: _bgGray,
       appBar: _buildAppBar(),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(color: _brandTeal),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: const [
+                  CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.admin_panel_settings, color: Colors.grey),
+                  ),
+                  SizedBox(height: 10),
+                  Text('Admin Menu', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.swap_horiz, color: Colors.blue),
+              title: const Text('Switch to customer'),
+              onTap: () {
+                Navigator.pop(context); // Close the drawer
+                widget.onBack(); // Switch to customer
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.bug_report_outlined, color: Colors.orange),
+              title: const Text('Report an Issue'),
+              onTap: () {
+                Navigator.pop(context); // Close the drawer
+                // TODO: Navigate to report issue screen
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Logout'),
+              onTap: () {
+                Navigator.pop(context); // Close the drawer
+                // TODO: Handle logout logic
+              },
+            ),
+          ],
+        ),
+      ),
       body: Column(
         children: [
           _buildTopStatsBar(),
@@ -190,7 +236,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
-      leading: IconButton(icon: Icon(Icons.arrow_back, color: _textDark), onPressed: widget.onBack),
+      iconTheme: IconThemeData(color: _textDark), // Ensures drawer icon is dark
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
