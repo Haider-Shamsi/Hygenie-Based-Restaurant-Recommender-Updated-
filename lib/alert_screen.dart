@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'config.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,7 +47,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
       }
 
       final response = await http.get(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/alerts/?sort=recent'),
+        Uri.parse('${Config.baseUrl}/api/accounts/alerts/?sort=recent'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -86,7 +86,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
       if (token == null || token.isEmpty) return;
 
       final response = await http.patch(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/alerts/$alertId/read/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/alerts/$alertId/read/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -111,7 +111,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
     if (token == null || token.isEmpty) return null;
 
     final response = await http.get(
-      Uri.parse('http://192.168.1.46:8000/api/accounts/alerts/preferences/'),
+      Uri.parse('${Config.baseUrl}/api/accounts/alerts/preferences/'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Token $token',
@@ -131,7 +131,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
     if (token == null || token.isEmpty) return false;
 
     final response = await http.patch(
-      Uri.parse('http://192.168.1.46:8000/api/accounts/alerts/preferences/'),
+      Uri.parse('${Config.baseUrl}/api/accounts/alerts/preferences/'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Token $token',

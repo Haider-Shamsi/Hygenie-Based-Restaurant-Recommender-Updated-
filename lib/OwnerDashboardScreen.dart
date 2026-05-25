@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'OwnerRestaurantManageScreen.dart';
 import 'OwnerReviewsManagementScreen.dart';
 import 'OwnerAnalyticsScreen.dart';
-
+import 'config.dart';
 import 'OwnerHygieneReportsScreen.dart';
 
 
@@ -142,7 +142,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
 
       // Replace with your actual Django endpoint
       final response = await http.get(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/owner/dashboard/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/owner/dashboard/'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Token $token',

@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'config.dart';
 class OTPScreen extends StatefulWidget {
   final String email;
   const OTPScreen({super.key, required this.email});
@@ -65,7 +65,7 @@ class _OTPScreenState extends State<OTPScreen> {
     setState(() => isLoading = true);
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/verify-otp/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/verify-otp/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'username': widget.email, 'otp': otp}),
       );

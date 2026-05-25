@@ -13,7 +13,7 @@ import 'map_screen.dart';
 import 'alert_screen.dart'; 
 import 'favorites_screen.dart';
 import 'profile_screen.dart'; 
-
+import 'config.dart';
 
 class RestaurantListScreen extends StatefulWidget {
   const RestaurantListScreen({super.key});
@@ -176,7 +176,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
         'Authorization': 'Token $token',
       };
       final response = await http.get(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/recommendations/item-based/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/recommendations/item-based/'),
         headers: headers,
       );
       if (response.statusCode == 200) {
@@ -211,7 +211,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
       if (token == null || token.isEmpty) return;
 
       final response = await http.get(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/profile/preferences/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/profile/preferences/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -308,7 +308,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
       }
 
       final response = await http.get(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/recommendations/city/?city=${Uri.encodeComponent(city)}'),
+        Uri.parse('${Config.baseUrl}/api/accounts/recommendations/city/?city=${Uri.encodeComponent(city)}'),
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -340,7 +340,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/recommendations/trending/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/recommendations/trending/'),
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -372,7 +372,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/recommendations/top-rated/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/recommendations/top-rated/'),
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -402,7 +402,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
       if (token == null || token.isEmpty) return;
 
       await http.post(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/user-interactions/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/user-interactions/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -429,7 +429,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
       }
 
       final response = await http.get(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/favorites/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/favorites/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -478,7 +478,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
 
       if (isFavorite) {
         response = await http.delete(
-          Uri.parse('http://192.168.1.46:8000/api/accounts/favorites/${restaurant.id}/'),
+          Uri.parse('${Config.baseUrl}/api/accounts/favorites/${restaurant.id}/'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Token $token',
@@ -494,7 +494,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
         }
       } else {
         response = await http.post(
-          Uri.parse('http://192.168.1.46:8000/api/accounts/favorites/'),
+          Uri.parse('${Config.baseUrl}/api/accounts/favorites/'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Token $token',
@@ -540,7 +540,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
       _error = null;
     });
     try {
-      final response = await http.get(Uri.parse('http://192.168.1.46:8000/api/accounts/recommendations/hygiene/'));
+      final response = await http.get(Uri.parse('${Config.baseUrl}/api/accounts/recommendations/hygiene/'));
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {

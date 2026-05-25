@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:math' as math;
-
+import 'config.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:http/http.dart' as http;
@@ -54,7 +54,7 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
       final token = prefs.getString('auth_token');
 
       final response = await http.get(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/owner/analytics/?period=$_selectedPeriod'),
+        Uri.parse('${Config.baseUrl}/api/accounts/owner/analytics/?period=$_selectedPeriod'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Token $token',

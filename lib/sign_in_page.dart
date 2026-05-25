@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-
+import 'config.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -69,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
       String password = passwordController.text.trim();
       try {
         final response = await http.post(
-          Uri.parse('http://192.168.1.46:8000/api/accounts/login/'),
+          Uri.parse('${Config.baseUrl}/api/accounts/login/'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'username': email, 'password': password}),
         );
@@ -284,7 +284,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _sendGoogleTokenToBackend(String idToken, String email) async {
     final response = await http.post(
-      Uri.parse('http://192.168.1.46:8000/api/accounts/google-signin/'),
+      Uri.parse('${Config.baseUrl}/api/accounts/google-signin/'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'token': idToken}),
     );

@@ -5,7 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/restaurant.dart';
-
+import 'config.dart';
 class RestaurantDetailScreen extends StatefulWidget {
   final Restaurant restaurant;
   const RestaurantDetailScreen({super.key, required this.restaurant});
@@ -47,7 +47,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
 
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/restaurants/${widget.restaurant.id}/detail/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/restaurants/${widget.restaurant.id}/detail/'),
       );
       if (response.statusCode != 200) {
         setState(() {
@@ -123,7 +123,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
     }
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.46:8000/api/accounts/restaurants/${widget.restaurant.id}/reviews/'),
+      Uri.parse('${Config.baseUrl}/api/accounts/restaurants/${widget.restaurant.id}/reviews/'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Token $token',
@@ -159,7 +159,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
     }
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.46:8000/api/accounts/restaurants/${widget.restaurant.id}/reports/'),
+      Uri.parse('${Config.baseUrl}/api/accounts/restaurants/${widget.restaurant.id}/reports/'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Token $token',

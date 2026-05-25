@@ -26,9 +26,7 @@ SECRET_KEY = 'django-insecure-9uyl=^o+i%y!+@iz)r%3m-og*a9#s&7@8c7ixz1wy4dc+m^68m
 DEBUG = True
 
 # Allow all hosts for deployment (update for production as needed)
-ALLOWED_HOSTS = [ "192.168.1.46",
-    "127.0.0.1",
-    "localhost"]
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition

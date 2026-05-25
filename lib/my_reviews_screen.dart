@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'config.dart';
 class MyReviewsScreen extends StatefulWidget {
   const MyReviewsScreen({super.key});
 
@@ -45,7 +45,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
       }
 
       final response = await http.get(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/profile/reviews/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/profile/reviews/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -94,7 +94,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
 
     try {
       final response = await http.delete(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/profile/reviews/$reviewId/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/profile/reviews/$reviewId/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',

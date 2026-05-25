@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'config.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -170,7 +170,7 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       final response = await http.get(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/owner/restaurant/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/owner/restaurant/'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Token $token',
@@ -188,7 +188,13 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
           _zipController.text = data['zip'] ?? '';
           _phoneController.text = data['phone'] ?? '';
           _emailController.text = data['email'] ?? '';
-          _selectedCuisine = data['cuisine'] ?? _selectedCuisine;
+          final fetchedCuisine = data['cuisine'] as String?;
+          if (fetchedCuisine != null && fetchedCuisine.isNotEmpty) {
+            if (!_cuisines.contains(fetchedCuisine)) {
+              _cuisines.add(fetchedCuisine);
+            }
+            _selectedCuisine = fetchedCuisine;
+          }
           _selectedPriceRange = data['price_range'] ?? _selectedPriceRange;
           _isLoading = false;
         });
@@ -211,7 +217,7 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       final response = await http.patch(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/owner/restaurant/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/owner/restaurant/'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Token $token',
@@ -254,7 +260,7 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       final response = await http.get(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/owner/menu/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/owner/menu/'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Token $token',
@@ -280,7 +286,7 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       final response = await http.post(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/owner/menu/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/owner/menu/'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Token $token',
@@ -315,7 +321,7 @@ class _OwnerRestaurantManageScreenState extends State<OwnerRestaurantManageScree
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       final response = await http.delete(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/owner/menu/$id/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/owner/menu/$id/'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Token $token',

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-
+import 'config.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // Ensure font_awesome_flutter is in your pubspec.yaml
@@ -287,7 +287,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
   Future<void> _sendGoogleTokenToBackend(String idToken, String email) async {
     final response = await http.post(
-      Uri.parse('http://192.168.1.46:8000/api/accounts/google-signin/'),
+      Uri.parse('${Config.baseUrl}/api/accounts/google-signin/'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'token': idToken}),
     );
@@ -367,7 +367,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       String password = _passwordController.text.trim();
       try {
         final response = await http.post(
-          Uri.parse('http://192.168.1.46:8000/api/accounts/signup/'),
+          Uri.parse('${Config.baseUrl}/api/accounts/signup/'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'username': email, 'password': password}),
         );

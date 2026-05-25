@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'config.dart';
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
 
@@ -50,7 +50,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       }
 
       final response = await http.get(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/profile/notification-settings/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/profile/notification-settings/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -100,7 +100,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
     try {
       final response = await http.patch(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/profile/notification-settings/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/profile/notification-settings/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',

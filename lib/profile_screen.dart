@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'config.dart';
 import 'my_reports_screen.dart';  
 import 'my_reviews_screen.dart';  
 import 'preferences_screen.dart'; 
@@ -10,6 +11,9 @@ import 'sign_up_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'OwnerDashboardScreen.dart' ;
+import 'AdminDashboardScreen.dart' ;
+
+
 class ProfileScreen extends StatefulWidget {
   final String userRole; // 'customer', 'owner', 'admin'
 
@@ -56,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       final response = await http.get(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/profile/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/profile/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Token $token',
@@ -95,7 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final navigator = Navigator.of(context);
     try {
       await http.post(
-        Uri.parse('http://192.168.1.46:8000/api/accounts/logout/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/logout/'),
         headers: {'Content-Type': 'application/json'},
       );
     } catch (e) {
@@ -386,10 +390,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             title: "Switch to Admin View", 
             sub: "Access system administration", 
             color: Colors.purple, // Purple
-            onTap: () {
+            onTap: () async {
               // TODO: Add navigation to Admin Dashboard
-              // Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminDashboardScreen()));
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => AdminDashboardScreen(
+                    onBack: () => Navigator.pop(context),
+                  ),
+                ),
+              );
             }
+
           ),
         ],
       ),
