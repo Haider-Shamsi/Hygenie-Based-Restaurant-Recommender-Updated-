@@ -13,6 +13,8 @@ class Restaurant(models.Model):
     province = models.CharField(max_length=100)
     user_rating = models.FloatField()
     hygiene_score = models.FloatField()
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return self.business_name

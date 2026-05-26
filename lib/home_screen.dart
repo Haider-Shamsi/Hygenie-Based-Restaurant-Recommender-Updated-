@@ -264,6 +264,37 @@ class _HomeTabContentState extends State<HomeTabContent> {
     return city;
   }
 
+  Future<Position?> _getCurrentPosition() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return null;
+    }
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+      return null;
+    }
+
+    return Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
+  }
+
+  double? _distanceKmBetween(Restaurant restaurant, Position position) {
+    final lat = restaurant.latitude;
+    final lon = restaurant.longitude;
+    if (lat == null || lon == null) return null;
+
+    final meters = Geolocator.distanceBetween(
+      position.latitude,
+      position.longitude,
+      lat,
+      lon,
+    );
+    return meters / 1000.0;
+  }
+
   Future<String> _reverseGeocodeCityWeb(double latitude, double longitude) async {
     // geocoding package does not provide a web implementation.
     // Use a simple reverse-geocoding HTTP API (CORS-friendly) to resolve locality.
@@ -297,23 +328,41 @@ class _HomeTabContentState extends State<HomeTabContent> {
     });
 
     try {
-      final city = await _getCurrentCity();
-      if (city == null || city.isEmpty) {
+      final position = await _getCurrentPosition();
+      if (position == null) {
         setState(() {
           _nearbyRestaurants = [];
-          _nearbyError = 'Unable to detect your city. Please allow location access.';
+          _nearbyError = 'Unable to detect your location. Please allow location access.';
           _isLoadingNearby = false;
         });
         return;
       }
 
       final response = await http.get(
-        Uri.parse('${Config.baseUrl}/api/accounts/recommendations/city/?city=${Uri.encodeComponent(city)}'),
+        Uri.parse('${Config.baseUrl}/api/accounts/recommendations/hygiene/'),
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
+        final radiusKm = _distanceKm ?? 5.0;
+        final restaurants = data.map((json) => Restaurant.fromJson(json)).toList();
+        final nearby = <Restaurant>[];
+
+        for (final restaurant in restaurants) {
+          final distanceKm = _distanceKmBetween(restaurant, position);
+          if (distanceKm == null) continue;
+          if (distanceKm <= radiusKm) {
+            nearby.add(restaurant);
+          }
+        }
+
+        nearby.sort((a, b) {
+          final distA = _distanceKmBetween(a, position) ?? double.infinity;
+          final distB = _distanceKmBetween(b, position) ?? double.infinity;
+          return distA.compareTo(distB);
+        });
+
         setState(() {
-          _nearbyRestaurants = data.map((json) => Restaurant.fromJson(json)).toList();
+          _nearbyRestaurants = nearby;
           _isLoadingNearby = false;
         });
       } else {

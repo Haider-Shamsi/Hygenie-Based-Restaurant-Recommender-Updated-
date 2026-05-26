@@ -9,6 +9,8 @@ class Restaurant {
   final double userRating;
   final double hygieneScore;
   final String? inspectionDate;
+  final double? latitude;
+  final double? longitude;
 
   // UI fields (optional)
   final String? imageUrl;
@@ -27,6 +29,8 @@ class Restaurant {
     required this.userRating,
     required this.hygieneScore,
     this.inspectionDate,
+    this.latitude,
+    this.longitude,
     this.imageUrl,
     this.category,
     this.price,
@@ -45,6 +49,8 @@ class Restaurant {
       userRating: (json['user_rating'] as num).toDouble(),
       hygieneScore: (json['hygiene_score'] as num).toDouble(),
       inspectionDate: json['inspection_date'],
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
       // UI fields: try to get from backend, else null
       imageUrl: json['imageUrl'],
       category: json['category'] ?? json['business_type'],

@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'home_screen.dart';
+import 'models/restaurant.dart';
+import 'config.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -20,6 +24,9 @@ class _MapScreenState extends State<MapScreen> {
   final TextEditingController _cuisineController = TextEditingController();
   final TextEditingController _radiusController = TextEditingController();
   List<Marker> _markers = [];
+  List<Restaurant> _restaurants = [];
+  bool _isLoading = false;
+  String? _error;
 
   @override
   void initState() {
@@ -33,43 +40,54 @@ class _MapScreenState extends State<MapScreen> {
       setState(() {
         _userLocation = LatLng(position.latitude, position.longitude);
       });
-      _loadNearbyRestaurants();
+      await _fetchRestaurants();
     } catch (e) {
       // Fallback to Lahore if location fails
       setState(() {
         _userLocation = LatLng(31.5204, 74.3587);
       });
-      _loadNearbyRestaurants();
+      await _fetchRestaurants();
     }
   }
 
-  void _loadNearbyRestaurants() {
-    // Mock data: 3 restaurants near user
-    final base = _userLocation ?? LatLng(31.5204, 74.3587);
-    final List<Map<String, dynamic>> mockRestaurants = [
-      {
-        'id': '1',
-        'name': 'Safe Place',
-        'lat': base.latitude + 0.002,
-        'lng': base.longitude + 0.002,
-        'hygiene': 95,
-      },
-      {
-        'id': '2',
-        'name': 'Caution Area',
-        'lat': base.latitude - 0.003,
-        'lng': base.longitude - 0.001,
-        'hygiene': 72,
-      },
-      {
-        'id': '3',
-        'name': 'Low Hygiene',
-        'lat': base.latitude + 0.001,
-        'lng': base.longitude - 0.002,
-        'hygiene': 60,
-      },
-    ];
-    List<Marker> markers = [
+  Future<void> _fetchRestaurants() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('${Config.baseUrl}/api/accounts/recommendations/hygiene/'),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _restaurants = data.map((json) => Restaurant.fromJson(json)).toList();
+          _isLoading = false;
+        });
+        _applyFiltersAndMarkers();
+      } else {
+        setState(() {
+          _error = 'Failed to load restaurants.';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Unable to load restaurants.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _applyFiltersAndMarkers() {
+    final base = _userLocation ?? const LatLng(31.5204, 74.3587);
+    final minHygiene = double.tryParse(_hygieneController.text) ?? 0.0;
+    final radiusKm = double.tryParse(_radiusController.text) ?? 5.0;
+    final cuisine = _cuisineController.text.trim().toLowerCase();
+
+    final markers = <Marker>[
       Marker(
         point: base,
         width: 40,
@@ -80,23 +98,45 @@ class _MapScreenState extends State<MapScreen> {
           size: 36,
         ),
       ),
-      ...mockRestaurants.map(
-        (r) => Marker(
-          point: LatLng(r['lat'], r['lng']),
+    ];
+
+    for (final restaurant in _restaurants) {
+      final lat = restaurant.latitude;
+      final lon = restaurant.longitude;
+      if (lat == null || lon == null) continue;
+
+      final distanceMeters = Geolocator.distanceBetween(
+        base.latitude,
+        base.longitude,
+        lat,
+        lon,
+      );
+      final distanceKm = distanceMeters / 1000.0;
+      if (distanceKm > radiusKm) continue;
+      if (restaurant.hygieneScore < minHygiene) continue;
+      if (cuisine.isNotEmpty) {
+        final cat = (restaurant.category ?? restaurant.businessType).toLowerCase();
+        if (!cat.contains(cuisine)) continue;
+      }
+
+      markers.add(
+        Marker(
+          point: LatLng(lat, lon),
           width: 40,
           height: 40,
           child: Icon(
             Icons.location_on,
-            color: r['hygiene'] >= 85
+            color: restaurant.hygieneScore >= 85
                 ? Colors.green
-                : r['hygiene'] >= 70
-                ? Colors.orange
-                : Colors.red,
+                : restaurant.hygieneScore >= 70
+                    ? Colors.orange
+                    : Colors.red,
             size: 36,
           ),
         ),
-      ),
-    ];
+      );
+    }
+
     setState(() {
       _markers = markers;
     });
@@ -232,12 +272,7 @@ class _MapScreenState extends State<MapScreen> {
               height: 50,
               child: ElevatedButton(
                 onPressed: () {
-                  // Placeholder for real filter logic
-                  debugPrint("--- Applying Filters ---");
-                  debugPrint("Min Hygiene: ${_hygieneController.text}");
-                  debugPrint("Cuisine: ${_cuisineController.text}");
-                  debugPrint("Radius: ${_radiusController.text}");
-
+                  _applyFiltersAndMarkers();
                   setState(() => _showFilterPanel = false);
                 },
                 style: ElevatedButton.styleFrom(
