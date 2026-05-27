@@ -30,6 +30,7 @@ from .models import RestaurantMenuItem
 from .models import OwnerReportResponse
 from .models import OwnerReviewResponse
 from .models import RestaurantReview
+from .models import InspectionRequest
 from .models import UserInteraction
 from .models import UserPreference
 from .models import UserProfile
@@ -75,6 +76,26 @@ def _get_restaurant_from_request(request):
     if restaurant_id:
         return Restaurant.objects.filter(id=restaurant_id).first()
     return Restaurant.objects.first()
+
+
+def _get_owner_restaurant(request):
+    user = request.user
+    if not user or not user.is_authenticated:
+        return None
+
+    profile, _, _ = _ensure_user_state(user)
+    is_owner = profile.role == UserProfile.ROLE_OWNER
+    is_admin = user.is_staff or user.is_superuser
+
+    if not is_owner and not is_admin:
+        return None
+
+    if is_admin:
+        restaurant_id = request.query_params.get('restaurant_id') or request.data.get('restaurant_id')
+        if restaurant_id:
+            return Restaurant.objects.filter(id=restaurant_id).first()
+
+    return Restaurant.objects.filter(owner=user).first()
 
 
 def _cosine_similarity(vec_a, vec_b):
@@ -653,6 +674,35 @@ def _build_hygiene_history(restaurant):
     return points
 
 
+def _percent_change(current, previous):
+    if previous == 0:
+        return 100.0 if current > 0 else 0.0
+    return ((current - previous) / previous) * 100.0
+
+
+def _trend_label(current, previous):
+    change = _percent_change(current, previous)
+    return f"{change:+.0f}%"
+
+
+def _inspection_color(score):
+    if score < 70:
+        return 'red'
+    if score < 85:
+        return 'amber'
+    return 'green'
+
+
+def _map_owner_report_status(status_value):
+    if status_value == HygieneIssueReport.STATUS_SUBMITTED:
+        return 'Open'
+    if status_value == HygieneIssueReport.STATUS_REVIEWED:
+        return 'Investigating'
+    if status_value == HygieneIssueReport.STATUS_RESOLVED:
+        return 'Resolved'
+    return 'Open'
+
+
 class RestaurantDetailDataView(APIView):
     permission_classes = [AllowAny]
 
@@ -822,9 +872,9 @@ class OwnerDashboardView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        restaurant = _get_restaurant_from_request(request)
+        restaurant = _get_owner_restaurant(request)
         if restaurant is None:
-            return Response({'detail': 'Restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Owner restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         now = timezone.now()
         month_ago = now - timedelta(days=30)
@@ -835,6 +885,9 @@ class OwnerDashboardView(APIView):
         total_reviews = reviews.count()
         avg_rating = reviews.aggregate(avg=Avg('rating')).get('avg') or 0.0
         monthly_visitors = views.filter(timestamp__gte=month_ago).count()
+        prev_month = now - timedelta(days=60)
+        prev_month_reviews = reviews.filter(created_at__gte=prev_month, created_at__lt=month_ago).count()
+        prev_month_visitors = views.filter(timestamp__gte=prev_month, timestamp__lt=month_ago).count()
 
         recent_activities = []
         recent_reviews = reviews.order_by('-created_at')[:2]
@@ -845,29 +898,24 @@ class OwnerDashboardView(APIView):
                 'time_ago': review.created_at.strftime('%b %d, %Y'),
             })
 
+        recent_reports = HygieneIssueReport.objects.filter(restaurant=restaurant).order_by('-created_at')[:2]
+        for report in recent_reports:
+            recent_activities.append({
+                'type': 'report',
+                'description': f"New hygiene report: {report.get_category_display()}.",
+                'time_ago': report.created_at.strftime('%b %d, %Y'),
+            })
+
         data = {
             'restaurant_name': restaurant.business_name,
             'last_inspection_date': restaurant.inspection_date.strftime('%b %d, %Y'),
             'hygiene_score': float(restaurant.hygiene_score),
             'total_reviews': total_reviews,
-            'review_trend': '+0%',
+            'review_trend': _trend_label(total_reviews, prev_month_reviews),
             'average_rating': round(float(avg_rating), 1),
             'monthly_visitors': monthly_visitors,
-            'visitor_trend': '+0%',
-            'hygiene_trend': [
-                {'month': 'Jan', 'score': float(restaurant.hygiene_score)},
-                {'month': 'Feb', 'score': float(restaurant.hygiene_score)},
-                {'month': 'Mar', 'score': float(restaurant.hygiene_score)},
-                {'month': 'Apr', 'score': float(restaurant.hygiene_score)},
-                {'month': 'May', 'score': float(restaurant.hygiene_score)},
-                {'month': 'Jun', 'score': float(restaurant.hygiene_score)},
-                {'month': 'Jul', 'score': float(restaurant.hygiene_score)},
-                {'month': 'Aug', 'score': float(restaurant.hygiene_score)},
-                {'month': 'Sep', 'score': float(restaurant.hygiene_score)},
-                {'month': 'Oct', 'score': float(restaurant.hygiene_score)},
-                {'month': 'Nov', 'score': float(restaurant.hygiene_score)},
-                {'month': 'Dec', 'score': float(restaurant.hygiene_score)},
-            ],
+            'visitor_trend': _trend_label(monthly_visitors, prev_month_visitors),
+            'hygiene_trend': _build_hygiene_history(restaurant),
             'recent_activities': recent_activities,
         }
 
@@ -878,9 +926,9 @@ class OwnerReviewsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        restaurant = _get_restaurant_from_request(request)
+        restaurant = _get_owner_restaurant(request)
         if restaurant is None:
-            return Response({'detail': 'Restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Owner restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         reviews = RestaurantReview.objects.filter(restaurant=restaurant).select_related('user').order_by('-created_at')
         results = []
@@ -913,7 +961,11 @@ class OwnerReviewResponseView(APIView):
         if not text:
             return Response({'detail': 'Response text is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        review = RestaurantReview.objects.filter(id=review_id).first()
+        restaurant = _get_owner_restaurant(request)
+        if restaurant is None:
+            return Response({'detail': 'Owner restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        review = RestaurantReview.objects.filter(id=review_id, restaurant=restaurant).first()
         if review is None:
             return Response({'detail': 'Review not found.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -935,9 +987,9 @@ class OwnerHygieneReportsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        restaurant = _get_restaurant_from_request(request)
+        restaurant = _get_owner_restaurant(request)
         if restaurant is None:
-            return Response({'detail': 'Restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Owner restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         reports = HygieneIssueReport.objects.filter(restaurant=restaurant).order_by('-created_at')
         results = []
@@ -955,7 +1007,7 @@ class OwnerHygieneReportsView(APIView):
                 'issue_type': report.get_category_display(),
                 'priority': 'Medium',
                 'description': report.description,
-                'status': report.get_status_display(),
+                'status': _map_owner_report_status(report.status),
                 'owner_response': owner_response,
             })
 
@@ -970,7 +1022,11 @@ class OwnerHygieneReportResponseView(APIView):
         if not text:
             return Response({'detail': 'Response text is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        report = HygieneIssueReport.objects.filter(id=report_id).first()
+        restaurant = _get_owner_restaurant(request)
+        if restaurant is None:
+            return Response({'detail': 'Owner restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        report = HygieneIssueReport.objects.filter(id=report_id, restaurant=restaurant).first()
         if report is None:
             return Response({'detail': 'Report not found.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -978,6 +1034,10 @@ class OwnerHygieneReportResponseView(APIView):
             report=report,
             defaults={'text': text},
         )
+
+        if report.status == HygieneIssueReport.STATUS_SUBMITTED:
+            report.status = HygieneIssueReport.STATUS_REVIEWED
+            report.save(update_fields=['status'])
 
         return Response(
             {
@@ -992,16 +1052,62 @@ class OwnerAnalyticsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        restaurant = _get_restaurant_from_request(request)
+        restaurant = _get_owner_restaurant(request)
         if restaurant is None:
-            return Response({'detail': 'Restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Owner restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        period = request.query_params.get('period', '30d')
+        days_lookup = {'7d': 7, '30d': 30, '90d': 90, '12m': 365}
+        days = days_lookup.get(period, 30)
+        end_date = timezone.now()
+        start_date = end_date - timedelta(days=days)
 
         reviews = RestaurantReview.objects.filter(restaurant=restaurant)
-        total_reviews = reviews.count()
-        avg_rating = reviews.aggregate(avg=Avg('rating')).get('avg') or 0.0
+        scoped_reviews = reviews.filter(created_at__gte=start_date)
+        total_reviews = scoped_reviews.count()
+        avg_rating = scoped_reviews.aggregate(avg=Avg('rating')).get('avg') or 0.0
+
+        pos = scoped_reviews.filter(rating__gte=4).count()
+        neutral = scoped_reviews.filter(rating=3).count()
+        neg = scoped_reviews.filter(rating__lte=2).count()
+        mixed = max(0, total_reviews - (pos + neutral + neg))
+
+        def percent(value, total):
+            if total == 0:
+                return 0
+            return round((value / total) * 100)
+
+        buckets = 4
+        bucket_size = max(1, days // buckets)
+        reviews_over_time = []
+        for idx in range(buckets):
+            bucket_start = start_date + timedelta(days=idx * bucket_size)
+            bucket_end = bucket_start + timedelta(days=bucket_size)
+            count = scoped_reviews.filter(created_at__gte=bucket_start, created_at__lt=bucket_end).count()
+            reviews_over_time.append({'x': idx, 'y': float(count)})
+
+        inspection_history = [
+            {
+                'date': restaurant.inspection_date.strftime('%b %d, %Y'),
+                'inspector': 'Inspector',
+                'score': float(restaurant.hygiene_score),
+                'status': 'Passed',
+                'color': _inspection_color(float(restaurant.hygiene_score)),
+            }
+        ]
+
+        latest_request = restaurant.inspection_requests.first()
+        if latest_request is not None:
+            inspection_history.insert(0, {
+                'date': latest_request.created_at.strftime('%b %d, %Y'),
+                'inspector': 'Requested',
+                'score': float(restaurant.hygiene_score),
+                'status': latest_request.get_status_display(),
+                'color': 'amber' if latest_request.status == latest_request.STATUS_PENDING else 'green',
+            })
 
         data = {
-            'period': request.query_params.get('period', '30d'),
+            'period': period,
             'key_metrics': {
                 'reviews_received': total_reviews,
                 'avg_hygiene_score': float(restaurant.hygiene_score),
@@ -1017,38 +1123,62 @@ class OwnerAnalyticsView(APIView):
                 {'category': 'Storage', 'score': float(restaurant.hygiene_score)},
             ],
             'sentiment': [
-                {'name': 'Positive', 'value': float(total_reviews), 'percentage': 100},
-                {'name': 'Neutral', 'value': 0.0, 'percentage': 0},
-                {'name': 'Negative', 'value': 0.0, 'percentage': 0},
-                {'name': 'Mixed', 'value': 0.0, 'percentage': 0},
+                {'name': 'Positive', 'value': float(pos), 'percentage': percent(pos, total_reviews)},
+                {'name': 'Neutral', 'value': float(neutral), 'percentage': percent(neutral, total_reviews)},
+                {'name': 'Negative', 'value': float(neg), 'percentage': percent(neg, total_reviews)},
+                {'name': 'Mixed', 'value': float(mixed), 'percentage': percent(mixed, total_reviews)},
             ],
-            'reviews_over_time': [
-                {'x': 0, 'y': float(total_reviews)},
-                {'x': 1, 'y': float(total_reviews)},
-                {'x': 2, 'y': float(total_reviews)},
-                {'x': 3, 'y': float(total_reviews)},
-            ],
+            'reviews_over_time': reviews_over_time,
             'top_keywords': [],
-            'inspection_history': [
-                {
-                    'date': restaurant.inspection_date.strftime('%b %d, %Y'),
-                    'inspector': 'Inspector',
-                    'score': float(restaurant.hygiene_score),
-                    'status': 'Passed',
-                }
-            ],
+            'inspection_history': inspection_history,
         }
 
         return Response(data, status=status.HTTP_200_OK)
+
+
+class OwnerInspectionRequestView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        restaurant = _get_owner_restaurant(request)
+        if restaurant is None:
+            return Response({'detail': 'Owner restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        pending = InspectionRequest.objects.filter(
+            restaurant=restaurant,
+            status=InspectionRequest.STATUS_PENDING,
+        ).first()
+        if pending is not None:
+            return Response(
+                {'detail': 'An inspection request is already pending.'},
+                status=status.HTTP_200_OK,
+            )
+
+        notes = (request.data.get('notes') or '').strip()
+        req = InspectionRequest.objects.create(
+            restaurant=restaurant,
+            requested_by=request.user,
+            notes=notes,
+        )
+
+        return Response(
+            {
+                'detail': 'Inspection request submitted.',
+                'id': req.id,
+                'status': req.status,
+                'created_at': req.created_at,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class OwnerRestaurantProfileView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        restaurant = _get_restaurant_from_request(request)
+        restaurant = _get_owner_restaurant(request)
         if restaurant is None:
-            return Response({'detail': 'Restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Owner restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         data = {
             'id': restaurant.id,
@@ -1058,24 +1188,28 @@ class OwnerRestaurantProfileView(APIView):
             'city': restaurant.province,
             'state': '',
             'zip': restaurant.post_code,
-            'description': '',
-            'phone': '',
-            'email': '',
-            'price_range': '',
+            'description': restaurant.description,
+            'phone': restaurant.phone,
+            'email': restaurant.email,
+            'price_range': restaurant.price_range,
         }
 
         return Response(data, status=status.HTTP_200_OK)
 
     def patch(self, request):
-        restaurant = _get_restaurant_from_request(request)
+        restaurant = _get_owner_restaurant(request)
         if restaurant is None:
-            return Response({'detail': 'Restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Owner restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         restaurant.business_name = request.data.get('name', restaurant.business_name)
         restaurant.business_type = request.data.get('cuisine', restaurant.business_type)
         restaurant.address = request.data.get('street', restaurant.address)
         restaurant.province = request.data.get('city', restaurant.province)
         restaurant.post_code = request.data.get('zip', restaurant.post_code)
+        restaurant.description = request.data.get('description', restaurant.description)
+        restaurant.phone = request.data.get('phone', restaurant.phone)
+        restaurant.email = request.data.get('email', restaurant.email)
+        restaurant.price_range = request.data.get('price_range', restaurant.price_range)
         restaurant.save()
 
         return Response({'detail': 'Restaurant updated.'}, status=status.HTTP_200_OK)
@@ -1085,18 +1219,18 @@ class OwnerRestaurantMenuView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        restaurant = _get_restaurant_from_request(request)
+        restaurant = _get_owner_restaurant(request)
         if restaurant is None:
-            return Response({'detail': 'Restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Owner restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         items = RestaurantMenuItem.objects.filter(restaurant=restaurant)
         serializer = RestaurantMenuItemSerializer(items, many=True)
         return Response({'results': serializer.data}, status=status.HTTP_200_OK)
 
     def post(self, request):
-        restaurant = _get_restaurant_from_request(request)
+        restaurant = _get_owner_restaurant(request)
         if restaurant is None:
-            return Response({'detail': 'Restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Owner restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         item = RestaurantMenuItem.objects.create(
             restaurant=restaurant,
@@ -1116,7 +1250,11 @@ class OwnerRestaurantMenuItemView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def delete(self, request, item_id):
-        item = RestaurantMenuItem.objects.filter(id=item_id).first()
+        restaurant = _get_owner_restaurant(request)
+        if restaurant is None:
+            return Response({'detail': 'Owner restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        item = RestaurantMenuItem.objects.filter(id=item_id, restaurant=restaurant).first()
         if item is None:
             return Response({'detail': 'Menu item not found.'}, status=status.HTTP_404_NOT_FOUND)
 

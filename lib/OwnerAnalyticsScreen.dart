@@ -616,7 +616,8 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
               ..._inspectionHistory.asMap().entries.map((entry) {
                 int index = entry.key;
                 var data = entry.value;
-                bool isWarning = data['color'] == 'amber';
+                final colorTag = (data['color'] ?? '').toString().toLowerCase();
+                bool isWarning = colorTag == 'amber' || colorTag == 'red';
                 return TableRow(
                   decoration: BoxDecoration(color: index % 2 == 0 ? Colors.transparent : _bgGray),
                   children: [

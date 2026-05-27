@@ -157,13 +157,16 @@ class _HomeTabContentState extends State<HomeTabContent> {
   }
 
   Future<void> _fetchRecommendedRestaurants() async {
+    if (!mounted) return;
     setState(() {
       _isLoadingRecommended = true;
       _recommendedError = null;
     });
     try {
       final token = await _getAuthToken();
+      if (!mounted) return;
       if (token == null || token.isEmpty) {
+        if (!mounted) return;
         setState(() {
           _recommendedRestaurants = [];
           _recommendedError = 'Sign in to see personalized recommendations.';
@@ -181,23 +184,27 @@ class _HomeTabContentState extends State<HomeTabContent> {
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
+        if (!mounted) return;
         setState(() {
           _recommendedRestaurants = data.map((json) => Restaurant.fromJson(json)).toList();
           _isLoadingRecommended = false;
         });
       } else if (response.statusCode == 401 || response.statusCode == 403) {
+        if (!mounted) return;
         setState(() {
           _recommendedRestaurants = [];
           _recommendedError = 'Session expired. Please sign in again.';
           _isLoadingRecommended = false;
         });
       } else {
+        if (!mounted) return;
         setState(() {
           _recommendedError = 'Failed to load recommendations';
           _isLoadingRecommended = false;
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _recommendedError = 'Error: $e';
         _isLoadingRecommended = false;
@@ -345,9 +352,12 @@ class _HomeTabContentState extends State<HomeTabContent> {
         final List<dynamic> data = json.decode(response.body);
         final radiusKm = _distanceKm ?? 5.0;
         final restaurants = data.map((json) => Restaurant.fromJson(json)).toList();
-        final nearby = <Restaurant>[];
+        final candidates = restaurants
+            .where((restaurant) => restaurant.latitude != null && restaurant.longitude != null)
+            .toList();
 
-        for (final restaurant in restaurants) {
+        final nearby = <Restaurant>[];
+        for (final restaurant in candidates) {
           final distanceKm = _distanceKmBetween(restaurant, position);
           if (distanceKm == null) continue;
           if (distanceKm <= radiusKm) {
@@ -361,8 +371,17 @@ class _HomeTabContentState extends State<HomeTabContent> {
           return distA.compareTo(distB);
         });
 
+        if (nearby.isEmpty && candidates.isNotEmpty) {
+          candidates.sort((a, b) {
+            final distA = _distanceKmBetween(a, position) ?? double.infinity;
+            final distB = _distanceKmBetween(b, position) ?? double.infinity;
+            return distA.compareTo(distB);
+          });
+        }
+
         setState(() {
-          _nearbyRestaurants = nearby;
+          _nearbyRestaurants = nearby.isNotEmpty ? nearby : candidates;
+          _nearbyError = candidates.isEmpty ? 'No restaurants with coordinates found.' : null;
           _isLoadingNearby = false;
         });
       } else {

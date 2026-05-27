@@ -29,6 +29,7 @@ from .views import OwnerRestaurantMenuView
 from .views import OwnerRestaurantProfileView
 from .views import OwnerReviewResponseView
 from .views import OwnerReviewsView
+from .views import OwnerInspectionRequestView
 
 urlpatterns = [
     path('signup/', views.SignUpView.as_view(), name='signup'),
@@ -66,6 +67,7 @@ urlpatterns = [
     path('owner/reports/', OwnerHygieneReportsView.as_view(), name='owner-reports'),
     path('owner/reports/<int:report_id>/response/', OwnerHygieneReportResponseView.as_view(), name='owner-report-response'),
     path('owner/analytics/', OwnerAnalyticsView.as_view(), name='owner-analytics'),
+    path('owner/inspection-requests/', OwnerInspectionRequestView.as_view(), name='owner-inspection-requests'),
     path('owner/restaurant/', OwnerRestaurantProfileView.as_view(), name='owner-restaurant'),
     path('owner/menu/', OwnerRestaurantMenuView.as_view(), name='owner-menu'),
     path('owner/menu/<int:item_id>/', OwnerRestaurantMenuItemView.as_view(), name='owner-menu-item'),

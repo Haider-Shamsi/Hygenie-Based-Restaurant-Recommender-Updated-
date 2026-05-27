@@ -4,6 +4,7 @@ from django.db import models
 
 
 class Restaurant(models.Model):
+    owner = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='owned_restaurants')
     business_name = models.CharField(max_length=255)
     business_type = models.CharField(max_length=100)
     rating_value = models.CharField(max_length=50)
@@ -15,6 +16,10 @@ class Restaurant(models.Model):
     hygiene_score = models.FloatField()
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
+    description = models.TextField(blank=True)
+    phone = models.CharField(max_length=50, blank=True)
+    email = models.EmailField(blank=True)
+    price_range = models.CharField(max_length=20, blank=True)
 
     def __str__(self):
         return self.business_name
@@ -223,5 +228,28 @@ class OwnerReportResponse(models.Model):
 
     def __str__(self):
         return f"OwnerReportResponse<{self.report_id}>"
+
+
+class InspectionRequest(models.Model):
+    STATUS_PENDING = 'pending'
+    STATUS_APPROVED = 'approved'
+    STATUS_DENIED = 'denied'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_APPROVED, 'Approved'),
+        (STATUS_DENIED, 'Denied'),
+    ]
+
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='inspection_requests')
+    requested_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='inspection_requests')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"InspectionRequest<{self.restaurant_id}:{self.status}>"
 
 # Create your models here.

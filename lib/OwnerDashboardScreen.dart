@@ -110,6 +110,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
   String? _errorMessage;
   OwnerDashboardData? _dashboardData;
   int _selectedIndex = 0;
+  bool _isRequestingInspection = false;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -166,6 +167,47 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
         _errorMessage = 'Unable to reach the server.';
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _requestInspection() async {
+    if (_isRequestingInspection) return;
+    setState(() => _isRequestingInspection = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.post(
+        Uri.parse('${Config.baseUrl}/api/accounts/owner/inspection-requests/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final body = json.decode(response.body) as Map<String, dynamic>;
+        final message = body['detail'] ?? 'Inspection request submitted.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), backgroundColor: _brandTeal),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to submit inspection request.'), backgroundColor: Colors.red),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to reach the server.'), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isRequestingInspection = false);
+      }
     }
   }
 
@@ -623,7 +665,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
             _onItemTapped(2);
           }),
           _actionBtn("Request Inspection", Icons.assignment_turned_in_outlined, _brandTeal, () {
-            _onItemTapped(3);
+            _requestInspection();
           }),
         ],
       ),
