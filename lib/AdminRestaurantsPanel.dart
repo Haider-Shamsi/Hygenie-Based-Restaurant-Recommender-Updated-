@@ -1,6 +1,12 @@
+import 'dart:convert';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'dart:math' as math;
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'config.dart';
 
 // --- DATA MODELS ---
 
@@ -57,6 +63,11 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
   int _currentPage = 1;
   final int _itemsPerPage = 10;
 
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  String _modalCuisine = 'All';
+
   // Mock Data
   late List<AdminRestaurant> _allRestaurants;
   final List<String> _cuisines = ['All', 'Chinese', 'Italian', 'American', 'Japanese', 'Mexican', 'Cafe', 'Indian', 'Greek'];
@@ -64,16 +75,56 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
   @override
   void initState() {
     super.initState();
-    _allRestaurants = [
-      AdminRestaurant(id: '1', name: 'Dragon Wok', cuisine: 'Chinese', hygieneScore: 95, reviewsCount: 127, status: 'Active', lastInspection: 'Dec 10, 2025', location: '123 Main St, Downtown', phone: '(555) 123-4567', owner: 'Wei Chen', recentReports: 0),
-      AdminRestaurant(id: '2', name: 'Pizza Palace', cuisine: 'Italian', hygieneScore: 88, reviewsCount: 203, status: 'Active', lastInspection: 'Dec 8, 2025', location: '456 Oak Ave, Midtown', phone: '(555) 234-5678', owner: 'Marco Rossi', recentReports: 1),
-      AdminRestaurant(id: '3', name: 'Burger Joint', cuisine: 'American', hygieneScore: 72, reviewsCount: 89, status: 'Under Review', lastInspection: 'Dec 5, 2025', location: '789 Elm St, Uptown', phone: '(555) 345-6789', owner: 'John Smith', recentReports: 2),
-      AdminRestaurant(id: '4', name: 'Sushi Bar', cuisine: 'Japanese', hygieneScore: 91, reviewsCount: 156, status: 'Active', lastInspection: 'Dec 12, 2025', location: '321 Pine Rd, Eastside', phone: '(555) 456-7890', owner: 'Yuki Tanaka', recentReports: 0),
-      AdminRestaurant(id: '5', name: 'Taco Stand', cuisine: 'Mexican', hygieneScore: 65, reviewsCount: 74, status: 'Under Review', lastInspection: 'Nov 28, 2025', location: '654 Maple Dr, Westside', phone: '(555) 567-8901', owner: 'Carlos Rodriguez', recentReports: 3),
-      AdminRestaurant(id: '6', name: 'Cafe Mocha', cuisine: 'Cafe', hygieneScore: 82, reviewsCount: 98, status: 'Active', lastInspection: 'Dec 3, 2025', location: '987 Coffee Ln, Downtown', phone: '(555) 678-9012', owner: 'Sarah Johnson', recentReports: 0),
-      AdminRestaurant(id: '7', name: 'Spice Garden', cuisine: 'Indian', hygieneScore: 78, reviewsCount: 112, status: 'Active', lastInspection: 'Dec 1, 2025', location: '147 Curry St, Midtown', phone: '(555) 789-0123', owner: 'Raj Patel', recentReports: 0),
-      AdminRestaurant(id: '8', name: 'Greek Taverna', cuisine: 'Greek', hygieneScore: 38, reviewsCount: 45, status: 'Suspended', lastInspection: 'Nov 15, 2025', location: '258 Zeus Ave, Uptown', phone: '(555) 890-1234', owner: 'Dimitri Papadopoulos', recentReports: 5),
-    ];
+    _allRestaurants = [];
+    _fetchRestaurants();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _locationController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchRestaurants() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.get(
+        Uri.parse('${Config.baseUrl}/api/accounts/admin/restaurants/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        final items = data['results'] as List<dynamic>? ?? [];
+        setState(() {
+          _allRestaurants = items.map((item) {
+            final map = item as Map<String, dynamic>;
+            return AdminRestaurant(
+              id: map['id']?.toString() ?? '',
+              name: map['name'] ?? '',
+              cuisine: map['cuisine'] ?? '',
+              hygieneScore: map['hygiene_score'] ?? 0,
+              reviewsCount: map['reviews_count'] ?? 0,
+              status: map['status'] ?? 'Active',
+              lastInspection: map['last_inspection'] ?? '',
+              location: map['location'] ?? '',
+              phone: map['phone'] ?? '',
+              owner: map['owner'] ?? '',
+              recentReports: map['recent_reports'] ?? 0,
+            );
+          }).toList();
+        });
+      }
+    } catch (_) {
+      // Keep empty state if backend is unreachable.
+    }
   }
 
   // --- LOGIC ---
@@ -126,6 +177,49 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
         _selectedRestaurants.add(id);
       }
     });
+  }
+
+  Future<void> _updateRestaurantStatus(String id, String status) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.patch(
+        Uri.parse('${Config.baseUrl}/api/accounts/admin/restaurants/$id/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+        body: json.encode({'status': status}),
+      );
+
+      if (response.statusCode == 200) {
+        _fetchRestaurants();
+      }
+    } catch (_) {
+      // Keep UI state unchanged on error.
+    }
+  }
+
+  Future<void> _deleteRestaurant(String id) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.delete(
+        Uri.parse('${Config.baseUrl}/api/accounts/admin/restaurants/$id/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        _fetchRestaurants();
+      }
+    } catch (_) {
+      // Keep UI state unchanged on error.
+    }
   }
 
   // --- UI BUILDERS ---
@@ -284,12 +378,23 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
                           PopupMenuButton<String>(
                             icon: const Icon(Icons.more_vert, color: Colors.grey),
                             onSelected: (val) {
-                              if (val == 'view') _showRestaurantDetailModal(restaurant);
-                              // Handle other actions
+                              if (val == 'view') {
+                                _showRestaurantDetailModal(restaurant);
+                              } else if (val == 'suspend') {
+                                _updateRestaurantStatus(restaurant.id, 'suspended');
+                              } else if (val == 'activate') {
+                                _updateRestaurantStatus(restaurant.id, 'active');
+                              } else if (val == 'review') {
+                                _updateRestaurantStatus(restaurant.id, 'under review');
+                              } else if (val == 'delete') {
+                                _deleteRestaurant(restaurant.id);
+                              }
                             },
                             itemBuilder: (context) => [
                               const PopupMenuItem(value: 'view', child: Row(children: [Icon(Icons.visibility, size: 16), SizedBox(width: 8), Text("View Details")])),
                               const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 16), SizedBox(width: 8), Text("Edit")])),
+                              const PopupMenuItem(value: 'activate', child: Row(children: [Icon(Icons.check_circle, size: 16, color: Colors.green), SizedBox(width: 8), Text("Activate", style: TextStyle(color: Colors.green))])),
+                              const PopupMenuItem(value: 'review', child: Row(children: [Icon(Icons.search, size: 16, color: Colors.amber), SizedBox(width: 8), Text("Under Review", style: TextStyle(color: Colors.amber))])),
                               const PopupMenuItem(value: 'suspend', child: Row(children: [Icon(Icons.block, size: 16, color: Colors.orange), SizedBox(width: 8), Text("Suspend", style: TextStyle(color: Colors.orange))])),
                               const PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, size: 16, color: Colors.red), SizedBox(width: 8), Text("Delete", style: TextStyle(color: Colors.red))])),
                             ],
@@ -383,6 +488,11 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
   // --- MODALS ---
 
   void _showAddRestaurantModal() {
+    _nameController.clear();
+    _locationController.clear();
+    _phoneController.clear();
+    _modalCuisine = 'All';
+
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -402,21 +512,34 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
                 ],
               ),
               const SizedBox(height: 16),
-              _modalTextField("Restaurant Name", "Enter restaurant name"),
+              _modalTextField("Restaurant Name", "Enter restaurant name", controller: _nameController),
               const SizedBox(height: 12),
               const Text("Cuisine Type", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
-              _buildDropdown(value: 'All', items: _cuisines.map((c) => DropdownMenuItem(value: c, child: Text(c == 'All' ? 'Select Cuisine' : c))).toList(), onChanged: (v){}),
+              _buildDropdown(
+                value: _modalCuisine,
+                items: _cuisines.map((c) => DropdownMenuItem(value: c, child: Text(c == 'All' ? 'Select Cuisine' : c))).toList(),
+                onChanged: (v) => setState(() => _modalCuisine = v ?? 'All'),
+              ),
               const SizedBox(height: 12),
-              _modalTextField("Location", "Enter address"),
+              _modalTextField("Location", "Enter address", controller: _locationController),
               const SizedBox(height: 12),
-              _modalTextField("Phone", "Enter phone number"),
+              _modalTextField("Phone", "Enter phone number", controller: _phoneController),
               const SizedBox(height: 24),
               Row(
                 children: [
                   Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(context), style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), child: const Text("Cancel"))),
                   const SizedBox(width: 12),
-                  Expanded(child: ElevatedButton(onPressed: () => Navigator.pop(context), style: ElevatedButton.styleFrom(backgroundColor: _brandTeal, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), child: const Text("Add Restaurant", style: TextStyle(color: Colors.white)))),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await _createRestaurant();
+                        if (mounted) Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: _brandTeal, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                      child: const Text("Add Restaurant", style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
                 ],
               )
             ],
@@ -426,13 +549,44 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
     );
   }
 
-  Widget _modalTextField(String label, String hint) {
+  Future<void> _createRestaurant() async {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) return;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.post(
+        Uri.parse('${Config.baseUrl}/api/accounts/admin/restaurants/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+        body: json.encode({
+          'name': name,
+          'cuisine': _modalCuisine == 'All' ? '' : _modalCuisine,
+          'location': _locationController.text.trim(),
+          'phone': _phoneController.text.trim(),
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        _fetchRestaurants();
+      }
+    } catch (_) {
+      // Keep UI state unchanged on error.
+    }
+  }
+
+  Widget _modalTextField(String label, String hint, {TextEditingController? controller}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
         TextField(
+          controller: controller,
           decoration: InputDecoration(hintText: hint, hintStyle: const TextStyle(fontSize: 13), contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12), border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
         ),
       ],
@@ -440,7 +594,7 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
   }
 
   void _showRestaurantDetailModal(AdminRestaurant restaurant) {
-    final List<FlSpot> mockHistory = const [FlSpot(0, 88), FlSpot(1, 90), FlSpot(2, 89), FlSpot(3, 92), FlSpot(4, 93), FlSpot(5, 95)];
+    final List<FlSpot> scoreHistory = const [];
 
     showDialog(
       context: context,
@@ -492,14 +646,16 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
                         height: 150,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(12)),
-                        child: LineChart(
-                          LineChartData(
-                            gridData: const FlGridData(show: false),
-                            titlesData: const FlTitlesData(show: false),
-                            borderData: FlBorderData(show: false),
-                            lineBarsData: [LineChartBarData(spots: mockHistory, isCurved: true, color: _brandTeal, barWidth: 2, dotData: const FlDotData(show: true))],
-                          ),
-                        ),
+                        child: scoreHistory.isEmpty
+                            ? Center(child: Text("No history available", style: TextStyle(color: _textGray, fontSize: 12)))
+                            : LineChart(
+                                LineChartData(
+                                  gridData: const FlGridData(show: false),
+                                  titlesData: const FlTitlesData(show: false),
+                                  borderData: FlBorderData(show: false),
+                                  lineBarsData: [LineChartBarData(spots: scoreHistory, isCurved: true, color: _brandTeal, barWidth: 2, dotData: const FlDotData(show: true))],
+                                ),
+                              ),
                       ),
                       const SizedBox(height: 24),
 

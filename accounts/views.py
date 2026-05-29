@@ -71,6 +71,28 @@ def _ensure_user_state(user):
     return profile, preferences, notification_settings
 
 
+def _apply_role_from_email(user):
+    email = (user.email or user.username or '').strip().lower()
+    if '@' not in email:
+        return
+
+    domain = email.split('@')[-1]
+    profile, _, _ = _ensure_user_state(user)
+
+    if domain == 'admin.com':
+        profile.role = UserProfile.ROLE_ADMIN
+        user.is_staff = True
+    elif domain == 'owner.com':
+        profile.role = UserProfile.ROLE_OWNER
+    elif domain == 'customer.com':
+        profile.role = UserProfile.ROLE_CUSTOMER
+    else:
+        return
+
+    profile.save(update_fields=['role', 'updated_at'])
+    user.save(update_fields=['is_staff'])
+
+
 def _get_restaurant_from_request(request):
     restaurant_id = request.query_params.get('restaurant_id') or request.data.get('restaurant_id')
     if restaurant_id:
@@ -96,6 +118,51 @@ def _get_owner_restaurant(request):
             return Restaurant.objects.filter(id=restaurant_id).first()
 
     return Restaurant.objects.filter(owner=user).first()
+
+
+def _is_admin_user(user):
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_staff or user.is_superuser:
+        return True
+    profile, _, _ = _ensure_user_state(user)
+    return profile.role == UserProfile.ROLE_ADMIN
+
+
+def _admin_report_status(report_status):
+    if report_status == HygieneIssueReport.STATUS_SUBMITTED:
+        return 'pending'
+    if report_status == HygieneIssueReport.STATUS_REVIEWED:
+        return 'investigating'
+    if report_status == HygieneIssueReport.STATUS_RESOLVED:
+        return 'resolved'
+    return 'pending'
+
+
+def _admin_issue_type(category):
+    mapping = {
+        HygieneIssueReport.CATEGORY_FOOD_HANDLING: 'food-safety',
+        HygieneIssueReport.CATEGORY_CLEANLINESS: 'cleanliness',
+        HygieneIssueReport.CATEGORY_PEST_CONTROL: 'pest-control',
+        HygieneIssueReport.CATEGORY_OTHER: 'other',
+    }
+    return mapping.get(category, 'other')
+
+
+def _admin_report_priority(category):
+    if category in [HygieneIssueReport.CATEGORY_FOOD_HANDLING, HygieneIssueReport.CATEGORY_PEST_CONTROL]:
+        return 'high'
+    if category == HygieneIssueReport.CATEGORY_CLEANLINESS:
+        return 'medium'
+    return 'low'
+
+
+def _restaurant_status(score):
+    if score < 40:
+        return 'Suspended'
+    if score < 60:
+        return 'Under Review'
+    return 'Active'
 
 
 def _cosine_similarity(vec_a, vec_b):
@@ -266,6 +333,7 @@ class SignUpView(APIView):
 
     def post(self, request):
         username = request.data.get('username')
+        email = request.data.get('email') or username
         password = request.data.get('password')
         if not username or not password:
             return Response({'error': 'Username and password required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -273,8 +341,9 @@ class SignUpView(APIView):
         if User.objects.filter(username=username).exists():
             return Response({'error': 'Username already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = User.objects.create_user(username=username, password=password)
+        user = User.objects.create_user(username=username, password=password, email=email)
         _ensure_user_state(user)
+        _apply_role_from_email(user)
 
         otp = str(random.randint(100000, 999999))
         OTP_STORE[username] = otp
@@ -300,6 +369,7 @@ class LoginView(APIView):
             return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         _ensure_user_state(user)
+        _apply_role_from_email(user)
         token, _ = Token.objects.get_or_create(user=user)
         user_data = UserSerializer(user).data
         return Response({'message': 'Login successful.', 'token': token.key, 'user': user_data}, status=status.HTTP_200_OK)
@@ -327,6 +397,7 @@ class GoogleSignInView(APIView):
         user_model = get_user_model()
         user, created = user_model.objects.get_or_create(username=email, defaults={'email': email})
         _ensure_user_state(user)
+        _apply_role_from_email(user)
 
         token_obj, _ = Token.objects.get_or_create(user=user)
         user_serializer = UserSerializer(user)
@@ -1260,3 +1331,379 @@ class OwnerRestaurantMenuItemView(APIView):
 
         item.delete()
         return Response({'detail': 'Menu item deleted.'}, status=status.HTTP_200_OK)
+
+
+class AdminOverviewView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        if not _is_admin_user(request.user):
+            return Response({'detail': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
+
+        total_restaurants = Restaurant.objects.count()
+        total_users = User.objects.count()
+        avg_hygiene = Restaurant.objects.aggregate(avg=Avg('hygiene_score')).get('avg') or 0.0
+
+        pending_reports = HygieneIssueReport.objects.filter(
+            status=HygieneIssueReport.STATUS_SUBMITTED,
+        ).count()
+
+        flagged_reviews = RestaurantReview.objects.filter(
+            rating__lte=2,
+            moderation_status=RestaurantReview.MODERATION_PENDING,
+        ).count()
+
+        top_stats = [
+            {
+                'key': 'total_restaurants',
+                'label': 'Total Restaurants',
+                'value': total_restaurants,
+                'trend': _trend_label(total_restaurants, 0),
+            },
+            {
+                'key': 'total_users',
+                'label': 'Total Users',
+                'value': total_users,
+                'trend': _trend_label(total_users, 0),
+            },
+            {
+                'key': 'avg_hygiene',
+                'label': 'Avg Hygiene Score',
+                'value': round(float(avg_hygiene), 1),
+                'trend': _trend_label(avg_hygiene, 0),
+            },
+            {
+                'key': 'pending_reports',
+                'label': 'Pending Reports',
+                'value': pending_reports,
+                'trend': _trend_label(pending_reports, 0),
+            },
+            {
+                'key': 'flagged_reviews',
+                'label': 'Flagged Reviews',
+                'value': flagged_reviews,
+                'trend': _trend_label(flagged_reviews, 0),
+            },
+        ]
+
+        buckets = [
+            {'min': 0, 'max': 20, 'label': '0-20'},
+            {'min': 21, 'max': 40, 'label': '21-40'},
+            {'min': 41, 'max': 60, 'label': '41-60'},
+            {'min': 61, 'max': 80, 'label': '61-80'},
+            {'min': 81, 'max': 100, 'label': '81-100'},
+        ]
+        distribution = []
+        for bucket in buckets:
+            count = Restaurant.objects.filter(
+                hygiene_score__gte=bucket['min'],
+                hygiene_score__lte=bucket['max'],
+            ).count()
+            distribution.append({'range': bucket['label'], 'count': count})
+
+        now = timezone.now()
+        reports_trend = []
+        for offset in range(5, -1, -1):
+            month_start = (now.replace(day=1) - timedelta(days=offset * 31)).replace(day=1)
+            next_month = (month_start + timedelta(days=32)).replace(day=1)
+            total = HygieneIssueReport.objects.filter(
+                created_at__gte=month_start,
+                created_at__lt=next_month,
+            ).count()
+            resolved = HygieneIssueReport.objects.filter(
+                created_at__gte=month_start,
+                created_at__lt=next_month,
+                status=HygieneIssueReport.STATUS_RESOLVED,
+            ).count()
+            reports_trend.append({
+                'month': month_start.strftime('%b'),
+                'total': float(total),
+                'resolved': float(resolved),
+            })
+
+        activities = []
+        recent_reviews = RestaurantReview.objects.select_related('restaurant', 'user').order_by('-created_at')[:5]
+        for review in recent_reviews:
+            activities.append({
+                'type': 'review',
+                'text': f"New review for {review.restaurant.business_name}",
+                'time': review.created_at.isoformat(),
+            })
+
+        recent_reports = HygieneIssueReport.objects.select_related('restaurant', 'user').order_by('-created_at')[:5]
+        for report in recent_reports:
+            activities.append({
+                'type': 'report',
+                'text': f"New report for {report.restaurant.business_name}",
+                'time': report.created_at.isoformat(),
+            })
+
+        recent_requests = InspectionRequest.objects.select_related('restaurant', 'requested_by').order_by('-created_at')[:5]
+        for req in recent_requests:
+            activities.append({
+                'type': 'inspection_request',
+                'text': f"Inspection requested for {req.restaurant.business_name}",
+                'time': req.created_at.isoformat(),
+            })
+
+        activities.sort(key=lambda item: item['time'], reverse=True)
+        activities = activities[:10]
+
+        return Response(
+            {
+                'top_stats': top_stats,
+                'score_distribution': distribution,
+                'reports_trend': reports_trend,
+                'recent_activity': activities,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class AdminRestaurantsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        if not _is_admin_user(request.user):
+            return Response({'detail': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
+
+        restaurants = Restaurant.objects.select_related('owner').all()
+        results = []
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+        for restaurant in restaurants:
+            reviews_count = RestaurantReview.objects.filter(restaurant=restaurant).count()
+            recent_reports = HygieneIssueReport.objects.filter(
+                restaurant=restaurant,
+                created_at__gte=thirty_days_ago,
+            ).count()
+            owner_name = restaurant.owner.get_full_name() if restaurant.owner else ''
+            if not owner_name and restaurant.owner:
+                owner_name = restaurant.owner.username
+
+            status_value = restaurant.status
+            if not status_value:
+                status_value = _restaurant_status(float(restaurant.hygiene_score or 0.0))
+
+            results.append({
+                'id': str(restaurant.id),
+                'name': restaurant.business_name,
+                'cuisine': restaurant.business_type,
+                'hygiene_score': int(round(float(restaurant.hygiene_score or 0))),
+                'reviews_count': reviews_count,
+                'status': status_value.replace('_', ' ').title(),
+                'last_inspection': restaurant.inspection_date.strftime('%Y-%m-%d'),
+                'location': f"{restaurant.address}, {restaurant.province}",
+                'phone': restaurant.phone,
+                'owner': owner_name,
+                'recent_reports': recent_reports,
+            })
+
+        return Response({'results': results}, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        if not _is_admin_user(request.user):
+            return Response({'detail': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
+
+        name = (request.data.get('name') or '').strip()
+        cuisine = (request.data.get('cuisine') or '').strip()
+        location = (request.data.get('location') or '').strip()
+        phone = (request.data.get('phone') or '').strip()
+
+        if not name:
+            return Response({'detail': 'Restaurant name is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        restaurant = Restaurant.objects.create(
+            business_name=name,
+            business_type=cuisine or 'Other',
+            rating_value='',
+            inspection_date=timezone.now().date(),
+            address=location or '',
+            post_code='',
+            province='',
+            user_rating=0,
+            hygiene_score=0,
+            phone=phone,
+            status=Restaurant.STATUS_ACTIVE,
+        )
+
+        return Response({'id': restaurant.id}, status=status.HTTP_201_CREATED)
+
+
+class AdminReportsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        if not _is_admin_user(request.user):
+            return Response({'detail': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
+
+        reports = HygieneIssueReport.objects.select_related('restaurant', 'user').order_by('-created_at')
+        results = []
+        for report in reports:
+            results.append({
+                'id': str(report.id),
+                'report_id': f"RPT-{report.created_at.year}-{report.id:03d}",
+                'submitted_date': report.created_at.strftime('%Y-%m-%d'),
+                'reporter': {
+                    'name': report.user.get_full_name() or report.user.username,
+                    'is_anonymous': False,
+                    'email': report.user.email,
+                    'phone': '',
+                },
+                'restaurant': {
+                    'name': report.restaurant.business_name,
+                    'id': str(report.restaurant.id),
+                    'current_score': int(round(float(report.restaurant.hygiene_score or 0))),
+                },
+                'issue_type': _admin_issue_type(report.category),
+                'priority': _admin_report_priority(report.category),
+                'status': _admin_report_status(report.status),
+                'description': report.description,
+                'photos': [],
+                'nlp_analysis': {
+                    'severity_assessment': 'Minor',
+                    'confidence_score': 0,
+                    'auto_flags': [],
+                },
+                'timeline': [
+                    {
+                        'status': 'Report Submitted',
+                        'timestamp': report.created_at.strftime('%Y-%m-%d'),
+                        'admin': 'System',
+                    }
+                ],
+            })
+
+        return Response({'results': results}, status=status.HTTP_200_OK)
+
+
+class AdminReviewsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        if not _is_admin_user(request.user):
+            return Response({'detail': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
+
+        reviews = RestaurantReview.objects.select_related('restaurant', 'user').filter(
+            rating__lte=2,
+            moderation_status=RestaurantReview.MODERATION_PENDING,
+        ).order_by('-created_at')
+        results = []
+        for review in reviews:
+            reviewer_age_days = (timezone.now().date() - review.user.date_joined.date()).days
+            results.append({
+                'id': str(review.id),
+                'review_text': review.comment,
+                'rating': int(review.rating or 0),
+                'reviewer_name': review.user.get_full_name() or review.user.username,
+                'reviewer_account_age': f"{reviewer_age_days} days",
+                'reviewer_total_reviews': RestaurantReview.objects.filter(user=review.user).count(),
+                'restaurant_name': review.restaurant.business_name,
+                'restaurant_id': str(review.restaurant.id),
+                'flag_reason_type': 'auto',
+                'flag_reason_source': 'Low rating',
+                'flag_reason_note': None,
+                'nlp_sentiment_score': 0.0,
+                'nlp_sentiment_label': 'Neutral',
+                'nlp_detected_issues': [],
+                'nlp_confidence_score': 0,
+                'nlp_key_phrases': [],
+                'nlp_toxicity_score': 0,
+                'nlp_problematic_words': [],
+                'submitted_date': review.created_at.strftime('%Y-%m-%d'),
+                'flag_category': 'nlp-auto',
+            })
+
+        return Response({'flagged_reviews': results, 'moderation_history': []}, status=status.HTTP_200_OK)
+
+
+class AdminRestaurantDetailView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def patch(self, request, restaurant_id):
+        if not _is_admin_user(request.user):
+            return Response({'detail': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
+
+        restaurant = Restaurant.objects.filter(id=restaurant_id).first()
+        if restaurant is None:
+            return Response({'detail': 'Restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        status_value = request.data.get('status')
+        if status_value:
+            normalized = status_value.strip().lower().replace(' ', '_')
+            if normalized in [Restaurant.STATUS_ACTIVE, Restaurant.STATUS_SUSPENDED, Restaurant.STATUS_UNDER_REVIEW]:
+                restaurant.status = normalized
+
+        if 'hygiene_score' in request.data:
+            restaurant.hygiene_score = float(request.data.get('hygiene_score') or 0)
+
+        restaurant.save()
+        return Response({'detail': 'Restaurant updated.'}, status=status.HTTP_200_OK)
+
+    def delete(self, request, restaurant_id):
+        if not _is_admin_user(request.user):
+            return Response({'detail': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
+
+        deleted, _ = Restaurant.objects.filter(id=restaurant_id).delete()
+        if deleted == 0:
+            return Response({'detail': 'Restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'detail': 'Restaurant deleted.'}, status=status.HTTP_200_OK)
+
+
+class AdminReportStatusView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def patch(self, request, report_id):
+        if not _is_admin_user(request.user):
+            return Response({'detail': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
+
+        report = HygieneIssueReport.objects.filter(id=report_id).first()
+        if report is None:
+            return Response({'detail': 'Report not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        status_value = (request.data.get('status') or '').strip().lower()
+        mapping = {
+            'pending': HygieneIssueReport.STATUS_SUBMITTED,
+            'investigating': HygieneIssueReport.STATUS_REVIEWED,
+            'resolved': HygieneIssueReport.STATUS_RESOLVED,
+            'dismissed': HygieneIssueReport.STATUS_RESOLVED,
+        }
+        if status_value in mapping:
+            report.status = mapping[status_value]
+            report.save(update_fields=['status'])
+
+        return Response({'detail': 'Report status updated.'}, status=status.HTTP_200_OK)
+
+
+class AdminReviewActionView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, review_id):
+        if not _is_admin_user(request.user):
+            return Response({'detail': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
+
+        review = RestaurantReview.objects.select_related('user').filter(id=review_id).first()
+        if review is None:
+            return Response({'detail': 'Review not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        action = (request.data.get('action') or '').strip().lower()
+        edited_text = (request.data.get('edited_text') or '').strip()
+
+        if action == 'approve':
+            review.moderation_status = RestaurantReview.MODERATION_APPROVED
+        elif action == 'remove':
+            review.moderation_status = RestaurantReview.MODERATION_REMOVED
+        elif action == 'dismiss':
+            review.moderation_status = RestaurantReview.MODERATION_DISMISSED
+        elif action == 'edit':
+            if edited_text:
+                review.comment = edited_text
+            review.moderation_status = RestaurantReview.MODERATION_APPROVED
+        elif action == 'ban':
+            review.user.is_active = False
+            review.user.save(update_fields=['is_active'])
+            review.moderation_status = RestaurantReview.MODERATION_REMOVED
+        else:
+            return Response({'detail': 'Invalid action.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        review.save(update_fields=['comment', 'moderation_status'])
+        return Response({'detail': 'Review updated.'}, status=status.HTTP_200_OK)

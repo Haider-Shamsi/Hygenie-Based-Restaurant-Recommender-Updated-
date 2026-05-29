@@ -1,4 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'config.dart';
 
 // --- DATA MODELS ---
 
@@ -101,99 +107,71 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
   @override
   void initState() {
     super.initState();
-    _flaggedReviews = [
-      FlaggedReview(
-        id: '1',
-        reviewText: 'This place is absolute garbage! Disgusting food, dirty tables, and the staff are completely useless. Never coming back to this dump!',
-        rating: 1,
-        reviewerName: 'John Smith',
-        reviewerAccountAge: '2 months',
-        reviewerTotalReviews: 3,
-        restaurantName: 'Dragon Wok',
-        restaurantId: 'rest-1',
-        flagReasonType: 'auto',
-        flagReasonSource: 'NLP Model v2.1',
-        nlpSentimentScore: -0.87,
-        nlpSentimentLabel: 'Negative',
-        nlpDetectedIssues: ['Profanity', 'Extreme Negativity', 'Potentially False'],
-        nlpConfidenceScore: 92,
-        nlpKeyPhrases: ['absolute garbage', 'disgusting food', 'dirty tables', 'completely useless', 'dump'],
-        nlpToxicityScore: 78,
-        nlpProblematicWords: ['garbage', 'disgusting', 'useless', 'dump'],
-        submittedDate: '2 hours ago',
-        flagCategory: 'nlp-auto',
-      ),
-      FlaggedReview(
-        id: '2',
-        reviewText: 'Click here for FREE GIFT CARDS!!! Best restaurant ever! 5 stars! Visit www.scamsite.com for amazing deals!',
-        rating: 5,
-        reviewerName: 'PromoBot2024',
-        reviewerAccountAge: '1 day',
-        reviewerTotalReviews: 47,
-        restaurantName: 'Sushi Bar',
-        restaurantId: 'rest-2',
-        flagReasonType: 'auto',
-        flagReasonSource: 'Spam Detection System',
-        nlpSentimentScore: 0.95,
-        nlpSentimentLabel: 'Positive',
-        nlpDetectedIssues: ['Spam Patterns', 'External Links', 'Fake Review Indicators', 'Promotional Content'],
-        nlpConfidenceScore: 98,
-        nlpKeyPhrases: ['FREE GIFT CARDS', 'amazing deals', 'Click here'],
-        nlpToxicityScore: 5,
-        nlpProblematicWords: [],
-        submittedDate: '30 min ago',
-        flagCategory: 'spam',
-      ),
-      FlaggedReview(
-        id: '3',
-        reviewText: 'The food was okay but nothing special. Service could be better.',
-        rating: 3,
-        reviewerName: 'Sarah Johnson',
-        reviewerAccountAge: '3 years',
-        reviewerTotalReviews: 127,
-        restaurantName: 'Pizza Palace',
-        restaurantId: 'rest-3',
-        flagReasonType: 'manual',
-        flagReasonSource: 'Restaurant Owner',
-        flagReasonNote: 'This review contains false information about our service.',
-        nlpSentimentScore: -0.15,
-        nlpSentimentLabel: 'Neutral',
-        nlpDetectedIssues: [],
-        nlpConfidenceScore: 45,
-        nlpKeyPhrases: ['food was okay', 'nothing special', 'service could be better'],
-        nlpToxicityScore: 8,
-        nlpProblematicWords: [],
-        submittedDate: '5 hours ago',
-        flagCategory: 'user-reported',
-      ),
-      FlaggedReview(
-        id: '4',
-        reviewText: 'F*** this place! The owner is a complete idiot and I hope they go out of business!',
-        rating: 1,
-        reviewerName: 'AngryCustomer99',
-        reviewerAccountAge: '1 week',
-        reviewerTotalReviews: 2,
-        restaurantName: 'Burger Joint',
-        restaurantId: 'rest-4',
-        flagReasonType: 'auto',
-        flagReasonSource: 'NLP Model v2.1',
-        nlpSentimentScore: -0.95,
-        nlpSentimentLabel: 'Negative',
-        nlpDetectedIssues: ['Profanity', 'Personal Attacks', 'Inappropriate Content'],
-        nlpConfidenceScore: 97,
-        nlpKeyPhrases: ['complete idiot', 'go out of business'],
-        nlpToxicityScore: 95,
-        nlpProblematicWords: ['F***', 'idiot'],
-        submittedDate: '1 day ago',
-        flagCategory: 'inappropriate',
-      ),
-    ];
+    _flaggedReviews = [];
+    _moderationHistory = [];
+    _fetchFlaggedReviews();
+  }
 
-    _moderationHistory = [
-      ModerationHistory(id: 'h1', reviewId: 'REV-1234', action: 'Removed', admin: 'Admin Sarah', notes: 'Confirmed spam content', date: 'Dec 10, 2025 14:30'),
-      ModerationHistory(id: 'h2', reviewId: 'REV-1235', action: 'Approved', admin: 'Admin John', notes: 'False flag - legitimate review', date: 'Dec 10, 2025 13:15'),
-      ModerationHistory(id: 'h3', reviewId: 'REV-1236', action: 'User Banned', admin: 'Admin Sarah', notes: 'Repeated spam violations', date: 'Dec 9, 2025 16:45'),
-    ];
+  Future<void> _fetchFlaggedReviews() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.get(
+        Uri.parse('${Config.baseUrl}/api/accounts/admin/reviews/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        final items = data['flagged_reviews'] as List<dynamic>? ?? [];
+        final history = data['moderation_history'] as List<dynamic>? ?? [];
+        setState(() {
+          _flaggedReviews = items.map((item) {
+            final map = item as Map<String, dynamic>;
+            return FlaggedReview(
+              id: map['id']?.toString() ?? '',
+              reviewText: map['review_text'] ?? '',
+              rating: map['rating'] ?? 0,
+              reviewerName: map['reviewer_name'] ?? '',
+              reviewerAccountAge: map['reviewer_account_age'] ?? '',
+              reviewerTotalReviews: map['reviewer_total_reviews'] ?? 0,
+              restaurantName: map['restaurant_name'] ?? '',
+              restaurantId: map['restaurant_id']?.toString() ?? '',
+              flagReasonType: map['flag_reason_type'] ?? 'auto',
+              flagReasonSource: map['flag_reason_source'] ?? '',
+              flagReasonNote: map['flag_reason_note'],
+              nlpSentimentScore: (map['nlp_sentiment_score'] ?? 0).toDouble(),
+              nlpSentimentLabel: map['nlp_sentiment_label'] ?? 'Neutral',
+              nlpDetectedIssues: (map['nlp_detected_issues'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
+              nlpConfidenceScore: map['nlp_confidence_score'] ?? 0,
+              nlpKeyPhrases: (map['nlp_key_phrases'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
+              nlpToxicityScore: map['nlp_toxicity_score'] ?? 0,
+              nlpProblematicWords: (map['nlp_problematic_words'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
+              submittedDate: map['submitted_date'] ?? '',
+              flagCategory: map['flag_category'] ?? 'nlp-auto',
+            );
+          }).toList();
+
+          _moderationHistory = history.map((item) {
+            final map = item as Map<String, dynamic>;
+            return ModerationHistory(
+              id: map['id']?.toString() ?? '',
+              reviewId: map['review_id'] ?? '',
+              action: map['action'] ?? '',
+              admin: map['admin'] ?? '',
+              notes: map['notes'] ?? '',
+              date: map['date'] ?? '',
+            );
+          }).toList();
+        });
+      }
+    } catch (_) {
+      // Keep empty state if backend is unreachable.
+    }
   }
 
   // --- LOGIC ---
@@ -237,12 +215,39 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
     );
   }
 
+  Future<void> _sendReviewAction(String id, String action, {String? editedText}) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.post(
+        Uri.parse('${Config.baseUrl}/api/accounts/admin/reviews/$id/action/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+        body: json.encode({
+          'action': action,
+          if (editedText != null) 'edited_text': editedText,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        await _fetchFlaggedReviews();
+      }
+    } catch (_) {
+      // Keep UI state unchanged on error.
+    }
+  }
+
   void _handleApprove(String id) {
+    _sendReviewAction(id, 'approve');
     _showToast('Review approved');
     setState(() => _selectedReviews.remove(id));
   }
 
   void _handleRemove(String id) {
+    _sendReviewAction(id, 'remove');
     _showToast('Review removed', isError: true);
     setState(() => _selectedReviews.remove(id));
   }
@@ -255,6 +260,7 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
   }
 
   void _handleSaveEdit(String id) {
+    _sendReviewAction(id, 'edit', editedText: _editedText);
     _showToast('Review edited and approved');
     setState(() {
       _editingReview = null;
@@ -283,6 +289,7 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () {
                 Navigator.pop(context);
+                _sendReviewAction(id, 'ban');
                 _showToast('User has been banned', isError: true);
               },
               child: const Text("Yes, Ban User", style: TextStyle(color: Colors.white)),
@@ -325,7 +332,7 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
         const SizedBox(width: 12),
         _statCard(Icons.warning_amber_rounded, manuallyReported.toString(), "User Reported", Colors.amber),
         const SizedBox(width: 12),
-        _statCard(Icons.access_time, "4.2m", "Avg Process Time", Colors.blue),
+        _statCard(Icons.access_time, "N/A", "Avg Process Time", Colors.blue),
       ],
     );
   }
@@ -419,14 +426,26 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
           Row(
             children: [
               ElevatedButton.icon(
-                onPressed: () { _showToast("${_selectedReviews.length} reviews approved"); setState(() => _selectedReviews.clear()); },
+                onPressed: () async {
+                  for (final id in _selectedReviews.toList()) {
+                    await _sendReviewAction(id, 'approve');
+                  }
+                  _showToast("${_selectedReviews.length} reviews approved");
+                  setState(() => _selectedReviews.clear());
+                },
                 icon: const Icon(Icons.check_circle, size: 16, color: Colors.white),
                 label: const Text("Batch Approve", style: TextStyle(color: Colors.white)),
                 style: ElevatedButton.styleFrom(backgroundColor: _brandTeal, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
               ),
               const SizedBox(width: 8),
               OutlinedButton.icon(
-                onPressed: () { _showToast("${_selectedReviews.length} reviews removed", isError: true); setState(() => _selectedReviews.clear()); },
+                onPressed: () async {
+                  for (final id in _selectedReviews.toList()) {
+                    await _sendReviewAction(id, 'remove');
+                  }
+                  _showToast("${_selectedReviews.length} reviews removed", isError: true);
+                  setState(() => _selectedReviews.clear());
+                },
                 icon: const Icon(Icons.delete, size: 16),
                 label: const Text("Batch Remove"),
                 style: OutlinedButton.styleFrom(foregroundColor: Colors.red, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), side: BorderSide(color: Colors.red.shade200)),
@@ -439,6 +458,22 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
   }
 
   Widget _buildFlaggedReviewsList() {
+    if (_filteredReviews.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.grey.shade200)),
+        child: Column(
+          children: [
+            Icon(Icons.check_circle_outline, size: 40, color: Colors.grey.shade300),
+            const SizedBox(height: 12),
+            Text("No flagged reviews", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _textDark)),
+            Text("You're all caught up.", style: TextStyle(color: _textGray, fontSize: 12)),
+          ],
+        ),
+      );
+    }
+
     return Column(
       children: _filteredReviews.map((review) {
         bool isNLPExpanded = _expandedNLP.contains(review.id);
@@ -719,7 +754,7 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
                     OutlinedButton.icon(onPressed: () => _handleRemove(review.id), icon: const Icon(Icons.delete, size: 16), label: const Text("Remove"), style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: BorderSide(color: Colors.red.shade200), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)))),
                     OutlinedButton.icon(onPressed: () => _handleEditAndApprove(review.id), icon: const Icon(Icons.edit, size: 16), label: const Text("Edit"), style: OutlinedButton.styleFrom(foregroundColor: Colors.amber.shade700, side: BorderSide(color: Colors.amber.shade200), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)))),
                     OutlinedButton.icon(onPressed: () => _handleBanUser(review.id), icon: const Icon(Icons.block, size: 16), label: const Text("Ban User"), style: OutlinedButton.styleFrom(foregroundColor: Colors.red.shade700, side: BorderSide(color: Colors.red.shade500), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)))),
-                    OutlinedButton.icon(onPressed: () => _showToast("Flag dismissed"), icon: const Icon(Icons.shield_outlined, size: 16), label: const Text("Dismiss Flag"), style: OutlinedButton.styleFrom(foregroundColor: _textDark, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)))),
+                    OutlinedButton.icon(onPressed: () { _sendReviewAction(review.id, 'dismiss'); _showToast("Flag dismissed"); }, icon: const Icon(Icons.shield_outlined, size: 16), label: const Text("Dismiss Flag"), style: OutlinedButton.styleFrom(foregroundColor: _textDark, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)))),
                   ],
                 )
             ],
@@ -819,7 +854,14 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
               ),
             ),
           ),
-          if (_showHistory)
+          if (_showHistory && _moderationHistory.isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(border: Border(top: BorderSide(color: Colors.grey.shade200))),
+              child: Text("No moderation history yet", style: TextStyle(color: _textGray, fontSize: 12)),
+            )
+          else if (_showHistory)
             Container(
               decoration: BoxDecoration(border: Border(top: BorderSide(color: Colors.grey.shade200))),
               child: SingleChildScrollView(

@@ -1,4 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'config.dart';
 
 // --- DATA MODELS ---
 
@@ -97,71 +103,74 @@ class _AdminReportsPanelState extends State<AdminReportsPanel> {
   @override
   void initState() {
     super.initState();
-    _allReports = [
-      AdminReport(
-        id: '1',
-        reportId: 'RPT-2025-089',
-        submittedDate: '10 mins ago',
-        reporter: Reporter(name: 'Sarah Mitchell', isAnonymous: false, email: 'sarah.m@example.com', phone: '(555) 123-4567'),
-        restaurant: RestaurantSummary(name: 'Dragon Wok', id: 'rest-1', currentScore: 95),
-        issueType: 'food-safety',
-        priority: 'high',
-        status: 'pending',
-        description: 'Observed raw chicken being stored on the top shelf above fresh vegetables in the walk-in cooler. This is a severe cross-contamination risk.',
-        photos: ['https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400'],
-        nlpAnalysis: NLPAnalysis(
-          severityAssessment: 'Critical',
-          confidenceScore: 94,
-          autoFlags: ['Cross-contamination', 'Raw meat storage', 'Health code violation'],
-        ),
-        timeline: [
-          TimelineEvent(status: 'Report Submitted', timestamp: 'Dec 10, 2025 14:30', admin: 'System'),
-        ],
-      ),
-      AdminReport(
-        id: '2',
-        reportId: 'RPT-2025-088',
-        submittedDate: '2 hours ago',
-        reporter: Reporter(name: 'Anonymous Customer', isAnonymous: true),
-        restaurant: RestaurantSummary(name: 'Pizza Palace', id: 'rest-2', currentScore: 88),
-        issueType: 'cleanliness',
-        priority: 'medium',
-        status: 'investigating',
-        description: 'The bathrooms were extremely dirty, no paper towels, and the trash cans were overflowing into the dining area hallway.',
-        photos: [],
-        nlpAnalysis: NLPAnalysis(
-          severityAssessment: 'Major',
-          confidenceScore: 88,
-          autoFlags: ['Restroom sanitation', 'Waste management'],
-        ),
-        timeline: [
-          TimelineEvent(status: 'Investigation Started', timestamp: 'Dec 10, 2025 13:15', admin: 'Admin John'),
-          TimelineEvent(status: 'Report Submitted', timestamp: 'Dec 10, 2025 12:30', admin: 'System'),
-        ],
-      ),
-      AdminReport(
-        id: '3',
-        reportId: 'RPT-2025-087',
-        submittedDate: '1 day ago',
-        reporter: Reporter(name: 'David Park', isAnonymous: false, email: 'david.p@example.com'),
-        restaurant: RestaurantSummary(name: 'Sushi Bar', id: 'rest-4', currentScore: 91),
-        issueType: 'staff-hygiene',
-        priority: 'low',
-        status: 'resolved',
-        description: 'A server was wearing a strong perfume that affected the dining experience. Not a major health issue but poor practice.',
-        photos: [],
-        nlpAnalysis: NLPAnalysis(
-          severityAssessment: 'Minor',
-          confidenceScore: 75,
-          autoFlags: ['Staff conduct', 'Allergen risk (fragrance)'],
-        ),
-        timeline: [
-          TimelineEvent(status: 'Resolved - Warning sent to owner', timestamp: 'Dec 10, 2025 09:00', admin: 'Admin Sarah'),
-          TimelineEvent(status: 'Investigation Started', timestamp: 'Dec 9, 2025 15:20', admin: 'Admin Sarah'),
-          TimelineEvent(status: 'Report Submitted', timestamp: 'Dec 9, 2025 14:10', admin: 'System'),
-        ],
-      ),
-    ];
+    _allReports = [];
+    _fetchReports();
+  }
+
+  Future<void> _fetchReports() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.get(
+        Uri.parse('${Config.baseUrl}/api/accounts/admin/reports/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        final items = data['results'] as List<dynamic>? ?? [];
+        setState(() {
+          _allReports = items.map((item) {
+            final map = item as Map<String, dynamic>;
+            final reporter = map['reporter'] as Map<String, dynamic>? ?? {};
+            final restaurant = map['restaurant'] as Map<String, dynamic>? ?? {};
+            final nlp = map['nlp_analysis'] as Map<String, dynamic>? ?? {};
+            final timeline = map['timeline'] as List<dynamic>? ?? [];
+
+            return AdminReport(
+              id: map['id']?.toString() ?? '',
+              reportId: map['report_id'] ?? '',
+              submittedDate: map['submitted_date'] ?? '',
+              reporter: Reporter(
+                name: reporter['name'] ?? '',
+                isAnonymous: reporter['is_anonymous'] ?? false,
+                email: reporter['email'],
+                phone: reporter['phone'],
+              ),
+              restaurant: RestaurantSummary(
+                name: restaurant['name'] ?? '',
+                id: restaurant['id']?.toString() ?? '',
+                currentScore: restaurant['current_score'] ?? 0,
+              ),
+              issueType: map['issue_type'] ?? 'other',
+              priority: map['priority'] ?? 'low',
+              status: map['status'] ?? 'pending',
+              description: map['description'] ?? '',
+              photos: (map['photos'] as List<dynamic>? ?? []).map((p) => p.toString()).toList(),
+              nlpAnalysis: NLPAnalysis(
+                severityAssessment: nlp['severity_assessment'] ?? 'Minor',
+                confidenceScore: nlp['confidence_score'] ?? 0,
+                autoFlags: (nlp['auto_flags'] as List<dynamic>? ?? []).map((f) => f.toString()).toList(),
+              ),
+              timeline: timeline.map((t) {
+                final e = t as Map<String, dynamic>;
+                return TimelineEvent(
+                  status: e['status'] ?? '',
+                  timestamp: e['timestamp'] ?? '',
+                  admin: e['admin'] ?? '',
+                );
+              }).toList(),
+            );
+          }).toList();
+        });
+      }
+    } catch (_) {
+      // Keep empty state if backend is unreachable.
+    }
   }
 
   // --- LOGIC ---
@@ -198,17 +207,46 @@ class _AdminReportsPanelState extends State<AdminReportsPanel> {
     });
   }
 
-  void _updateStatus(String id, String newStatus) {
-    setState(() {
-      final report = _allReports.firstWhere((r) => r.id == id);
-      report.status = newStatus;
-      report.timeline.insert(0, TimelineEvent(
-        status: newStatus == 'investigating' ? 'Investigation Started' : 'Status changed to $newStatus',
-        timestamp: 'Just now',
-        admin: 'Current Admin'
-      ));
-    });
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Report $newStatus successfully'), backgroundColor: _brandTeal));
+  Future<void> _updateStatus(String id, String newStatus) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.patch(
+        Uri.parse('${Config.baseUrl}/api/accounts/admin/reports/$id/status/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+        body: json.encode({'status': newStatus}),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          final report = _allReports.firstWhere((r) => r.id == id);
+          report.status = newStatus;
+          report.timeline.insert(0, TimelineEvent(
+            status: newStatus == 'investigating' ? 'Investigation Started' : 'Status changed to $newStatus',
+            timestamp: 'Just now',
+            admin: 'Current Admin'
+          ));
+        });
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Report $newStatus successfully'), backgroundColor: _brandTeal),
+        );
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update report.'), backgroundColor: Colors.red),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to reach the server.'), backgroundColor: Colors.red),
+      );
+    }
   }
 
   void _showImageLightbox(String url) {
@@ -280,20 +318,24 @@ class _AdminReportsPanelState extends State<AdminReportsPanel> {
   Widget _buildStatsHeader() {
     return Row(
       children: [
-        _statCard("Total Reports", _allReports.length.toString(), Icons.folder_open, _brandBlue, "+12%"),
+        _statCard("Total Reports", _allReports.length.toString(), Icons.folder_open, _brandBlue, null),
         const SizedBox(width: 12),
-        _statCard("Critical Issues", _allReports.where((r) => r.priority == 'high').length.toString(), Icons.warning_amber_rounded, _brandRed, "+2"),
+        _statCard("Critical Issues", _allReports.where((r) => r.priority == 'high').length.toString(), Icons.warning_amber_rounded, _brandRed, null),
         const SizedBox(width: 12),
-        _statCard("Pending Review", _allReports.where((r) => r.status == 'pending').length.toString(), Icons.access_time, _brandAmber, "-5"),
+        _statCard("Pending Review", _allReports.where((r) => r.status == 'pending').length.toString(), Icons.access_time, _brandAmber, null),
         const SizedBox(width: 12),
-        _statCard("Avg Resolution", "2.4h", Icons.timer_outlined, _brandTeal, "-15m"),
+        _statCard("Avg Resolution", "N/A", Icons.timer_outlined, _brandTeal, null),
       ],
     );
   }
 
-  Widget _statCard(String title, String value, IconData icon, Color color, String trend) {
-    bool isPositiveTrend = trend.startsWith('-') && title != "Pending Review" || trend.startsWith('+') && title == "Total Reports";
-    if (title == "Pending Review" || title == "Avg Resolution") isPositiveTrend = trend.startsWith('-');
+  Widget _statCard(String title, String value, IconData icon, Color color, String? trend) {
+    bool hasTrend = trend != null && trend.isNotEmpty;
+    bool isPositiveTrend = false;
+    if (hasTrend) {
+      isPositiveTrend = trend!.startsWith('-') && title != "Pending Review" || trend.startsWith('+') && title == "Total Reports";
+      if (title == "Pending Review" || title == "Avg Resolution") isPositiveTrend = trend.startsWith('-');
+    }
     
     return Expanded(
       child: Container(
@@ -306,13 +348,14 @@ class _AdminReportsPanelState extends State<AdminReportsPanel> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Icon(icon, color: color, size: 20),
-                Row(
-                  children: [
-                    Icon(isPositiveTrend ? Icons.trending_down : Icons.trending_up, size: 14, color: isPositiveTrend ? _brandTeal : _brandRed),
-                    const SizedBox(width: 2),
-                    Text(trend, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isPositiveTrend ? _brandTeal : _brandRed)),
-                  ],
-                )
+                if (hasTrend)
+                  Row(
+                    children: [
+                      Icon(isPositiveTrend ? Icons.trending_down : Icons.trending_up, size: 14, color: isPositiveTrend ? _brandTeal : _brandRed),
+                      const SizedBox(width: 2),
+                      Text(trend!, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isPositiveTrend ? _brandTeal : _brandRed)),
+                    ],
+                  )
               ],
             ),
             const SizedBox(height: 12),

@@ -4,6 +4,15 @@ from django.db import models
 
 
 class Restaurant(models.Model):
+    STATUS_ACTIVE = 'active'
+    STATUS_SUSPENDED = 'suspended'
+    STATUS_UNDER_REVIEW = 'under_review'
+    STATUS_CHOICES = [
+        (STATUS_ACTIVE, 'Active'),
+        (STATUS_SUSPENDED, 'Suspended'),
+        (STATUS_UNDER_REVIEW, 'Under Review'),
+    ]
+
     owner = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='owned_restaurants')
     business_name = models.CharField(max_length=255)
     business_type = models.CharField(max_length=100)
@@ -20,6 +29,7 @@ class Restaurant(models.Model):
     phone = models.CharField(max_length=50, blank=True)
     email = models.EmailField(blank=True)
     price_range = models.CharField(max_length=20, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
 
     def __str__(self):
         return self.business_name
@@ -162,11 +172,23 @@ class RestaurantMenuItem(models.Model):
 
 
 class RestaurantReview(models.Model):
+    MODERATION_PENDING = 'pending'
+    MODERATION_APPROVED = 'approved'
+    MODERATION_REMOVED = 'removed'
+    MODERATION_DISMISSED = 'dismissed'
+    MODERATION_CHOICES = [
+        (MODERATION_PENDING, 'Pending'),
+        (MODERATION_APPROVED, 'Approved'),
+        (MODERATION_REMOVED, 'Removed'),
+        (MODERATION_DISMISSED, 'Dismissed'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='restaurant_reviews')
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='reviews')
     rating = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     comment = models.CharField(max_length=600)
     created_at = models.DateTimeField(auto_now_add=True)
+    moderation_status = models.CharField(max_length=20, choices=MODERATION_CHOICES, default=MODERATION_PENDING)
 
     class Meta:
         ordering = ['-created_at']

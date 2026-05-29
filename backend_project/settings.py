@@ -135,3 +135,6 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # CORS settings for API access from Flutter frontend
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Use BigAutoField for new models by default to avoid AutoField warnings.
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

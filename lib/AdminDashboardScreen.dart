@@ -1,5 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'config.dart';
 import 'AdminRestaurantsPanel.dart';
 import 'AdminReviewModerationPanel.dart';
 import 'AdminReportsPanel.dart';
@@ -52,59 +58,169 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     });
   }
 
-  // --- MOCK DATA ---
-  final List<Map<String, dynamic>> _topStats = [
-    {
-      'icon': Icons.storage_rounded, 'label': 'Total Restaurants', 'value': '248', 
-      'subtext': '+12 this month', 'isPositive': true, 'highlight': false,
-    },
-    {
-      'icon': Icons.people_outline_rounded, 'label': 'Total Users', 'value': '1,847', 
-      'subtext': '+15.2% growth', 'isPositive': true, 'highlight': false,
-    },
-    {
-      'icon': Icons.star_outline_rounded, 'label': 'Avg Hygiene Score', 'value': '82.5', 
-      'subtext': '+2.3 pts', 'isPositive': true, 'highlight': false,
-    },
-    {
-      'icon': Icons.warning_amber_rounded, 'label': 'Pending Reports', 'value': '14', 
-      'subtext': 'Needs attention', 'isPositive': false, 'highlight': true, 'highlightColor': 'red',
-    },
-    {
-      'icon': Icons.chat_bubble_outline_rounded, 'label': 'Flagged Reviews', 'value': '7', 
-      'subtext': 'Awaiting moderation', 'isPositive': false, 'highlight': true, 'highlightColor': 'amber',
-    },
-  ];
+  // --- DATA (populated via backend integration) ---
+  List<Map<String, dynamic>> _topStats = [];
+  List<Map<String, dynamic>> _scoreDistribution = [];
+  List<Map<String, dynamic>> _reportsTrend = [];
+  List<Map<String, dynamic>> _recentActivity = [];
+  bool _isLoading = false;
+  String? _errorMessage;
 
-  final List<Map<String, dynamic>> _scoreDistribution = [
-    {'range': '0-20', 'count': 8, 'color': const Color(0xFFDC2626)},
-    {'range': '21-40', 'count': 15, 'color': const Color(0xFFF97316)},
-    {'range': '41-60', 'count': 32, 'color': const Color(0xFFF59E0B)},
-    {'range': '61-80', 'count': 78, 'color': const Color(0xFF84CC16)},
-    {'range': '81-100', 'count': 115, 'color': const Color(0xFF10B981)},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchAdminOverview();
+  }
 
-  final List<Map<String, dynamic>> _reportsTrend = [
-    {'month': 'Jul', 'total': 45.0, 'resolved': 38.0},
-    {'month': 'Aug', 'total': 52.0, 'resolved': 45.0},
-    {'month': 'Sep', 'total': 48.0, 'resolved': 41.0},
-    {'month': 'Oct', 'total': 58.0, 'resolved': 52.0},
-    {'month': 'Nov', 'total': 61.0, 'resolved': 55.0},
-    {'month': 'Dec', 'total': 54.0, 'resolved': 48.0},
-  ];
+  Future<void> _fetchAdminOverview() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-  final List<Map<String, dynamic>> _recentActivity = [
-    {'icon': Icons.warning_amber_rounded, 'text': 'New hygiene report filed for "Dragon Wok"', 'time': '5 min ago', 'color': Colors.red},
-    {'icon': Icons.chat_bubble_outline_rounded, 'text': 'Review flagged for moderation at "Pizza Palace"', 'time': '12 min ago', 'color': Colors.amber},
-    {'icon': Icons.storage_rounded, 'text': 'New restaurant "Sushi Bar" added to system', 'time': '1 hour ago', 'color': Colors.green},
-    {'icon': Icons.check_circle_outline_rounded, 'text': 'Inspection completed for "Burger Joint" - Score: 95', 'time': '2 hours ago', 'color': Colors.green},
-    {'icon': Icons.people_outline_rounded, 'text': '5 new users registered', 'time': '3 hours ago', 'color': Colors.blue},
-    {'icon': Icons.psychology_rounded, 'text': 'NLP analysis completed for 42 reviews', 'time': '4 hours ago', 'color': Colors.purple},
-    {'icon': Icons.check_circle_outline_rounded, 'text': 'Report resolved for "Taco Stand"', 'time': '5 hours ago', 'color': Colors.green},
-    {'icon': Icons.star_outline_rounded, 'text': 'Owner responded to review at "Cafe Mocha"', 'time': '6 hours ago', 'color': Colors.orange},
-    {'icon': Icons.cancel_outlined, 'text': 'Restaurant "Old Diner" marked as closed', 'time': '8 hours ago', 'color': Colors.grey},
-    {'icon': Icons.refresh_rounded, 'text': 'Daily database backup completed', 'time': '12 hours ago', 'color': Colors.blue},
-  ];
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.get(
+        Uri.parse('${Config.baseUrl}/api/accounts/admin/overview/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        if (!mounted) return;
+        setState(() {
+          _topStats = _buildTopStats(data['top_stats']);
+          _scoreDistribution = _buildScoreDistribution(data['score_distribution']);
+          _reportsTrend = _buildReportsTrend(data['reports_trend']);
+          _recentActivity = _buildRecentActivity(data['recent_activity']);
+          _isLoading = false;
+        });
+      } else {
+        if (!mounted) return;
+        setState(() {
+          _errorMessage = 'Failed to load admin overview.';
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Unable to reach the server.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<Map<String, dynamic>> _buildTopStats(dynamic raw) {
+    if (raw is! List) return [];
+    return raw.map((item) {
+      final map = item as Map<String, dynamic>;
+      final key = (map['key'] ?? '').toString();
+      final trend = (map['trend'] ?? '').toString();
+      final isPositive = trend.startsWith('+');
+      final highlight = key == 'pending_reports' || key == 'flagged_reviews';
+      final highlightColor = key == 'pending_reports' ? 'red' : 'amber';
+
+      IconData icon = Icons.insights_rounded;
+      if (key == 'total_restaurants') icon = Icons.storage_rounded;
+      if (key == 'total_users') icon = Icons.people_outline_rounded;
+      if (key == 'avg_hygiene') icon = Icons.star_outline_rounded;
+      if (key == 'pending_reports') icon = Icons.warning_amber_rounded;
+      if (key == 'flagged_reviews') icon = Icons.chat_bubble_outline_rounded;
+
+      return {
+        'icon': icon,
+        'label': map['label'] ?? key,
+        'value': map['value']?.toString() ?? '0',
+        'subtext': trend.isEmpty ? 'No change' : trend,
+        'isPositive': isPositive,
+        'highlight': highlight,
+        'highlightColor': highlight ? highlightColor : null,
+      };
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> _buildScoreDistribution(dynamic raw) {
+    if (raw is! List) return [];
+    return raw.map((item) {
+      final map = item as Map<String, dynamic>;
+      final range = (map['range'] ?? '').toString();
+      return {
+        'range': range,
+        'count': map['count'] ?? 0,
+        'color': _scoreColor(range),
+      };
+    }).toList();
+  }
+
+  Color _scoreColor(String range) {
+    switch (range) {
+      case '0-20': return const Color(0xFFDC2626);
+      case '21-40': return const Color(0xFFF97316);
+      case '41-60': return const Color(0xFFF59E0B);
+      case '61-80': return const Color(0xFF84CC16);
+      case '81-100': return const Color(0xFF10B981);
+      default: return _brandTeal;
+    }
+  }
+
+  List<Map<String, dynamic>> _buildReportsTrend(dynamic raw) {
+    if (raw is! List) return [];
+    return raw.map((item) {
+      final map = item as Map<String, dynamic>;
+      return {
+        'month': map['month'] ?? '',
+        'total': (map['total'] ?? 0).toDouble(),
+        'resolved': (map['resolved'] ?? 0).toDouble(),
+      };
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> _buildRecentActivity(dynamic raw) {
+    if (raw is! List) return [];
+    return raw.map((item) {
+      final map = item as Map<String, dynamic>;
+      final type = (map['type'] ?? '').toString();
+      return {
+        'icon': _activityIcon(type),
+        'text': map['text'] ?? 'Activity update',
+        'time': _formatShortDate(map['time']?.toString()),
+        'color': _activityColor(type),
+      };
+    }).toList();
+  }
+
+  IconData _activityIcon(String type) {
+    switch (type) {
+      case 'report': return Icons.warning_amber_rounded;
+      case 'review': return Icons.chat_bubble_outline_rounded;
+      case 'inspection_request': return Icons.check_circle_outline_rounded;
+      default: return Icons.notifications_none;
+    }
+  }
+
+  Color _activityColor(String type) {
+    switch (type) {
+      case 'report': return Colors.red;
+      case 'review': return Colors.amber;
+      case 'inspection_request': return Colors.green;
+      default: return Colors.blue;
+    }
+  }
+
+  String _formatShortDate(String? iso) {
+    if (iso == null || iso.isEmpty) return 'just now';
+    final parsed = DateTime.tryParse(iso);
+    if (parsed == null) return 'just now';
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final month = months[parsed.month - 1];
+    return '$month ${parsed.day}';
+  }
 
   // --- UI BUILDERS ---
 
@@ -212,6 +328,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       body: Column(
         children: [
           _buildTopStatsBar(),
+          if (_errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.red.shade100)),
+                child: Text(_errorMessage!, style: TextStyle(color: Colors.red.shade700, fontSize: 12)),
+              ),
+            ),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -268,14 +394,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         const SizedBox(width: 12),
                         Container(width: 1, height: 12, color: Colors.grey.shade400),
                         const SizedBox(width: 12),
-                        Text("Updated: 2 hours ago", style: TextStyle(fontSize: 11, color: _textGray)),
+                        Text("Updated: Not available", style: TextStyle(fontSize: 11, color: _textGray)),
                       ],
                     ),
                     Row(
                       children: [
                         Icon(Icons.show_chart_rounded, size: 14, color: _brandPurple),
                         const SizedBox(width: 4),
-                        const Text("Queue: 8", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        const Text("Queue: 0", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                       ],
                     )
                   ],
@@ -290,6 +416,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Widget _buildTopStatsBar() {
+    if (_topStats.isEmpty) {
+      return _buildEmptyStateBar("No stats available", "Connect admin analytics to see system metrics.");
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -434,6 +564,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   // --- OVERVIEW TAB WIDGETS ---
 
   Widget _buildBarChartCard() {
+    if (_scoreDistribution.isEmpty) {
+      return _buildCard(
+        title: "Hygiene Score Distribution",
+        child: _buildEmptyMessage("No hygiene score data available yet."),
+      );
+    }
+
     return _buildCard(
       title: "Hygiene Score Distribution",
       child: SizedBox(
@@ -486,6 +623,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Widget _buildLineChartCard() {
+    if (_reportsTrend.isEmpty) {
+      return _buildCard(
+        title: "Reports Trend (Last 6 Months)",
+        child: _buildEmptyMessage("No report trend data available yet."),
+      );
+    }
+
     return _buildCard(
       title: "Reports Trend (Last 6 Months)",
       child: Column(
@@ -552,6 +696,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Widget _buildRecentActivityCard() {
+    if (_recentActivity.isEmpty) {
+      return _buildCard(
+        title: "Recent Activity",
+        child: _buildEmptyMessage("No recent activity to display."),
+      );
+    }
+
     return _buildCard(
       title: "Recent Activity",
       child: Column(
@@ -647,7 +798,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   decoration: BoxDecoration(color: _brandPurple.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: _brandPurple.withOpacity(0.2))),
                   child: Column(
                     children: [
-                      Text("94.2%", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.purple.shade900)),
+                      Text("N/A", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.purple.shade900)),
                       Text("Model Accuracy", style: TextStyle(fontSize: 11, color: Colors.purple.shade700)),
                     ],
                   ),
@@ -660,7 +811,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   decoration: BoxDecoration(color: _brandBlue.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: _brandBlue.withOpacity(0.2))),
                   child: Column(
                     children: [
-                      Text("3,847", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
+                      Text("0", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
                       Text("Reviews Analyzed", style: TextStyle(fontSize: 11, color: Colors.blue.shade700)),
                     ],
                   ),
@@ -711,6 +862,34 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: _textDark)),
           const SizedBox(height: 20),
           child,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyMessage(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      alignment: Alignment.center,
+      child: Text(message, style: TextStyle(color: _textGray, fontSize: 13)),
+    );
+  }
+
+  Widget _buildEmptyStateBar(String title, String subtitle) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _textDark)),
+          const SizedBox(height: 4),
+          Text(subtitle, style: TextStyle(fontSize: 12, color: _textGray)),
         ],
       ),
     );
