@@ -37,6 +37,8 @@ from .views import AdminReportsView
 from .views import AdminReportStatusView
 from .views import AdminReviewsView
 from .views import AdminReviewActionView
+from .views import AdminNLPPredictView
+from .views import AdminNLPSummaryView
 
 urlpatterns = [
     path('signup/', views.SignUpView.as_view(), name='signup'),
@@ -85,4 +87,6 @@ urlpatterns = [
     path('admin/reports/<int:report_id>/status/', AdminReportStatusView.as_view(), name='admin-report-status'),
     path('admin/reviews/', AdminReviewsView.as_view(), name='admin-reviews'),
     path('admin/reviews/<int:review_id>/action/', AdminReviewActionView.as_view(), name='admin-review-action'),
+    path('admin/nlp/predict/', AdminNLPPredictView.as_view(), name='admin-nlp-predict'),
+    path('admin/nlp/summary/', AdminNLPSummaryView.as_view(), name='admin-nlp-summary'),
 ]
