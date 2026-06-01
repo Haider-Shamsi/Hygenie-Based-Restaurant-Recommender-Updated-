@@ -14,6 +14,8 @@ from .views import ProfileReviewDeleteView
 from .views import ProfileReviewListView
 from .views import ProfileView
 from .views import RecommendedRestaurantsView
+from .views import UserBasedRecommendationsView
+from .views import DishRecommendationsView
 from .views import RestaurantDetailDataView
 from .views import RestaurantMenuListView
 from .views import RestaurantReviewListCreateView
@@ -54,6 +56,8 @@ urlpatterns = [
     path('user-interactions/', UserInteractionCreateView.as_view(), name='user-interaction-create'),
     path('user-interactions/history/', UserInteractionListView.as_view(), name='user-interaction-list'),
     path('recommendations/item-based/', RecommendedRestaurantsView.as_view(), name='item-based-recommendations'),
+    path('recommendations/user-based/', UserBasedRecommendationsView.as_view(), name='user-based-recommendations'),
+    path('recommendations/dishes/', DishRecommendationsView.as_view(), name='dish-recommendations'),
     path('alerts/', HygieneAlertListView.as_view(), name='hygiene-alerts-list'),
     path('alerts/<int:alert_id>/read/', HygieneAlertMarkReadView.as_view(), name='hygiene-alert-read'),
     path('alerts/preferences/', AlertPreferenceView.as_view(), name='hygiene-alert-preferences'),

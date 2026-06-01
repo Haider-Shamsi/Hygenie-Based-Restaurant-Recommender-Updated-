@@ -380,6 +380,85 @@ def _cosine_similarity(vec_a, vec_b):
     return dot / (math.sqrt(norm_a) * math.sqrt(norm_b))
 
 
+def _cosine_similarity_dict(vec_a, vec_b):
+    if not vec_a or not vec_b:
+        return 0.0
+    dot = 0.0
+    norm_a = 0.0
+    norm_b = 0.0
+    keys = set(vec_a.keys()) | set(vec_b.keys())
+    for key in keys:
+        a = float(vec_a.get(key, 0.0))
+        b = float(vec_b.get(key, 0.0))
+        dot += a * b
+        norm_a += a * a
+        norm_b += b * b
+    if norm_a == 0.0 or norm_b == 0.0:
+        return 0.0
+    return dot / (math.sqrt(norm_a) * math.sqrt(norm_b))
+
+
+def _build_user_restaurant_vectors():
+    vectors = {}
+
+    for review in RestaurantReview.objects.select_related('user', 'restaurant'):
+        vectors.setdefault(review.user_id, {})[review.restaurant_id] = float(review.rating or 0.0)
+
+    interaction_weights = {
+        'view': 1.0,
+        'like': 2.0,
+        'favorite': 3.0,
+        'rate': 4.0,
+    }
+    for interaction in UserInteraction.objects.select_related('user', 'restaurant'):
+        weight = interaction_weights.get(interaction.interaction_type, 1.0)
+        base = float(interaction.rating or weight)
+        vectors.setdefault(interaction.user_id, {})
+        current = vectors[interaction.user_id].get(interaction.restaurant_id, 0.0)
+        vectors[interaction.user_id][interaction.restaurant_id] = max(current, base)
+
+    return vectors
+
+
+def _recommend_restaurants_user_based(user_id, limit=10):
+    vectors = _build_user_restaurant_vectors()
+    target = vectors.get(user_id)
+    if not target:
+        return []
+
+    similarities = []
+    for other_id, vec in vectors.items():
+        if other_id == user_id:
+            continue
+        sim = _cosine_similarity_dict(target, vec)
+        if sim > 0:
+            similarities.append((other_id, sim))
+
+    if not similarities:
+        return []
+
+    similarities.sort(key=lambda x: x[1], reverse=True)
+    top_neighbors = similarities[:10]
+
+    scores = {}
+    sim_sums = {}
+    for neighbor_id, sim in top_neighbors:
+        neighbor_vec = vectors.get(neighbor_id, {})
+        for rest_id, rating in neighbor_vec.items():
+            if rest_id in target:
+                continue
+            scores[rest_id] = scores.get(rest_id, 0.0) + sim * float(rating)
+            sim_sums[rest_id] = sim_sums.get(rest_id, 0.0) + abs(sim)
+
+    ranked = []
+    for rest_id, total in scores.items():
+        denom = sim_sums.get(rest_id) or 1.0
+        ranked.append((rest_id, total / denom))
+
+    ranked.sort(key=lambda x: x[1], reverse=True)
+    return [rest_id for rest_id, _ in ranked[:limit]]
+
+
 def _build_dish_vectors():
     restaurants = list(Restaurant.objects.all())
     restaurant_ids = [r.id for r in restaurants]
@@ -462,6 +541,55 @@ def _rank_restaurants_by_dish_similarity(user_restaurant_ids, limit=10):
     return [rid for rid, _ in scores[:limit]]
 
 
+def _recommend_dishes_item_based(user_restaurant_ids, limit=10):
+    restaurant_ids, dish_vectors, mean_by_restaurant = _build_dish_vectors()
+    if not restaurant_ids or not dish_vectors:
+        return []
+
+    user_dishes = set(
+        RestaurantMenuItem.objects.filter(
+            restaurant_id__in=user_restaurant_ids,
+            is_available=True,
+        ).values_list('name', flat=True)
+    )
+    if not user_dishes:
+        return []
+
+    user_dish_vectors = [dish_vectors[d] for d in user_dishes if d in dish_vectors]
+    if not user_dish_vectors:
+        return []
+
+    dish_scores = []
+    for dish_name, vec in dish_vectors.items():
+        if dish_name in user_dishes:
+            continue
+        sims = [_cosine_similarity(vec, user_vec) for user_vec in user_dish_vectors]
+        if not sims:
+            continue
+        dish_scores.append((dish_name, sum(sims) / len(sims)))
+
+    dish_scores.sort(key=lambda x: x[1], reverse=True)
+    top_dishes = [name for name, _ in dish_scores[:limit]]
+
+    recommendations = []
+    for dish_name in top_dishes:
+        item = (
+            RestaurantMenuItem.objects
+            .filter(name=dish_name, is_available=True)
+            .select_related('restaurant')
+            .order_by('-rating')
+            .first()
+        )
+        if item is None:
+            continue
+        avg = mean_by_restaurant.get(item.restaurant_id, 0.0)
+        adjusted = float(item.rating or 0.0) - avg
+        recommendations.append((item, adjusted))
+
+    recommendations.sort(key=lambda x: x[1], reverse=True)
+    return [item for item, _ in recommendations[:limit]]
+
+
 class RecommendedRestaurantsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -487,6 +615,56 @@ class RecommendedRestaurantsView(APIView):
         top = [r for r, _score_value in ranked[:10]]
         serializer = RestaurantSerializer(top, many=True)
         return Response(serializer.data)
+
+
+class UserBasedRecommendationsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        ranked_ids = _recommend_restaurants_user_based(user.id, limit=10)
+        if ranked_ids:
+            ranked_restaurants = list(Restaurant.objects.filter(id__in=ranked_ids))
+            ranked_restaurants.sort(key=lambda r: ranked_ids.index(r.id))
+            serializer = RestaurantSerializer(ranked_restaurants, many=True)
+            return Response(serializer.data)
+
+        return Response([], status=status.HTTP_200_OK)
+
+
+class DishRecommendationsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        interactions = UserInteraction.objects.filter(
+            user=user,
+            interaction_type__in=['view', 'like', 'favorite', 'rate'],
+        )
+        interacted_ids = list(interactions.values_list('restaurant', flat=True))
+        if not interacted_ids:
+            return Response([], status=status.HTTP_200_OK)
+
+        items = _recommend_dishes_item_based(interacted_ids, limit=10)
+        results = []
+        for item in items:
+            results.append({
+                'id': item.id,
+                'name': item.name,
+                'category': item.category,
+                'description': item.description,
+                'price': str(item.price),
+                'rating': float(item.rating or 0.0),
+                'restaurant': {
+                    'id': item.restaurant.id,
+                    'business_name': item.restaurant.business_name,
+                    'business_type': item.restaurant.business_type,
+                    'address': item.restaurant.address,
+                    'province': item.restaurant.province,
+                    'hygiene_score': float(item.restaurant.hygiene_score),
+                },
+            })
+        return Response(results, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

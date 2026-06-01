@@ -14,6 +14,7 @@ import 'alert_screen.dart';
 import 'favorites_screen.dart';
 import 'profile_screen.dart'; 
 import 'config.dart';
+import 'models/dish_recommendation.dart';
 
 class RestaurantListScreen extends StatefulWidget {
   const RestaurantListScreen({super.key});
@@ -104,7 +105,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
       // String? _userCity;
       // bool _isDetectingCity = true;
 
-  String _selectedFilter = 'Recommended for You';
+  String _selectedFilter = 'Restaurant Recommendations';
   final TextEditingController _searchController = TextEditingController();
   // Filter dialog controllers
   double? _minHygieneScore;
@@ -112,7 +113,8 @@ class _HomeTabContentState extends State<HomeTabContent> {
   double? _distanceKm;
   bool _filtersApplied = false;
   final List<String> _filters = [
-    'Recommended for You',
+    'Restaurant Recommendations',
+    'Dish Recommendations',
     'Highest Hygiene',
     'Nearby',
     'Trending',
@@ -121,6 +123,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
 
   List<Restaurant> _restaurants = [];
   List<Restaurant> _recommendedRestaurants = [];
+  List<DishRecommendation> _recommendedDishes = [];
   List<Restaurant> _nearbyRestaurants = [];
   List<Restaurant> _trendingRestaurants = [];
   List<Restaurant> _topRatedRestaurants = [];
@@ -128,11 +131,13 @@ class _HomeTabContentState extends State<HomeTabContent> {
   final Set<int> _favoriteBusyIds = <int>{};
   bool _isLoading = true;
   bool _isLoadingRecommended = false;
+  bool _isLoadingDishes = false;
   bool _isLoadingNearby = false;
   bool _isLoadingTrending = false;
   bool _isLoadingTopRated = false;
   String? _error;
   String? _recommendedError;
+  String? _recommendedDishesError;
   String? _nearbyError;
   String? _trendingError;
   String? _topRatedError;
@@ -145,6 +150,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
     _fetchUserPreferences();
     _fetchRestaurants();
     _fetchRecommendedRestaurants();
+    _fetchRecommendedDishes();
     _fetchTopRatedRestaurants();
     _fetchFavoriteIds();
   }
@@ -179,7 +185,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
         'Authorization': 'Token $token',
       };
       final response = await http.get(
-        Uri.parse('${Config.baseUrl}/api/accounts/recommendations/item-based/'),
+        Uri.parse('${Config.baseUrl}/api/accounts/recommendations/user-based/'),
         headers: headers,
       );
       if (response.statusCode == 200) {
@@ -208,6 +214,62 @@ class _HomeTabContentState extends State<HomeTabContent> {
       setState(() {
         _recommendedError = 'Error: $e';
         _isLoadingRecommended = false;
+      });
+    }
+  }
+
+  Future<void> _fetchRecommendedDishes() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoadingDishes = true;
+      _recommendedDishesError = null;
+    });
+    try {
+      final token = await _getAuthToken();
+      if (!mounted) return;
+      if (token == null || token.isEmpty) {
+        if (!mounted) return;
+        setState(() {
+          _recommendedDishes = [];
+          _recommendedDishesError = 'Sign in to see dish recommendations.';
+          _isLoadingDishes = false;
+        });
+        return;
+      }
+
+      final headers = <String, String>{
+        'Authorization': 'Token $token',
+      };
+      final response = await http.get(
+        Uri.parse('${Config.baseUrl}/api/accounts/recommendations/dishes/'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        if (!mounted) return;
+        setState(() {
+          _recommendedDishes = data.map((json) => DishRecommendation.fromJson(json)).toList();
+          _isLoadingDishes = false;
+        });
+      } else if (response.statusCode == 401 || response.statusCode == 403) {
+        if (!mounted) return;
+        setState(() {
+          _recommendedDishes = [];
+          _recommendedDishesError = 'Session expired. Please sign in again.';
+          _isLoadingDishes = false;
+        });
+      } else {
+        if (!mounted) return;
+        setState(() {
+          _recommendedDishesError = 'Failed to load dish recommendations';
+          _isLoadingDishes = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _recommendedDishesError = 'Error: $e';
+        _isLoadingDishes = false;
       });
     }
   }
@@ -659,6 +721,40 @@ class _HomeTabContentState extends State<HomeTabContent> {
     return output;
   }
 
+  List<DishRecommendation> _applyDishFilters(List<DishRecommendation> input) {
+    var output = List<DishRecommendation>.from(input);
+
+    final searchText = _searchController.text.trim().toLowerCase();
+    if (searchText.isNotEmpty) {
+      output = output.where((d) {
+        final haystack = '${d.name} ${d.category} ${d.restaurantName} ${d.restaurantType}'
+            .toLowerCase();
+        return haystack.contains(searchText);
+      }).toList();
+    }
+
+    if (_minHygieneScore != null) {
+      output = output.where((d) => d.restaurantHygieneScore >= _minHygieneScore!).toList();
+    }
+
+    if (_cuisineType != null && _cuisineType!.trim().isNotEmpty) {
+      final cuisineList = _cuisineType!
+          .toLowerCase()
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      if (cuisineList.isNotEmpty) {
+        output = output.where((d) {
+          final cat = '${d.category} ${d.restaurantType}'.toLowerCase();
+          return cuisineList.any((c) => cat.contains(c));
+        }).toList();
+      }
+    }
+
+    return output;
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -674,6 +770,9 @@ class _HomeTabContentState extends State<HomeTabContent> {
     final baseRecommended = _filtersApplied
         ? _applyActiveFilters(_recommendedRestaurants)
         : List<Restaurant>.from(_recommendedRestaurants);
+    final baseDishRecommended = _filtersApplied
+      ? _applyDishFilters(_recommendedDishes)
+      : List<DishRecommendation>.from(_recommendedDishes);
     final baseTrending = _filtersApplied
       ? _applyActiveFilters(_trendingRestaurants)
       : List<Restaurant>.from(_trendingRestaurants);
@@ -684,9 +783,6 @@ class _HomeTabContentState extends State<HomeTabContent> {
       ? _applyActiveFilters(_topRatedRestaurants)
       : List<Restaurant>.from(_topRatedRestaurants);
     List<Restaurant> filteredRecommended = baseRecommended;
-    final fallbackBase = baseRestaurants;
-    final fallbackRecommended = List<Restaurant>.from(fallbackBase)
-      ..sort((a, b) => b.hygieneScore.compareTo(a.hygieneScore));
     List<Restaurant> filteredNearby = baseNearby;
     List<Restaurant> filteredTrending = baseTrending;
     List<Restaurant> filteredTopRated = baseTopRated;
@@ -720,34 +816,44 @@ class _HomeTabContentState extends State<HomeTabContent> {
                   ? const Center(child: CircularProgressIndicator())
                   : _error != null
                       ? Center(child: Text(_error!))
-                          : _selectedFilter == 'Recommended for You'
+                          : _selectedFilter == 'Restaurant Recommendations'
                           ? (_isLoadingRecommended
                               ? const Center(child: CircularProgressIndicator())
-                              : _recommendedError != null
+                              : (_recommendedError != null)
                                   ? Center(child: Text(_recommendedError!))
-                                : (filteredRecommended.isEmpty && fallbackRecommended.isEmpty)
-                                      ? const Center(child: Text('No recommendations found.'))
+                                  : (filteredRecommended.isEmpty)
+                                      ? const Center(child: Text('No restaurant recommendations yet.'))
                                       : ListView(
                                           padding: const EdgeInsets.all(20),
                                           children: [
-                                            ...(filteredRecommended.isNotEmpty
-                                                    ? filteredRecommended
-                                                    : fallbackRecommended)
-                                                .map((restaurant) => RestaurantCard(
-                                                      restaurant: restaurant,
-                                                      isFavorite: _favoriteIds.contains(restaurant.id),
-                                                      isFavoriteLoading: _favoriteBusyIds.contains(restaurant.id),
-                                                      onFavoriteTap: () => _toggleFavorite(restaurant),
-                                                      onTap: () {
-                                                        _recordInteraction(restaurant.id, 'view');
-                                                        Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(builder: (context) => RestaurantDetailScreen(restaurant: restaurant)),
-                                                        );
-                                                      },
-                                                    )),
+                                            ...filteredRecommended.map((restaurant) => RestaurantCard(
+                                                  restaurant: restaurant,
+                                                  isFavorite: _favoriteIds.contains(restaurant.id),
+                                                  isFavoriteLoading: _favoriteBusyIds.contains(restaurant.id),
+                                                  onFavoriteTap: () => _toggleFavorite(restaurant),
+                                                  onTap: () {
+                                                    _recordInteraction(restaurant.id, 'view');
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(builder: (context) => RestaurantDetailScreen(restaurant: restaurant)),
+                                                    );
+                                                  },
+                                                )),
                                           ],
                                         ))
+                          : _selectedFilter == 'Dish Recommendations'
+                              ? (_isLoadingDishes
+                                  ? const Center(child: CircularProgressIndicator())
+                                  : (_recommendedDishesError != null)
+                                      ? Center(child: Text(_recommendedDishesError!))
+                                      : baseDishRecommended.isEmpty
+                                          ? const Center(child: Text('No dish recommendations yet.'))
+                                          : ListView(
+                                              padding: const EdgeInsets.all(20),
+                                              children: [
+                                                ...baseDishRecommended.map(_buildDishCard),
+                                              ],
+                                            ))
                             : _selectedFilter == 'Nearby'
                               ? (_isLoadingNearby
                                   ? const Center(child: CircularProgressIndicator())
@@ -1055,8 +1161,10 @@ class _HomeTabContentState extends State<HomeTabContent> {
             isSelected: _selectedFilter == filterName,
             onTap: () {
               setState(() => _selectedFilter = filterName);
-              if (filterName == 'Recommended for You') {
+              if (filterName == 'Restaurant Recommendations') {
                 _fetchRecommendedRestaurants();
+              } else if (filterName == 'Dish Recommendations') {
+                _fetchRecommendedDishes();
               } else if (filterName == 'Trending') {
                 _fetchTrendingRestaurants();
               } else if (filterName == 'Top Rated') {
@@ -1067,6 +1175,87 @@ class _HomeTabContentState extends State<HomeTabContent> {
             },
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    );
+  }
+
+  Widget _buildDishCard(DishRecommendation dish) {
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8)],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 56,
+            width: 56,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F2F6),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.restaurant_menu, color: Color(0xFF00C48C)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        dish.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                    ),
+                    Text(
+                      dish.price,
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  dish.restaurantName,
+                  style: const TextStyle(color: Color(0xFF00C48C), fontWeight: FontWeight.w600, fontSize: 12),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  dish.category.isNotEmpty ? dish.category : dish.restaurantType,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.star, size: 14, color: Colors.amber),
+                    const SizedBox(width: 4),
+                    Text(dish.rating.toStringAsFixed(1), style: const TextStyle(fontSize: 12)),
+                    const SizedBox(width: 12),
+                    const Icon(Icons.shield_outlined, size: 14, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text(
+                      dish.restaurantHygieneScore.toStringAsFixed(0),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
