@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'home_screen.dart';
@@ -17,6 +18,8 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   LatLng? _userLocation;
+  String _currentCity = 'Detecting location...';
+  final MapController _mapController = MapController();
   bool _showFilterPanel = false;
   final TextEditingController _hygieneController = TextEditingController(
     text: "70",
@@ -36,17 +39,62 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _initLocationAndMarkers() async {
     try {
-      Position position = await Geolocator.getCurrentPosition();
+      final position = await _determinePosition();
       setState(() {
         _userLocation = LatLng(position.latitude, position.longitude);
       });
+      _mapController.move(_userLocation!, 14.0);
+      await _updateCityLabel(position.latitude, position.longitude);
       await _fetchRestaurants();
     } catch (e) {
       // Fallback to Lahore if location fails
       setState(() {
         _userLocation = LatLng(31.5204, 74.3587);
+        _currentCity = 'Lahore, Pakistan';
       });
+      _mapController.move(_userLocation!, 12.0);
       await _fetchRestaurants();
+    }
+  }
+
+  Future<Position> _determinePosition() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception('Location services are disabled.');
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+      throw Exception('Location permission denied.');
+    }
+
+    return Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+  }
+
+  Future<void> _updateCityLabel(double latitude, double longitude) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(latitude, longitude);
+      if (placemarks.isEmpty) return;
+      final p = placemarks.first;
+      final city = (p.locality ?? p.subAdministrativeArea ?? p.administrativeArea ?? '').trim();
+      final country = (p.country ?? '').trim();
+      if (!mounted) return;
+      setState(() {
+        if (city.isNotEmpty && country.isNotEmpty) {
+          _currentCity = '$city, $country';
+        } else if (city.isNotEmpty) {
+          _currentCity = city;
+        }
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _currentCity = 'Current location';
+      });
     }
   }
 
@@ -124,14 +172,18 @@ class _MapScreenState extends State<MapScreen> {
           point: LatLng(lat, lon),
           width: 40,
           height: 40,
-          child: Icon(
-            Icons.location_on,
-            color: restaurant.hygieneScore >= 85
-                ? Colors.green
-                : restaurant.hygieneScore >= 70
-                    ? Colors.orange
-                    : Colors.red,
-            size: 36,
+          child: Tooltip(
+            message:
+                '${restaurant.businessName}\n${restaurant.category ?? restaurant.businessType}\nHygiene: ${restaurant.hygieneScore.toStringAsFixed(0)}\nDistance: ${distanceKm.toStringAsFixed(1)} km',
+            child: Icon(
+              Icons.location_on,
+              color: restaurant.hygieneScore >= 85
+                  ? Colors.green
+                  : restaurant.hygieneScore >= 70
+                      ? Colors.orange
+                      : Colors.red,
+              size: 36,
+            ),
           ),
         ),
       );
@@ -160,6 +212,7 @@ class _MapScreenState extends State<MapScreen> {
         children: [
           // 1. Map Layer (flutter_map)
           FlutterMap(
+            mapController: _mapController,
             options: MapOptions(
               initialCenter: _userLocation ?? LatLng(31.5204, 74.3587),
               initialZoom: 14.0,
@@ -186,7 +239,7 @@ class _MapScreenState extends State<MapScreen> {
                     children: [
                       _buildBackButton(),
                       const SizedBox(width: 10),
-                      Expanded(child: _buildFloatingBar("Lahore, Pakistan")),
+                      Expanded(child: _buildFloatingBar(_currentCity)),
                       const SizedBox(width: 10),
                       _buildFilterButton(),
                     ],
