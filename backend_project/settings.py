@@ -46,7 +46,10 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        # Use a development-friendly Token auth that falls back to query
+        # param / cookie when DEBUG=True. This helps local web clients that
+        # may not send Authorization headers consistently during development.
+        'backend_project.authentication.DevelopmentTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ]
 }
@@ -138,3 +141,8 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 # Use BigAutoField for new models by default to avoid AutoField warnings.
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Media files (uploaded user/owner documents/evidence)
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+

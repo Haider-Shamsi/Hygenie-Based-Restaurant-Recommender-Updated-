@@ -3,6 +3,8 @@ import 'config.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // --- DATA MODELS ---
 
@@ -16,8 +18,9 @@ class TimelineEvent {
 class OwnerResponse {
   final String text;
   final String timestamp;
+  final String? evidenceUrl;
 
-  OwnerResponse({required this.text, required this.timestamp});
+  OwnerResponse({required this.text, required this.timestamp, this.evidenceUrl});
 }
 
 class HygieneReport {
@@ -30,6 +33,7 @@ class HygieneReport {
   String status;
   OwnerResponse? ownerResponse;
   final List<TimelineEvent> timeline;
+  final DateTime createdAt;
 
   HygieneReport({
     required this.id,
@@ -41,6 +45,7 @@ class HygieneReport {
     required this.status,
     this.ownerResponse,
     required this.timeline,
+    required this.createdAt,
   });
 
   factory HygieneReport.fromJson(Map<String, dynamic> json) {
@@ -56,12 +61,15 @@ class HygieneReport {
           ? OwnerResponse(
               text: json['owner_response']['text'] ?? '',
               timestamp: json['owner_response']['date'] ?? '',
+              evidenceUrl: json['owner_response']['evidence_url'],
             )
           : null,
       timeline: [TimelineEvent(status: 'Submitted', date: json['date_submitted'] ?? '')],
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(),
     );
   }
 }
+
 
 // --- SCREEN WIDGET ---
 
@@ -87,6 +95,7 @@ class _OwnerHygieneReportsScreenState extends State<OwnerHygieneReportsScreen> {
   String? _respondingToId;
   final TextEditingController _responseController = TextEditingController();
   final Set<String> _expandedDescriptions = {};
+  PlatformFile? _selectedEvidenceFile;
 
   bool _isLoading = true;
   String? _errorMessage;
@@ -106,14 +115,23 @@ class _OwnerHygieneReportsScreenState extends State<OwnerHygieneReportsScreen> {
 
   // --- LOGIC & HELPERS ---
 
-  DateTime _parseDate(String dateStr) {
+  Future<void> _pickEvidence() async {
     try {
-      final parts = dateStr.split(RegExp(r'[ ,]+'));
-      if (parts.length < 3) return DateTime.now();
-      const months = {'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12};
-      return DateTime(int.parse(parts[2]), months[parts[0]] ?? 1, int.parse(parts[1]));
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        setState(() {
+          _selectedEvidenceFile = result.files.first;
+        });
+      }
     } catch (e) {
-      return DateTime.now();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking file: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
@@ -125,9 +143,9 @@ class _OwnerHygieneReportsScreenState extends State<OwnerHygieneReportsScreen> {
 
     filtered.sort((a, b) {
       if (_sortBy == 'newest') {
-        return _parseDate(b.dateSubmitted).compareTo(_parseDate(a.dateSubmitted));
+        return b.createdAt.compareTo(a.createdAt);
       } else if (_sortBy == 'oldest') {
-        return _parseDate(a.dateSubmitted).compareTo(_parseDate(b.dateSubmitted));
+        return a.createdAt.compareTo(b.createdAt);
       } else if (_sortBy == 'priority') {
         const pOrder = {'High': 0, 'Medium': 1, 'Low': 2};
         return (pOrder[a.priority] ?? 3).compareTo(pOrder[b.priority] ?? 3);
@@ -137,6 +155,7 @@ class _OwnerHygieneReportsScreenState extends State<OwnerHygieneReportsScreen> {
 
     return filtered;
   }
+
 
   void _submitResponse(String id) {
     if (_responseController.text.trim().isEmpty) {
@@ -192,25 +211,50 @@ class _OwnerHygieneReportsScreenState extends State<OwnerHygieneReportsScreen> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
 
-      final response = await http.post(
+      var request = http.MultipartRequest(
+        'POST',
         Uri.parse('${Config.baseUrl}/api/accounts/owner/reports/$id/response/'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Token $token',
-        },
-        body: json.encode({'text': text}),
       );
 
+      if (token != null) {
+        request.headers['Authorization'] = 'Token $token';
+      }
+
+      request.fields['text'] = text;
+
+      if (_selectedEvidenceFile != null) {
+        if (_selectedEvidenceFile!.bytes != null) {
+          request.files.add(http.MultipartFile.fromBytes(
+            'evidence',
+            _selectedEvidenceFile!.bytes!,
+            filename: _selectedEvidenceFile!.name,
+          ));
+        } else if (_selectedEvidenceFile!.path != null) {
+          request.files.add(await http.MultipartFile.fromPath(
+            'evidence',
+            _selectedEvidenceFile!.path!,
+            filename: _selectedEvidenceFile!.name,
+          ));
+        }
+      }
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
       if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
         setState(() {
           final reportIndex = _reports.indexWhere((r) => r.id == id);
           if (reportIndex != -1) {
             _reports[reportIndex].ownerResponse = OwnerResponse(
               text: text,
-              timestamp: 'Just now',
+              timestamp: responseData['date'] ?? 'Just now',
+              evidenceUrl: responseData['evidence_url'],
             );
+            _reports[reportIndex].status = 'Investigating';
           }
           _respondingToId = null;
+          _selectedEvidenceFile = null;
           _responseController.clear();
         });
         ScaffoldMessenger.of(context).showSnackBar(
@@ -588,6 +632,36 @@ class _OwnerHygieneReportsScreenState extends State<OwnerHygieneReportsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(report.ownerResponse!.text, style: TextStyle(color: Colors.grey.shade800, fontSize: 13, height: 1.5)),
+                  if (report.ownerResponse!.evidenceUrl != null) ...[
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: () async {
+                        final url = Uri.parse(report.ownerResponse!.evidenceUrl!);
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url, mode: LaunchMode.externalApplication);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Could not open evidence document.')),
+                          );
+                        }
+                      },
+                      child: Row(
+                        children: [
+                          Icon(Icons.description, size: 16, color: _brandTeal),
+                          const SizedBox(width: 6),
+                          Text(
+                            "View Attached Evidence",
+                            style: TextStyle(
+                              color: _brandTeal,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             )
@@ -610,18 +684,46 @@ class _OwnerHygieneReportsScreenState extends State<OwnerHygieneReportsScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () {},
+                      onPressed: _pickEvidence,
                       icon: const Icon(Icons.attach_file, size: 16),
-                      label: const Text("Attach Evidence"),
-                      style: OutlinedButton.styleFrom(foregroundColor: _textDark, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                      label: Text(_selectedEvidenceFile != null
+                          ? "Change Evidence (${_selectedEvidenceFile!.name})"
+                          : "Attach Evidence"),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _selectedEvidenceFile != null ? _brandTeal : _textDark,
+                        side: _selectedEvidenceFile != null ? BorderSide(color: _brandTeal) : null,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
                     ),
                   ),
+                  if (_selectedEvidenceFile != null) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Icon(Icons.check_circle, size: 14, color: _brandTeal),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            "Selected: ${_selectedEvidenceFile!.name}",
+                            style: TextStyle(color: _brandTeal, fontSize: 11, fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () => setState(() => _selectedEvidenceFile = null),
+                          child: const Icon(Icons.cancel, size: 16, color: Colors.red),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Row(
                     children: [
                       Expanded(child: ElevatedButton.icon(onPressed: () => _submitResponse(report.id), icon: const Icon(Icons.send, size: 14, color: Colors.white), label: const Text("Submit Response", style: TextStyle(color: Colors.white)), style: ElevatedButton.styleFrom(backgroundColor: _brandTeal, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))))),
                       const SizedBox(width: 8),
-                      Expanded(child: OutlinedButton(onPressed: () => setState(() => _respondingToId = null), style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), child: const Text("Cancel", style: TextStyle(color: Colors.grey)))),
+                      Expanded(child: OutlinedButton(onPressed: () => setState(() => { _respondingToId = null, _selectedEvidenceFile = null }), style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), child: const Text("Cancel", style: TextStyle(color: Colors.grey)))),
                     ],
                   )
                 ],
@@ -631,7 +733,7 @@ class _OwnerHygieneReportsScreenState extends State<OwnerHygieneReportsScreen> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () => setState(() { _respondingToId = report.id; _responseController.clear(); }),
+                onPressed: () => setState(() { _respondingToId = report.id; _responseController.clear(); _selectedEvidenceFile = null; }),
                 style: OutlinedButton.styleFrom(foregroundColor: _brandTeal, side: BorderSide(color: _brandTeal.withOpacity(0.5)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
                 child: const Text("Respond to Report"),
               ),

@@ -29,6 +29,7 @@ class FlaggedReview {
   final List<String> nlpProblematicWords;
   final String submittedDate;
   final String flagCategory; // 'nlp-auto', 'user-reported', 'spam', 'inappropriate'
+  final String adminNote;
 
   FlaggedReview({
     required this.id,
@@ -51,6 +52,7 @@ class FlaggedReview {
     required this.nlpProblematicWords,
     required this.submittedDate,
     required this.flagCategory,
+    required this.adminNote,
   });
 }
 
@@ -96,6 +98,7 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
   Set<String> _expandedNLP = {};
   Set<String> _selectedReviews = {};
   Map<String, String> _adminNotes = {};
+  final Map<String, TextEditingController> _noteControllers = {};
   bool _showHistory = false;
   String? _editingReview;
   String _editedText = '';
@@ -112,10 +115,20 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
     _fetchFlaggedReviews();
   }
 
+  @override
+  void dispose() {
+    for (final controller in _noteControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
   Future<void> _fetchFlaggedReviews() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
+      // DEBUG: log token to browser/console to help diagnose 401 issues
+      print('DEBUG: AdminReviewModerationPanel._fetchFlaggedReviews token => $token');
 
       final response = await http.get(
         Uri.parse('${Config.baseUrl}/api/accounts/admin/reviews/'),
@@ -153,6 +166,7 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
               nlpProblematicWords: (map['nlp_problematic_words'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
               submittedDate: map['submitted_date'] ?? '',
               flagCategory: map['flag_category'] ?? 'nlp-auto',
+              adminNote: map['admin_note'] ?? '',
             );
           }).toList();
 
@@ -216,9 +230,12 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
   }
 
   Future<void> _sendReviewAction(String id, String action, {String? editedText}) async {
+    final note = _adminNotes[id];
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
+    // DEBUG: log token before sending moderation action
+    print('DEBUG: AdminReviewModerationPanel._sendReviewAction token => $token');
 
       final response = await http.post(
         Uri.parse('${Config.baseUrl}/api/accounts/admin/reviews/$id/action/'),
@@ -229,6 +246,7 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
         body: json.encode({
           'action': action,
           if (editedText != null) 'edited_text': editedText,
+          if (note != null && note.isNotEmpty) 'admin_note': note,
         }),
       );
 
@@ -476,6 +494,13 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
 
     return Column(
       children: _filteredReviews.map((review) {
+        final controller = _noteControllers.putIfAbsent(
+          review.id,
+          () => TextEditingController(text: review.adminNote),
+        );
+        if (_adminNotes[review.id] == null) {
+          _adminNotes[review.id] = review.adminNote;
+        }
         bool isNLPExpanded = _expandedNLP.contains(review.id);
         bool isEditing = _editingReview == review.id;
 
@@ -618,7 +643,16 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text("Sentiment Score", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                Text(review.nlpSentimentScore.toStringAsFixed(2), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: review.nlpSentimentScore > 0 ? _brandTeal : Colors.red)),
+                                Text(
+                                  review.nlpSentimentScore.toStringAsFixed(2),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: review.nlpSentimentScore.abs() < 0.15
+                                        ? _textGray
+                                        : (review.nlpSentimentScore > 0 ? _brandTeal : Colors.red),
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 8),
@@ -642,7 +676,16 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
                                 color: review.nlpSentimentLabel == 'Negative' ? Colors.red.shade50 : (review.nlpSentimentLabel == 'Positive' ? Colors.green.shade50 : Colors.amber.shade50),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Text(review.nlpSentimentLabel, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: review.nlpSentimentLabel == 'Negative' ? Colors.red : (review.nlpSentimentLabel == 'Positive' ? _brandTeal : Colors.amber.shade700))),
+                              child: Text(
+                                review.nlpSentimentLabel,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: review.nlpSentimentLabel == 'Negative'
+                                      ? Colors.red
+                                      : (review.nlpSentimentLabel == 'Positive' ? _brandTeal : Colors.amber.shade700),
+                                ),
+                              ),
                             ),
                             const SizedBox(height: 16),
 
@@ -724,6 +767,7 @@ class _AdminReviewModerationPanelState extends State<AdminReviewModerationPanel>
               const Text("Admin Notes (Internal)", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               TextField(
+                controller: controller,
                 onChanged: (val) => _adminNotes[review.id] = val,
                 maxLines: 2,
                 decoration: InputDecoration(

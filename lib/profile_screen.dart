@@ -59,13 +59,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return;
       }
 
-      final response = await http.get(
-        Uri.parse('${Config.baseUrl}/api/accounts/profile/'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Token $token',
-        },
-      );
+      final headers = await Config.defaultHeaders();
+      var response = await http.get(Uri.parse('${Config.baseUrl}/api/accounts/profile/'), headers: headers);
+
+      if (response.statusCode == 401) {
+        final uriWithAuth = await Config.uriWithAuth('/api/accounts/profile/');
+        response = await http.get(uriWithAuth);
+      }
 
       if (response.statusCode != 200) {
         setState(() {
@@ -213,10 +213,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       iconBgColor: const Color(0xFFECFDF5),
                     ),
                 ]),
-                const SizedBox(height: 24),
-                // Re-integrated Role Actions Section
-                _buildSectionTitle("Role Actions"),
-                _buildRoleActions(),
+                if (_role == 'owner' || _role == 'admin') ...[
+                  const SizedBox(height: 24),
+                  // Re-integrated Role Actions Section
+                  _buildSectionTitle("Role Actions"),
+                  _buildRoleActions(),
+                ],
                 const SizedBox(height: 30),
                 _buildLogoutButton(),
                 const SizedBox(height: 20),
@@ -367,41 +369,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          _buildRoleActionButton(
-            icon: Icons.business_outlined, 
-            title: "Switch to Owner View", 
-            sub: "Manage your restaurant dashboard", 
-            color: const Color(0xFF10B981), // Emerald Teal
-            onTap: () {
-          
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => OwnerDashboardScreen(
-                    onBack: () => Navigator.pop(context),
+          if (_role == 'owner')
+            _buildRoleActionButton(
+              icon: Icons.business_outlined, 
+              title: "Switch to Owner View", 
+              sub: "Manage your restaurant dashboard", 
+              color: const Color(0xFF10B981), // Emerald Teal
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => OwnerDashboardScreen(
+                      onBack: () => Navigator.pop(context),
+                    ),
                   ),
-                ),
-              );
-            }
-          ),
-          const SizedBox(height: 12),
-          _buildRoleActionButton(
-            icon: Icons.shield_outlined, 
-            title: "Switch to Admin View", 
-            sub: "Access system administration", 
-            color: Colors.purple, // Purple
-            onTap: () async {
-              // TODO: Add navigation to Admin Dashboard
-              await Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => AdminDashboardScreen(
-                    onBack: () => Navigator.pop(context),
+                );
+              }
+            ),
+          if (_role == 'admin')
+            _buildRoleActionButton(
+              icon: Icons.shield_outlined, 
+              title: "Switch to Admin View", 
+              sub: "Access system administration", 
+              color: Colors.purple, // Purple
+              onTap: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => AdminDashboardScreen(
+                      onBack: () => Navigator.pop(context),
+                    ),
                   ),
-                ),
-              );
-            }
-
-          ),
+                );
+              }
+            ),
         ],
       ),
     );

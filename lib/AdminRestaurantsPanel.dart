@@ -222,6 +222,129 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
     }
   }
 
+  Future<Map<String, dynamic>?> _fetchRestaurantDetail(String id) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.get(
+        Uri.parse('${Config.baseUrl}/api/accounts/admin/restaurants/$id/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body) as Map<String, dynamic>;
+      }
+    } catch (_) {
+      // Keep null on error.
+    }
+    return null;
+  }
+
+  Future<void> _saveRestaurantNotes(String id, String notes) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.patch(
+        Uri.parse('${Config.baseUrl}/api/accounts/admin/restaurants/$id/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+        body: json.encode({'admin_notes': notes}),
+      );
+
+      if (response.statusCode == 200) {
+        _fetchRestaurants();
+      }
+    } catch (_) {
+      // Keep UI state unchanged on error.
+    }
+  }
+
+  Future<void> _updateRestaurantScore(String id, double score) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.patch(
+        Uri.parse('${Config.baseUrl}/api/accounts/admin/restaurants/$id/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+        body: json.encode({'hygiene_score': score}),
+      );
+
+      if (response.statusCode == 200) {
+        _fetchRestaurants();
+      }
+    } catch (_) {
+      // Keep UI state unchanged on error.
+    }
+  }
+
+  Future<void> _scheduleInspection(String id, {String? notes, DateTime? inspectionDate}) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      final payload = <String, dynamic>{'action': 'schedule_inspection'};
+
+      if (notes != null && notes.trim().isNotEmpty) {
+        payload['notes'] = notes.trim();
+      }
+      if (inspectionDate != null) {
+        payload['inspection_date'] = inspectionDate.toIso8601String().split('T').first;
+      }
+
+      final response = await http.post(
+        Uri.parse('${Config.baseUrl}/api/accounts/admin/restaurants/$id/actions/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+        body: json.encode(payload),
+      );
+
+      if (response.statusCode == 200) {
+        _fetchRestaurants();
+      }
+    } catch (_) {
+      // Keep UI state unchanged on error.
+    }
+  }
+
+  Future<void> _sendRestaurantWarning(String id, {String? message}) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      final payload = <String, dynamic>{'action': 'send_warning'};
+
+      if (message != null && message.trim().isNotEmpty) {
+        payload['message'] = message.trim();
+      }
+
+      final response = await http.post(
+        Uri.parse('${Config.baseUrl}/api/accounts/admin/restaurants/$id/actions/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+        body: json.encode(payload),
+      );
+
+      if (response.statusCode == 200) {
+        _fetchRestaurants();
+      }
+    } catch (_) {
+      // Keep UI state unchanged on error.
+    }
+  }
+
   // --- UI BUILDERS ---
 
   @override
@@ -594,7 +717,9 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
   }
 
   void _showRestaurantDetailModal(AdminRestaurant restaurant) {
-    final List<FlSpot> scoreHistory = const [];
+    final notesController = TextEditingController();
+    bool notesInitialized = false;
+    Future<Map<String, dynamic>?> detailFuture = _fetchRestaurantDetail(restaurant.id);
 
     showDialog(
       context: context,
@@ -603,90 +728,209 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
         child: Container(
           width: 600,
           constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey.shade200))),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(restaurant.name, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _textDark)),
-                    IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
-                  ],
-                ),
-              ),
-              // Scrollable Body
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Info Grid
-                      Wrap(
-                        spacing: 24, runSpacing: 16,
-                        children: [
-                          _detailPair("Cuisine", restaurant.cuisine),
-                          _detailPair("Status", restaurant.status, isBadge: true),
-                          _detailPair("Location", restaurant.location),
-                          _detailPair("Owner", restaurant.owner),
-                          _detailPair("Phone", restaurant.phone),
-                          _detailPair("Last Inspection", restaurant.lastInspection),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Chart
-                      const Text("Hygiene Score History", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      const SizedBox(height: 12),
-                      Container(
-                        height: 150,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(12)),
-                        child: scoreHistory.isEmpty
-                            ? Center(child: Text("No history available", style: TextStyle(color: _textGray, fontSize: 12)))
-                            : LineChart(
-                                LineChartData(
-                                  gridData: const FlGridData(show: false),
-                                  titlesData: const FlTitlesData(show: false),
-                                  borderData: FlBorderData(show: false),
-                                  lineBarsData: [LineChartBarData(spots: scoreHistory, isCurved: true, color: _brandTeal, barWidth: 2, dotData: const FlDotData(show: true))],
-                                ),
-                              ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Admin Actions
-                      const Text("Admin Actions", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8, runSpacing: 8,
-                        children: [
-                          OutlinedButton.icon(onPressed: (){}, icon: const Icon(Icons.trending_up, size: 16), label: const Text("Update Score"), style: OutlinedButton.styleFrom(foregroundColor: _textDark)),
-                          OutlinedButton.icon(onPressed: (){}, icon: const Icon(Icons.calendar_today, size: 16), label: const Text("Schedule Inspection"), style: OutlinedButton.styleFrom(foregroundColor: _textDark)),
-                          OutlinedButton.icon(onPressed: (){}, icon: const Icon(Icons.block, size: 16), label: const Text("Suspend"), style: OutlinedButton.styleFrom(foregroundColor: Colors.orange)),
-                          OutlinedButton.icon(onPressed: (){}, icon: const Icon(Icons.warning_amber_rounded, size: 16), label: const Text("Send Warning"), style: OutlinedButton.styleFrom(foregroundColor: Colors.red)),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Notes
-                      const Text("Admin Internal Notes", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      const SizedBox(height: 8),
-                      TextField(
-                        maxLines: 3,
-                        decoration: InputDecoration(hintText: "Add internal notes...", filled: true, fillColor: Colors.grey.shade50, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton.icon(onPressed: (){}, icon: const Icon(Icons.save, size: 16, color: Colors.white), label: const Text("Save Notes", style: TextStyle(color: Colors.white)), style: ElevatedButton.styleFrom(backgroundColor: _brandTeal, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)))),
-                    ],
+          child: StatefulBuilder(
+            builder: (context, setModalState) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey.shade200))),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(restaurant.name, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _textDark)),
+                        IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                      ],
+                    ),
                   ),
-                ),
-              ),
-            ],
+                  Expanded(
+                    child: FutureBuilder<Map<String, dynamic>?>(
+                      future: detailFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState != ConnectionState.done) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+
+                        if (!snapshot.hasData || snapshot.data == null) {
+                          return Center(child: Text("Unable to load restaurant details.", style: TextStyle(color: _textGray, fontSize: 12)));
+                        }
+
+                        final detail = snapshot.data!;
+                        if (!notesInitialized) {
+                          notesController.text = (detail['admin_notes'] ?? '').toString();
+                          notesInitialized = true;
+                        }
+
+                        final history = detail['hygiene_history'] as List<dynamic>? ?? [];
+                        final scoreHistory = history.asMap().entries.map((entry) {
+                          final index = entry.key.toDouble();
+                          final score = (entry.value as Map<String, dynamic>)['score'] ?? 0;
+                          return FlSpot(index, (score as num).toDouble());
+                        }).toList();
+
+                        return SingleChildScrollView(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Info Grid
+                              Wrap(
+                                spacing: 24, runSpacing: 16,
+                                children: [
+                                  _detailPair("Cuisine", (detail['cuisine'] ?? restaurant.cuisine).toString()),
+                                  _detailPair("Status", (detail['status'] ?? restaurant.status).toString(), isBadge: true),
+                                  _detailPair("Location", (detail['location'] ?? restaurant.location).toString()),
+                                  _detailPair("Owner", (detail['owner'] ?? restaurant.owner).toString()),
+                                  _detailPair("Phone", (detail['phone'] ?? restaurant.phone).toString()),
+                                  _detailPair("Last Inspection", (detail['last_inspection'] ?? restaurant.lastInspection).toString()),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+
+                              // Chart
+                              const Text("Hygiene Score History", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              const SizedBox(height: 12),
+                              Container(
+                                height: 150,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(12)),
+                                child: scoreHistory.isEmpty
+                                    ? Center(child: Text("No history available", style: TextStyle(color: _textGray, fontSize: 12)))
+                                    : LineChart(
+                                        LineChartData(
+                                          gridData: const FlGridData(show: false),
+                                          titlesData: const FlTitlesData(show: false),
+                                          borderData: FlBorderData(show: false),
+                                          lineBarsData: [LineChartBarData(spots: scoreHistory, isCurved: true, color: _brandTeal, barWidth: 2, dotData: const FlDotData(show: true))],
+                                        ),
+                                      ),
+                              ),
+                              const SizedBox(height: 24),
+
+                              // Admin Actions
+                              const Text("Admin Actions", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              const SizedBox(height: 12),
+                              Wrap(
+                                spacing: 8, runSpacing: 8,
+                                children: [
+                                  OutlinedButton.icon(
+                                    onPressed: () async {
+                                      final controller = TextEditingController(text: (detail['hygiene_score'] ?? restaurant.hygieneScore).toString());
+                                      final result = await showDialog<String>(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: const Text("Update Hygiene Score"),
+                                          content: TextField(
+                                            controller: controller,
+                                            keyboardType: TextInputType.number,
+                                            decoration: const InputDecoration(hintText: "Enter score (0-100)"),
+                                          ),
+                                          actions: [
+                                            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+                                            TextButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text("Save")),
+                                          ],
+                                        ),
+                                      );
+                                      if (result == null) return;
+                                      final score = double.tryParse(result);
+                                      if (score == null) return;
+                                      await _updateRestaurantScore(restaurant.id, score);
+                                      setModalState(() {
+                                        detailFuture = _fetchRestaurantDetail(restaurant.id);
+                                      });
+                                    },
+                                    icon: const Icon(Icons.trending_up, size: 16),
+                                    label: const Text("Update Score"),
+                                    style: OutlinedButton.styleFrom(foregroundColor: _textDark),
+                                  ),
+                                  OutlinedButton.icon(
+                                    onPressed: () async {
+                                      final date = await showDatePicker(
+                                        context: context,
+                                        initialDate: DateTime.now(),
+                                        firstDate: DateTime.now().subtract(const Duration(days: 1)),
+                                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                                      );
+                                      await _scheduleInspection(restaurant.id, inspectionDate: date);
+                                      setModalState(() {
+                                        detailFuture = _fetchRestaurantDetail(restaurant.id);
+                                      });
+                                    },
+                                    icon: const Icon(Icons.calendar_today, size: 16),
+                                    label: const Text("Schedule Inspection"),
+                                    style: OutlinedButton.styleFrom(foregroundColor: _textDark),
+                                  ),
+                                  OutlinedButton.icon(
+                                    onPressed: () async {
+                                      await _updateRestaurantStatus(restaurant.id, 'suspended');
+                                      setModalState(() {
+                                        detailFuture = _fetchRestaurantDetail(restaurant.id);
+                                      });
+                                    },
+                                    icon: const Icon(Icons.block, size: 16),
+                                    label: const Text("Suspend"),
+                                    style: OutlinedButton.styleFrom(foregroundColor: Colors.orange),
+                                  ),
+                                  OutlinedButton.icon(
+                                    onPressed: () async {
+                                      final controller = TextEditingController();
+                                      final result = await showDialog<String>(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: const Text("Send Warning"),
+                                          content: TextField(
+                                            controller: controller,
+                                            maxLines: 3,
+                                            decoration: const InputDecoration(hintText: "Optional warning note"),
+                                          ),
+                                          actions: [
+                                            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+                                            TextButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text("Send")),
+                                          ],
+                                        ),
+                                      );
+                                      if (result == null) return;
+                                      await _sendRestaurantWarning(restaurant.id, message: result);
+                                    },
+                                    icon: const Icon(Icons.warning_amber_rounded, size: 16),
+                                    label: const Text("Send Warning"),
+                                    style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+
+                              // Notes
+                              const Text("Admin Internal Notes", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: notesController,
+                                maxLines: 3,
+                                decoration: InputDecoration(hintText: "Add internal notes...", filled: true, fillColor: Colors.grey.shade50, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                              ),
+                              const SizedBox(height: 8),
+                              ElevatedButton.icon(
+                                onPressed: () async {
+                                  await _saveRestaurantNotes(restaurant.id, notesController.text);
+                                  setModalState(() {
+                                    detailFuture = _fetchRestaurantDetail(restaurant.id);
+                                  });
+                                },
+                                icon: const Icon(Icons.save, size: 16, color: Colors.white),
+                                label: const Text("Save Notes", style: TextStyle(color: Colors.white)),
+                                style: ElevatedButton.styleFrom(backgroundColor: _brandTeal, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),

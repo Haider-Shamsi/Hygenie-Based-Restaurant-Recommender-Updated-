@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'config.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // --- DATA MODELS ---
 
@@ -54,6 +55,9 @@ class AdminReport {
   final List<String> photos;
   final NLPAnalysis nlpAnalysis;
   final List<TimelineEvent> timeline;
+  final String? ownerResponseText;
+  final String? ownerResponseDate;
+  final String? ownerResponseEvidenceUrl;
 
   AdminReport({
     required this.id,
@@ -68,8 +72,12 @@ class AdminReport {
     required this.photos,
     required this.nlpAnalysis,
     required this.timeline,
+    this.ownerResponseText,
+    this.ownerResponseDate,
+    this.ownerResponseEvidenceUrl,
   });
 }
+
 
 // --- WIDGET ---
 
@@ -131,6 +139,8 @@ class _AdminReportsPanelState extends State<AdminReportsPanel> {
             final nlp = map['nlp_analysis'] as Map<String, dynamic>? ?? {};
             final timeline = map['timeline'] as List<dynamic>? ?? [];
 
+            final ownerResp = map['owner_response'] as Map<String, dynamic>?;
+
             return AdminReport(
               id: map['id']?.toString() ?? '',
               reportId: map['report_id'] ?? '',
@@ -164,6 +174,9 @@ class _AdminReportsPanelState extends State<AdminReportsPanel> {
                   admin: e['admin'] ?? '',
                 );
               }).toList(),
+              ownerResponseText: ownerResp?['text'],
+              ownerResponseDate: ownerResp?['date'],
+              ownerResponseEvidenceUrl: ownerResp?['evidence_url'],
             );
           }).toList();
         });
@@ -661,6 +674,66 @@ class _AdminReportsPanelState extends State<AdminReportsPanel> {
                           decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), image: DecorationImage(image: NetworkImage(url), fit: BoxFit.cover)),
                         ),
                       )).toList(),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
+                  // Owner Response Section
+                  if (report.ownerResponseText != null) ...[
+                    const Text("Owner's Response & Resolution Proof", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: _brandTeal.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: _brandTeal.withOpacity(0.2)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("Response Text:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green.shade900, fontSize: 12)),
+                              Text(report.ownerResponseDate ?? '', style: TextStyle(color: _textGray, fontSize: 11)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(report.ownerResponseText!, style: TextStyle(color: Colors.grey.shade800, fontSize: 13, height: 1.5)),
+                          if (report.ownerResponseEvidenceUrl != null) ...[
+                            const SizedBox(height: 12),
+                            InkWell(
+                              onTap: () async {
+                                final url = Uri.parse(report.ownerResponseEvidenceUrl!);
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Could not open evidence document.')),
+                                  );
+                                }
+                              },
+                              child: Row(
+                                children: [
+                                  Icon(Icons.description, size: 16, color: _brandTeal),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    "View Attached Evidence Document",
+                                    style: TextStyle(
+                                      color: _brandTeal,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 20),
                   ],

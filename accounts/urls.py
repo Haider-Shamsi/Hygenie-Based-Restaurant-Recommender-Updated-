@@ -31,10 +31,12 @@ from .views import OwnerRestaurantMenuView
 from .views import OwnerRestaurantProfileView
 from .views import OwnerReviewResponseView
 from .views import OwnerReviewsView
+from .views import OwnerReviewFlagView
 from .views import OwnerInspectionRequestView
 from .views import AdminOverviewView
 from .views import AdminRestaurantsView
 from .views import AdminRestaurantDetailView
+from .views import AdminRestaurantActionView
 from .views import AdminReportsView
 from .views import AdminReportStatusView
 from .views import AdminReviewsView
@@ -77,6 +79,7 @@ urlpatterns = [
     path('owner/dashboard/', OwnerDashboardView.as_view(), name='owner-dashboard'),
     path('owner/reviews/', OwnerReviewsView.as_view(), name='owner-reviews'),
     path('owner/reviews/<int:review_id>/response/', OwnerReviewResponseView.as_view(), name='owner-review-response'),
+    path('owner/reviews/<int:review_id>/flag/', OwnerReviewFlagView.as_view(), name='owner-review-flag'),
     path('owner/reports/', OwnerHygieneReportsView.as_view(), name='owner-reports'),
     path('owner/reports/<int:report_id>/response/', OwnerHygieneReportResponseView.as_view(), name='owner-report-response'),
     path('owner/analytics/', OwnerAnalyticsView.as_view(), name='owner-analytics'),
@@ -87,6 +90,7 @@ urlpatterns = [
     path('admin/overview/', AdminOverviewView.as_view(), name='admin-overview'),
     path('admin/restaurants/', AdminRestaurantsView.as_view(), name='admin-restaurants'),
     path('admin/restaurants/<int:restaurant_id>/', AdminRestaurantDetailView.as_view(), name='admin-restaurant-detail'),
+    path('admin/restaurants/<int:restaurant_id>/actions/', AdminRestaurantActionView.as_view(), name='admin-restaurant-actions'),
     path('admin/reports/', AdminReportsView.as_view(), name='admin-reports'),
     path('admin/reports/<int:report_id>/status/', AdminReportStatusView.as_view(), name='admin-report-status'),
     path('admin/reviews/', AdminReviewsView.as_view(), name='admin-reviews'),

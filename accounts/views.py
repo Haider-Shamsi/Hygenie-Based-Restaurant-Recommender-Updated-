@@ -3,7 +3,7 @@ import os
 import pickle
 import random
 import re
-from datetime import timedelta
+from datetime import date, timedelta
 
 import requests
 from django.conf import settings
@@ -22,17 +22,21 @@ from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+
 
 from .google_serializers import GoogleSignInSerializer
 from .google_serializers import UserSerializer
 from .models import FavoriteRestaurant
 from .models import HygieneAlert
 from .models import HygieneIssueReport
+from .models import HygieneScoreHistory
 from .models import NotificationSetting
 from .models import Restaurant
 from .models import RestaurantMenuItem
 from .models import OwnerReportResponse
 from .models import OwnerReviewResponse
+from .models import OwnerReviewFlag
 from .models import RestaurantReview
 from .models import InspectionRequest
 from .models import UserInteraction
@@ -119,27 +123,28 @@ def _predict_sentiment(review_text):
     features = vectorizer.transform([cleaned])
     prediction = model.predict(features)[0]
 
-    label = 'Neutral'
-    if str(prediction) == '1':
-        label = 'Positive'
-    elif str(prediction) == '0':
-        label = 'Negative'
-    elif str(prediction) == '2':
-        label = 'Neutral'
-
     confidence = 0
     score = 0.0
     if hasattr(model, 'predict_proba'):
         probs = model.predict_proba(features)[0]
         confidence = int(round(max(probs) * 100))
-        if len(probs) >= 3:
-            score = float(probs[1] - probs[2])
+        if len(probs) >= 2:
+            negative_prob = float(probs[0])
+            positive_prob = float(probs[1])
+            score = positive_prob - negative_prob
     elif hasattr(model, 'decision_function'):
         decision = model.decision_function(features)
         try:
             score = float(decision[0])
         except Exception:
             score = 0.0
+
+    if score > 0.15:
+        label = 'Positive'
+    elif score < -0.15:
+        label = 'Negative'
+    else:
+        label = 'Neutral'
 
     return {
         'label': label,
@@ -396,6 +401,49 @@ def _cosine_similarity_dict(vec_a, vec_b):
     if norm_a == 0.0 or norm_b == 0.0:
         return 0.0
     return dot / (math.sqrt(norm_a) * math.sqrt(norm_b))
+
+
+def _update_hygiene_from_reviews(restaurant):
+    reviews = RestaurantReview.objects.filter(
+        restaurant=restaurant,
+    ).exclude(moderation_status=RestaurantReview.MODERATION_REMOVED)
+
+    total = reviews.count()
+    if total == 0:
+        return
+
+    scores = []
+    for review in reviews:
+        sentiment = _predict_sentiment(review.comment)
+        scores.append(float(sentiment['score']))
+
+    if not scores:
+        return
+
+    avg_score = sum(scores) / len(scores)
+    weight = min(0.20, 0.03 * math.log(1 + total))
+    delta = 10.0 * weight * avg_score
+    current_score = float(restaurant.hygiene_score)
+    new_score = max(0.0, min(100.0, current_score + delta))
+
+    if not HygieneScoreHistory.objects.filter(restaurant=restaurant).exists():
+        HygieneScoreHistory.objects.create(
+            restaurant=restaurant,
+            score=current_score,
+            previous_score=None,
+            source='initial',
+        )
+
+    restaurant.hygiene_score = new_score
+    restaurant.save(update_fields=['hygiene_score'])
+
+    if abs(new_score - current_score) >= 0.001:
+        HygieneScoreHistory.objects.create(
+            restaurant=restaurant,
+            score=new_score,
+            previous_score=current_score,
+            source='nlp_update',
+        )
 
 
 def _build_user_restaurant_vectors():
@@ -948,7 +996,7 @@ class AlertPreferenceView(APIView):
             },
             status=status.HTTP_200_OK,
         )
-
+    
     def patch(self, request):
         _, preferences, notifications = _ensure_user_state(request.user)
 
@@ -1111,18 +1159,41 @@ def _build_hygiene_breakdown(restaurant, reports_count):
 
 
 def _build_hygiene_history(restaurant):
+    history = list(
+        HygieneScoreHistory.objects.filter(restaurant=restaurant).order_by('created_at')
+    )
+    if history:
+        points = [
+            {
+                'month': entry.created_at.strftime('%b %d'),
+                'score': round(float(entry.score), 1),
+                'previous_score': round(float(entry.previous_score), 1) if entry.previous_score is not None else None,
+                'source': entry.source,
+            }
+            for entry in history
+        ]
+
+        first_entry = history[0]
+        if first_entry.source != 'initial' and first_entry.previous_score is not None:
+            points.insert(
+                0,
+                {
+                    'month': restaurant.inspection_date.strftime('%b %d'),
+                    'score': round(float(first_entry.previous_score), 1),
+                    'previous_score': None,
+                    'source': 'initial',
+                },
+            )
+
+        return points
+
     inspection_date = restaurant.inspection_date
-    base_score = float(restaurant.hygiene_score)
-    points = []
-    for idx in range(6):
-        month_date = inspection_date - timedelta(days=(5 - idx) * 30)
-        drift = (idx - 2) * 0.8
-        score = max(0.0, min(100.0, base_score + drift))
-        points.append({
-            'month': month_date.strftime('%b'),
-            'score': round(score, 1),
-        })
-    return points
+    return [{
+        'month': inspection_date.strftime('%b %d'),
+        'score': round(float(restaurant.hygiene_score), 1),
+        'previous_score': None,
+        'source': 'current',
+    }]
 
 
 def _percent_change(current, previous):
@@ -1224,6 +1295,8 @@ class RestaurantReviewListCreateView(APIView):
         profile.reviews_written = RestaurantReview.objects.filter(user=request.user).count()
         profile.save(update_fields=['reviews_written', 'updated_at'])
 
+        _update_hygiene_from_reviews(restaurant)
+
         out = RestaurantReviewSerializer(review)
         return Response(out.data, status=status.HTTP_201_CREATED)
 
@@ -1294,13 +1367,19 @@ class ProfileReviewDeleteView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, review_id):
-        deleted, _ = RestaurantReview.objects.filter(id=review_id, user=request.user).delete()
-        if deleted == 0:
+        review = RestaurantReview.objects.filter(id=review_id, user=request.user).first()
+        if review is None:
             return Response({'error': 'Review not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        review_restaurant = review.restaurant
+        review.delete()
 
         profile, _, _ = _ensure_user_state(request.user)
         profile.reviews_written = RestaurantReview.objects.filter(user=request.user).count()
         profile.save(update_fields=['reviews_written', 'updated_at'])
+
+        if review_restaurant is not None:
+            _update_hygiene_from_reviews(review_restaurant)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -1390,18 +1469,61 @@ class OwnerReviewsView(APIView):
                     'text': review.owner_response.text,
                     'date': review.owner_response.created_at.strftime('%b %d, %Y'),
                 }
+            
+            nlp_data = _predict_sentiment(review.comment)
+            sentiment_label = nlp_data['label']
+
+            helpful_count = review.owner_flags.filter(flag_type='helpful').count()
+            is_helpful = review.owner_flags.filter(owner=request.user, flag_type='helpful').exists()
+            is_reported = review.owner_flags.filter(owner=request.user, flag_type='report').exists()
+
             results.append({
                 'id': str(review.id),
                 'user_name': review.user.username,
                 'rating': int(review.rating or 0),
                 'date': review.created_at.strftime('%b %d, %Y'),
                 'review_text': (review.comment or '').strip(),
-                'sentiment': 'Neutral',
-                'helpful_count': 0,
+                'sentiment': sentiment_label,
+                'helpful_count': helpful_count,
+                'is_helpful': is_helpful,
+                'is_reported': is_reported,
                 'owner_response': owner_response,
             })
 
         return Response({'results': results}, status=status.HTTP_200_OK)
+
+
+class OwnerReviewFlagView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, review_id):
+        flag_type = request.data.get('flag_type')
+        if flag_type not in ['helpful', 'report']:
+            return Response({'detail': 'Invalid flag type.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        restaurant = _get_owner_restaurant(request)
+        if restaurant is None:
+            return Response({'detail': 'Owner restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        review = RestaurantReview.objects.filter(id=review_id, restaurant=restaurant).first()
+        if review is None:
+            return Response({'detail': 'Review not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        flag, created = OwnerReviewFlag.objects.get_or_create(
+            review=review,
+            owner=request.user,
+            flag_type=flag_type,
+        )
+
+        return Response(
+            {
+                'detail': f'Review marked as {flag_type}.',
+                'helpful_count': review.owner_flags.filter(flag_type='helpful').count(),
+                'is_helpful': review.owner_flags.filter(owner=request.user, flag_type='helpful').exists(),
+                'is_reported': review.owner_flags.filter(owner=request.user, flag_type='report').exists(),
+            },
+            status=status.HTTP_200_OK if not created else status.HTTP_201_CREATED,
+        )
 
 
 class OwnerReviewResponseView(APIView):
@@ -1450,13 +1572,15 @@ class OwnerHygieneReportsView(APIView):
                 owner_response = {
                     'text': report.owner_response.text,
                     'date': report.owner_response.created_at.strftime('%b %d, %Y'),
+                    'evidence_url': request.build_absolute_uri(report.owner_response.evidence.url) if report.owner_response.evidence else None,
                 }
             results.append({
                 'id': str(report.id),
                 'report_id': f"#RPT-{report.created_at.year}-{report.id:03d}",
                 'date_submitted': report.created_at.strftime('%b %d, %Y'),
+                'created_at': report.created_at.isoformat(),
                 'issue_type': report.get_category_display(),
-                'priority': 'Medium',
+                'priority': _admin_report_priority(report.category).title(),
                 'description': report.description,
                 'status': _map_owner_report_status(report.status),
                 'owner_response': owner_response,
@@ -1467,6 +1591,7 @@ class OwnerHygieneReportsView(APIView):
 
 class OwnerHygieneReportResponseView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request, report_id):
         text = (request.data.get('text') or '').strip()
@@ -1481,22 +1606,34 @@ class OwnerHygieneReportResponseView(APIView):
         if report is None:
             return Response({'detail': 'Report not found.'}, status=status.HTTP_404_NOT_FOUND)
 
+        evidence_file = request.FILES.get('evidence')
+        
+        defaults = {'text': text}
+        if evidence_file:
+            defaults['evidence'] = evidence_file
+
         response_obj, _created = OwnerReportResponse.objects.update_or_create(
             report=report,
-            defaults={'text': text},
+            defaults=defaults,
         )
 
         if report.status == HygieneIssueReport.STATUS_SUBMITTED:
             report.status = HygieneIssueReport.STATUS_REVIEWED
             report.save(update_fields=['status'])
 
+        evidence_url = None
+        if response_obj.evidence:
+            evidence_url = request.build_absolute_uri(response_obj.evidence.url)
+
         return Response(
             {
                 'text': response_obj.text,
                 'date': response_obj.created_at.strftime('%b %d, %Y'),
+                'evidence_url': evidence_url,
             },
             status=status.HTTP_200_OK,
         )
+
 
 
 class OwnerAnalyticsView(APIView):
@@ -1539,23 +1676,34 @@ class OwnerAnalyticsView(APIView):
 
         inspection_history = [
             {
+                'id': 0,
                 'date': restaurant.inspection_date.strftime('%b %d, %Y'),
-                'inspector': 'Inspector',
-                'score': float(restaurant.hygiene_score),
-                'status': 'Passed',
+                'inspector': 'Official Inspector',
+                'score': round(float(restaurant.hygiene_score), 1),
+                'status': 'Passed' if float(restaurant.hygiene_score) >= 70 else 'Failed',
                 'color': _inspection_color(float(restaurant.hygiene_score)),
+                'notes': f"Official routine inspection conducted on {restaurant.inspection_date.strftime('%B %d, %Y')}. The establishment received a score of {round(float(restaurant.hygiene_score), 1)}% based on sanitary standards.",
             }
         ]
 
         latest_request = restaurant.inspection_requests.first()
         if latest_request is not None:
+            req_color = 'amber'
+            if latest_request.status == latest_request.STATUS_APPROVED:
+                req_color = 'green'
+            elif latest_request.status == latest_request.STATUS_DENIED:
+                req_color = 'red'
+
             inspection_history.insert(0, {
+                'id': latest_request.id,
                 'date': latest_request.created_at.strftime('%b %d, %Y'),
                 'inspector': 'Requested',
-                'score': float(restaurant.hygiene_score),
+                'score': None,
                 'status': latest_request.get_status_display(),
-                'color': 'amber' if latest_request.status == latest_request.STATUS_PENDING else 'green',
+                'color': req_color,
+                'notes': latest_request.notes or 'No notes provided by owner.',
             })
+
 
         data = {
             'period': period,
@@ -1828,6 +1976,14 @@ class AdminOverviewView(APIView):
                 'time': req.created_at.isoformat(),
             })
 
+        recent_flags = OwnerReviewFlag.objects.select_related('review', 'owner', 'review__restaurant').order_by('-created_at')[:10]
+        for flag in recent_flags:
+            activities.append({
+                'type': 'report' if flag.flag_type == 'report' else 'inspection_request',
+                'text': f"Owner flagged Review #{flag.review.id} as {flag.flag_type.upper()} for {flag.review.restaurant.business_name}",
+                'time': flag.created_at.isoformat(),
+            })
+
         activities.sort(key=lambda item: item['time'], reverse=True)
         activities = activities[:10]
 
@@ -1921,6 +2077,13 @@ class AdminReportsView(APIView):
         reports = HygieneIssueReport.objects.select_related('restaurant', 'user').order_by('-created_at')
         results = []
         for report in reports:
+            owner_response = None
+            if hasattr(report, 'owner_response'):
+                owner_response = {
+                    'text': report.owner_response.text,
+                    'date': report.owner_response.created_at.strftime('%Y-%m-%d'),
+                    'evidence_url': request.build_absolute_uri(report.owner_response.evidence.url) if report.owner_response.evidence else None,
+                }
             results.append({
                 'id': str(report.id),
                 'report_id': f"RPT-{report.created_at.year}-{report.id:03d}",
@@ -1942,6 +2105,7 @@ class AdminReportsView(APIView):
                 'description': report.description,
                 'photos': [],
                 'nlp_analysis': _analyze_report_nlp(report.description),
+                'owner_response': owner_response,
                 'timeline': [
                     {
                         'status': 'Report Submitted',
@@ -1964,11 +2128,34 @@ class AdminReviewsView(APIView):
         reviews = RestaurantReview.objects.select_related('restaurant', 'user').order_by('-created_at')
         results = []
         for review in reviews:
+            if review.moderation_status != RestaurantReview.MODERATION_PENDING:
+                continue
             nlp_data = _analyze_review_nlp(review.comment)
             flag_meta = _review_flag_metadata(review, nlp_data)
-            if not flag_meta['flagged']:
+            
+            owner_flags = list(review.owner_flags.all())
+            has_owner_flags = len(owner_flags) > 0
+            
+            if not flag_meta['flagged'] and not has_owner_flags:
                 continue
+                
             reviewer_age_days = (timezone.now().date() - review.user.date_joined.date()).days
+            
+            flag_reason_type = flag_meta['flag_reason_type']
+            flag_reason_source = flag_meta['flag_reason_source']
+            flag_category = flag_meta['flag_category']
+            flag_reason_note = None
+            
+            if has_owner_flags:
+                flag_reason_type = 'manual'
+                flag_category = 'user-reported'
+                flag_reasons = [f"Owner {f.flag_type.upper()}" for f in owner_flags]
+                if flag_meta['flagged']:
+                    flag_reason_source = f"{flag_reason_source}, {', '.join(flag_reasons)}"
+                else:
+                    flag_reason_source = ', '.join(flag_reasons)
+                flag_reason_note = f"Owner flagged this review: {', '.join([f.flag_type for f in owner_flags])}"
+
             results.append({
                 'id': str(review.id),
                 'review_text': review.comment,
@@ -1978,9 +2165,9 @@ class AdminReviewsView(APIView):
                 'reviewer_total_reviews': RestaurantReview.objects.filter(user=review.user).count(),
                 'restaurant_name': review.restaurant.business_name,
                 'restaurant_id': str(review.restaurant.id),
-                'flag_reason_type': flag_meta['flag_reason_type'],
-                'flag_reason_source': flag_meta['flag_reason_source'],
-                'flag_reason_note': None,
+                'flag_reason_type': flag_reason_type,
+                'flag_reason_source': flag_reason_source,
+                'flag_reason_note': flag_reason_note,
                 'nlp_sentiment_score': nlp_data['sentiment_score'],
                 'nlp_sentiment_label': nlp_data['sentiment_label'],
                 'nlp_detected_issues': nlp_data['detected_issues'],
@@ -1989,7 +2176,8 @@ class AdminReviewsView(APIView):
                 'nlp_toxicity_score': nlp_data['toxicity_score'],
                 'nlp_problematic_words': nlp_data['problematic_words'],
                 'submitted_date': review.created_at.strftime('%Y-%m-%d'),
-                'flag_category': flag_meta['flag_category'],
+                'flag_category': flag_category,
+                'admin_note': review.admin_note,
             })
 
         return Response({'flagged_reviews': results, 'moderation_history': []}, status=status.HTTP_200_OK)
@@ -1997,6 +2185,37 @@ class AdminReviewsView(APIView):
 
 class AdminRestaurantDetailView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, restaurant_id):
+        if not _is_admin_user(request.user):
+            return Response({'detail': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
+
+        restaurant = Restaurant.objects.select_related('owner').filter(id=restaurant_id).first()
+        if restaurant is None:
+            return Response({'detail': 'Restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        owner_name = restaurant.owner.get_full_name() if restaurant.owner else ''
+        if not owner_name and restaurant.owner:
+            owner_name = restaurant.owner.username
+
+        status_value = restaurant.status
+        if not status_value:
+            status_value = _restaurant_status(float(restaurant.hygiene_score or 0.0))
+
+        payload = {
+            'id': str(restaurant.id),
+            'name': restaurant.business_name,
+            'cuisine': restaurant.business_type,
+            'hygiene_score': float(restaurant.hygiene_score or 0.0),
+            'status': status_value.replace('_', ' ').title(),
+            'last_inspection': restaurant.inspection_date.strftime('%Y-%m-%d') if restaurant.inspection_date else '',
+            'location': f"{restaurant.address}, {restaurant.province}",
+            'phone': restaurant.phone,
+            'owner': owner_name,
+            'admin_notes': restaurant.admin_notes or '',
+            'hygiene_history': _build_hygiene_history(restaurant),
+        }
+        return Response(payload, status=status.HTTP_200_OK)
 
     def patch(self, request, restaurant_id):
         if not _is_admin_user(request.user):
@@ -2015,6 +2234,9 @@ class AdminRestaurantDetailView(APIView):
         if 'hygiene_score' in request.data:
             restaurant.hygiene_score = float(request.data.get('hygiene_score') or 0)
 
+        if 'admin_notes' in request.data:
+            restaurant.admin_notes = request.data.get('admin_notes') or ''
+
         restaurant.save()
         return Response({'detail': 'Restaurant updated.'}, status=status.HTTP_200_OK)
 
@@ -2026,6 +2248,52 @@ class AdminRestaurantDetailView(APIView):
         if deleted == 0:
             return Response({'detail': 'Restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
         return Response({'detail': 'Restaurant deleted.'}, status=status.HTTP_200_OK)
+
+
+class AdminRestaurantActionView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, restaurant_id):
+        if not _is_admin_user(request.user):
+            return Response({'detail': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
+
+        restaurant = Restaurant.objects.select_related('owner').filter(id=restaurant_id).first()
+        if restaurant is None:
+            return Response({'detail': 'Restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        action = (request.data.get('action') or '').strip().lower()
+
+        if action == 'schedule_inspection':
+            notes = (request.data.get('notes') or '').strip()
+            inspection_date = (request.data.get('inspection_date') or '').strip()
+
+            if inspection_date:
+                try:
+                    restaurant.inspection_date = date.fromisoformat(inspection_date)
+                except ValueError:
+                    return Response({'detail': 'Invalid inspection_date.'}, status=status.HTTP_400_BAD_REQUEST)
+                restaurant.save(update_fields=['inspection_date'])
+
+            InspectionRequest.objects.create(
+                restaurant=restaurant,
+                requested_by=request.user,
+                notes=notes,
+            )
+            return Response({'detail': 'Inspection scheduled.'}, status=status.HTTP_200_OK)
+
+        if action == 'send_warning':
+            message = (request.data.get('message') or '').strip() or 'Inspection warning issued.'
+            if restaurant.owner:
+                HygieneAlert.objects.create(
+                    user=restaurant.owner,
+                    restaurant=restaurant,
+                    alert_type=HygieneAlert.TYPE_INSPECTION_WARNING,
+                    message=message,
+                    score_snapshot=int(round(float(restaurant.hygiene_score or 0.0))),
+                )
+            return Response({'detail': 'Warning sent.'}, status=status.HTTP_200_OK)
+
+        return Response({'detail': 'Invalid action.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AdminReportStatusView(APIView):
@@ -2066,6 +2334,7 @@ class AdminReviewActionView(APIView):
 
         action = (request.data.get('action') or '').strip().lower()
         edited_text = (request.data.get('edited_text') or '').strip()
+        admin_note = request.data.get('admin_note')
 
         if action == 'approve':
             review.moderation_status = RestaurantReview.MODERATION_APPROVED
@@ -2084,7 +2353,11 @@ class AdminReviewActionView(APIView):
         else:
             return Response({'detail': 'Invalid action.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        review.save(update_fields=['comment', 'moderation_status'])
+        if admin_note is not None:
+            review.admin_note = admin_note
+
+        review.save(update_fields=['comment', 'moderation_status', 'admin_note'])
+        _update_hygiene_from_reviews(review.restaurant)
         return Response({'detail': 'Review updated.'}, status=status.HTTP_200_OK)
 
 

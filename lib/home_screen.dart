@@ -691,13 +691,18 @@ class _HomeTabContentState extends State<HomeTabContent> {
     }
   }
 
-  List<Restaurant> _applyActiveFilters(List<Restaurant> input) {
-    var output = List<Restaurant>.from(input);
-
+  /// Applies the search-text-only filter to a restaurant list.
+  List<Restaurant> _applySearchFilter(List<Restaurant> input) {
     final searchText = _searchController.text.trim().toLowerCase();
-    if (searchText.isNotEmpty) {
-      output = output.where((r) => r.businessName.toLowerCase().contains(searchText)).toList();
-    }
+    if (searchText.isEmpty) return input;
+    return input
+        .where((r) => r.businessName.toLowerCase().contains(searchText))
+        .toList();
+  }
+
+  /// Applies hygiene/cuisine advanced filters (set via filter dialog) to a restaurant list.
+  List<Restaurant> _applyAdvancedFilters(List<Restaurant> input) {
+    var output = List<Restaurant>.from(input);
 
     if (_minHygieneScore != null) {
       output = output.where((r) => r.hygieneScore >= _minHygieneScore!).toList();
@@ -721,17 +726,26 @@ class _HomeTabContentState extends State<HomeTabContent> {
     return output;
   }
 
-  List<DishRecommendation> _applyDishFilters(List<DishRecommendation> input) {
-    var output = List<DishRecommendation>.from(input);
+  /// Applies ALL active filters (search + advanced) to a restaurant list.
+  List<Restaurant> _applyActiveFilters(List<Restaurant> input) {
+    return _applyAdvancedFilters(_applySearchFilter(input));
+  }
 
+  /// Applies the search-text-only filter to a dish list.
+  List<DishRecommendation> _applyDishSearchFilter(List<DishRecommendation> input) {
     final searchText = _searchController.text.trim().toLowerCase();
-    if (searchText.isNotEmpty) {
-      output = output.where((d) {
-        final haystack = '${d.name} ${d.category} ${d.restaurantName} ${d.restaurantType}'
-            .toLowerCase();
-        return haystack.contains(searchText);
-      }).toList();
-    }
+    if (searchText.isEmpty) return input;
+    return input.where((d) {
+      final haystack =
+          '${d.name} ${d.category} ${d.restaurantName} ${d.restaurantType}'
+              .toLowerCase();
+      return haystack.contains(searchText);
+    }).toList();
+  }
+
+  /// Applies hygiene/cuisine advanced filters (set via filter dialog) to a dish list.
+  List<DishRecommendation> _applyDishAdvancedFilters(List<DishRecommendation> input) {
+    var output = List<DishRecommendation>.from(input);
 
     if (_minHygieneScore != null) {
       output = output.where((d) => d.restaurantHygieneScore >= _minHygieneScore!).toList();
@@ -755,6 +769,11 @@ class _HomeTabContentState extends State<HomeTabContent> {
     return output;
   }
 
+  /// Applies ALL active filters (search + advanced) to a dish list.
+  List<DishRecommendation> _applyDishFilters(List<DishRecommendation> input) {
+    return _applyDishAdvancedFilters(_applyDishSearchFilter(input));
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -764,24 +783,27 @@ class _HomeTabContentState extends State<HomeTabContent> {
   @override
   Widget build(BuildContext context) {
     // --- Filtering and Sorting Logic ---
+    // Search text is ALWAYS applied; advanced filters (hygiene/cuisine/distance)
+    // are only applied when the user has explicitly set them via the filter dialog.
     final baseRestaurants = _filtersApplied
-      ? _applyActiveFilters(_restaurants)
-      : List<Restaurant>.from(_restaurants);
+        ? _applyActiveFilters(_restaurants)
+        : _applySearchFilter(_restaurants);
     final baseRecommended = _filtersApplied
         ? _applyActiveFilters(_recommendedRestaurants)
-        : List<Restaurant>.from(_recommendedRestaurants);
+        : _applySearchFilter(_recommendedRestaurants);
+    // Dishes: always apply search filter; additionally apply advanced filters when set.
     final baseDishRecommended = _filtersApplied
-      ? _applyDishFilters(_recommendedDishes)
-      : List<DishRecommendation>.from(_recommendedDishes);
+        ? _applyDishFilters(_recommendedDishes)
+        : _applyDishSearchFilter(_recommendedDishes);
     final baseTrending = _filtersApplied
-      ? _applyActiveFilters(_trendingRestaurants)
-      : List<Restaurant>.from(_trendingRestaurants);
+        ? _applyActiveFilters(_trendingRestaurants)
+        : _applySearchFilter(_trendingRestaurants);
     final baseNearby = _filtersApplied
-      ? _applyActiveFilters(_nearbyRestaurants)
-      : List<Restaurant>.from(_nearbyRestaurants);
+        ? _applyActiveFilters(_nearbyRestaurants)
+        : _applySearchFilter(_nearbyRestaurants);
     final baseTopRated = _filtersApplied
-      ? _applyActiveFilters(_topRatedRestaurants)
-      : List<Restaurant>.from(_topRatedRestaurants);
+        ? _applyActiveFilters(_topRatedRestaurants)
+        : _applySearchFilter(_topRatedRestaurants);
     List<Restaurant> filteredRecommended = baseRecommended;
     List<Restaurant> filteredNearby = baseNearby;
     List<Restaurant> filteredTrending = baseTrending;
@@ -1039,10 +1061,12 @@ class _HomeTabContentState extends State<HomeTabContent> {
                   ),
                   child: TextField(
                     controller: _searchController,
-                    decoration: const InputDecoration(
-                      hintText: "Search",
+                    decoration: InputDecoration(
+                      hintText: _selectedFilter == 'Dish Recommendations'
+                          ? 'Search dishes, categories, restaurants…'
+                          : 'Search restaurants…',
                       border: InputBorder.none,
-                      icon: Icon(Icons.search, color: Colors.grey),
+                      icon: const Icon(Icons.search, color: Colors.grey),
                     ),
                     onChanged: (value) {
                       setState(() {});

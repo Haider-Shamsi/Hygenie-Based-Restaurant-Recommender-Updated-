@@ -30,9 +30,24 @@ class Restaurant(models.Model):
     email = models.EmailField(blank=True)
     price_range = models.CharField(max_length=20, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
+    admin_notes = models.TextField(blank=True)
 
     def __str__(self):
         return self.business_name
+
+
+class HygieneScoreHistory(models.Model):
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='hygiene_score_history')
+    score = models.FloatField()
+    previous_score = models.FloatField(null=True, blank=True)
+    source = models.CharField(max_length=40, default='nlp_update')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"HygieneScoreHistory<{self.restaurant_id}:{self.score}>"
 
 class UserInteraction(models.Model):
     INTERACTION_CHOICES = [
@@ -189,6 +204,7 @@ class RestaurantReview(models.Model):
     comment = models.CharField(max_length=600)
     created_at = models.DateTimeField(auto_now_add=True)
     moderation_status = models.CharField(max_length=20, choices=MODERATION_CHOICES, default=MODERATION_PENDING)
+    admin_note = models.TextField(blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -245,11 +261,36 @@ class OwnerReviewResponse(models.Model):
 class OwnerReportResponse(models.Model):
     report = models.OneToOneField(HygieneIssueReport, on_delete=models.CASCADE, related_name='owner_response')
     text = models.TextField()
+    evidence = models.FileField(upload_to='evidence_documents/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"OwnerReportResponse<{self.report_id}>"
+
+
+
+class OwnerReviewFlag(models.Model):
+    FLAG_HELPFUL = 'helpful'
+    FLAG_REPORT = 'report'
+    FLAG_CHOICES = [
+        (FLAG_HELPFUL, 'Helpful'),
+        (FLAG_REPORT, 'Report'),
+    ]
+
+    review = models.ForeignKey(RestaurantReview, on_delete=models.CASCADE, related_name='owner_flags')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    flag_type = models.CharField(max_length=20, choices=FLAG_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(fields=['review', 'owner', 'flag_type'], name='unique_owner_review_flag'),
+        ]
+
+    def __str__(self):
+        return f"OwnerReviewFlag<{self.review_id}:{self.flag_type}>"
 
 
 class InspectionRequest(models.Model):

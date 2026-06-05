@@ -13,7 +13,9 @@ class OwnerReview {
   final String date;
   final String reviewText;
   final String sentiment;
-  final int helpfulCount;
+  int helpfulCount;
+  bool isHelpful;
+  bool isReported;
   Map<String, String>? ownerResponse;
 
   OwnerReview({
@@ -24,6 +26,8 @@ class OwnerReview {
     required this.reviewText,
     required this.sentiment,
     required this.helpfulCount,
+    required this.isHelpful,
+    required this.isReported,
     this.ownerResponse,
   });
 
@@ -36,6 +40,8 @@ class OwnerReview {
       reviewText: json['review_text'] ?? '',
       sentiment: json['sentiment'] ?? 'Neutral',
       helpfulCount: json['helpful_count'] ?? 0,
+      isHelpful: json['is_helpful'] ?? false,
+      isReported: json['is_reported'] ?? false,
       ownerResponse: json['owner_response'] != null
           ? {
               'text': json['owner_response']['text'] ?? '',
@@ -188,6 +194,48 @@ class _OwnerReviewsManagementScreenState extends State<OwnerReviewsManagementScr
         );
       }
     } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to reach the server.'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  Future<void> _flagReview(String reviewId, String flagType) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      final response = await http.post(
+        Uri.parse('${Config.baseUrl}/api/accounts/owner/reviews/$reviewId/flag/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+        body: json.encode({'flag_type': flagType}),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        setState(() {
+          final reviewIndex = _reviews.indexWhere((r) => r.id == reviewId);
+          if (reviewIndex != -1) {
+            _reviews[reviewIndex].helpfulCount = data['helpful_count'] ?? _reviews[reviewIndex].helpfulCount;
+            _reviews[reviewIndex].isHelpful = data['is_helpful'] ?? _reviews[reviewIndex].isHelpful;
+            _reviews[reviewIndex].isReported = data['is_reported'] ?? _reviews[reviewIndex].isReported;
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Review marked as $flagType!'), backgroundColor: Colors.green),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to submit flag.'), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Unable to reach the server.'), backgroundColor: Colors.red),
       );
@@ -472,8 +520,56 @@ class _OwnerReviewsManagementScreenState extends State<OwnerReviewsManagementScr
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(children: [Icon(Icons.thumb_up_alt_outlined, size: 14, color: _textGray), const SizedBox(width: 6), Text("Helpful (${review.helpfulCount})", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: _textGray))]),
-                  Row(children: [Icon(Icons.flag_outlined, size: 14, color: _textGray), const SizedBox(width: 6), Text("Report", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: _textGray))]),
+                  InkWell(
+                    onTap: () => _flagReview(review.id, 'helpful'),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      child: Row(
+                        children: [
+                          Icon(
+                            review.isHelpful ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
+                            size: 14,
+                            color: review.isHelpful ? _brandTeal : _textGray,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            "Helpful (${review.helpfulCount})",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: review.isHelpful ? _brandTeal : _textGray,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => _flagReview(review.id, 'report'),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      child: Row(
+                        children: [
+                          Icon(
+                            review.isReported ? Icons.flag : Icons.flag_outlined,
+                            size: 14,
+                            color: review.isReported ? Colors.red : _textGray,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            review.isReported ? "Reported" : "Report",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: review.isReported ? Colors.red : _textGray,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               )
             ],

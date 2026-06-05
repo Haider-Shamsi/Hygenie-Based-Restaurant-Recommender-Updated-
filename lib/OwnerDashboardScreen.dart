@@ -492,6 +492,13 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
       return FlSpot(e.key.toDouble(), e.value.score);
     }).toList();
 
+    if (spots.isEmpty) {
+      spots = [const FlSpot(0, 0)];
+    } else if (spots.length == 1) {
+      spots = [FlSpot(0.0, spots[0].y), FlSpot(1.0, spots[0].y)];
+    }
+
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -620,7 +627,13 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
                       ),
                     ),
                     OutlinedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        if (activity.type == 'review') {
+                          _onItemTapped(1);
+                        } else if (activity.type == 'report') {
+                          _onItemTapped(3);
+                        }
+                      },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         minimumSize: const Size(0, 30),

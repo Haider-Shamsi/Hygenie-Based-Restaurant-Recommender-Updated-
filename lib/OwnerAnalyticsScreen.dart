@@ -576,6 +576,103 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
     );
   }
 
+  void _showInspectionDetails(Map<String, dynamic> data) {
+    final bool isRequest = data['inspector'] == 'Requested';
+    final String title = isRequest ? "Inspection Request Details" : "Inspection Details";
+    final colorTag = (data['color'] ?? '').toString().toLowerCase();
+    
+    Color statusColor;
+    if (colorTag == 'red') {
+      statusColor = Colors.red;
+    } else if (colorTag == 'amber') {
+      statusColor = Colors.orange;
+    } else {
+      statusColor = _brandTeal;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(isRequest ? Icons.assignment_outlined : Icons.verified_user_outlined, color: _brandTeal),
+            const SizedBox(width: 8),
+            Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: _textDark)),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDetailRow("Date", data['date']),
+              const SizedBox(height: 12),
+              _buildDetailRow("Type", isRequest ? "Requested Inspection" : "Official Inspection"),
+              const SizedBox(height: 12),
+              if (!isRequest && data['score'] != null) ...[
+                _buildDetailRow("Hygiene Score", "${data['score']}%"),
+                const SizedBox(height: 12),
+              ],
+              _buildDetailRow("Status", data['status'], valueColor: statusColor, isBadge: true),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 12),
+              Text("Notes / Summary", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: _textGray)),
+              const SizedBox(height: 6),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Text(
+                  data['notes'] ?? (isRequest ? "Awaiting review." : "Official hygiene assessment details."),
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade800, height: 1.4),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Close", style: TextStyle(color: _brandTeal, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, {Color? valueColor, bool isBadge = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(color: _textGray, fontSize: 12, fontWeight: FontWeight.w500)),
+        if (isBadge)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: (valueColor ?? _brandTeal).withOpacity(0.1),
+              border: Border.all(color: (valueColor ?? _brandTeal).withOpacity(0.3)),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              value,
+              style: TextStyle(color: valueColor ?? _brandTeal, fontSize: 11, fontWeight: FontWeight.bold),
+            ),
+          )
+        else
+          Text(
+            value,
+            style: TextStyle(color: valueColor ?? _textDark, fontSize: 13, fontWeight: FontWeight.bold),
+          ),
+      ],
+    );
+  }
+
   Widget _buildInspectionHistoryCard() {
     if (_inspectionHistory.isEmpty) {
       return _buildCard(
@@ -616,28 +713,52 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
               ..._inspectionHistory.asMap().entries.map((entry) {
                 int index = entry.key;
                 var data = entry.value;
+                
                 final colorTag = (data['color'] ?? '').toString().toLowerCase();
-                bool isWarning = colorTag == 'amber' || colorTag == 'red';
+                Color badgeBgColor;
+                Color badgeTextColor;
+                Color badgeBorderColor;
+                if (colorTag == 'red') {
+                  badgeBgColor = Colors.red.shade50;
+                  badgeTextColor = Colors.red.shade700;
+                  badgeBorderColor = Colors.red.shade200;
+                } else if (colorTag == 'amber') {
+                  badgeBgColor = Colors.amber.shade50;
+                  badgeTextColor = Colors.amber.shade700;
+                  badgeBorderColor = Colors.amber.shade200;
+                } else {
+                  badgeBgColor = _brandTeal.withOpacity(0.1);
+                  badgeTextColor = _brandTeal;
+                  badgeBorderColor = _brandTeal.withOpacity(0.3);
+                }
+
                 return TableRow(
                   decoration: BoxDecoration(color: index % 2 == 0 ? Colors.transparent : _bgGray),
                   children: [
                     Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(data['date'], style: TextStyle(fontSize: 12, color: _textDark))),
                     Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(data['inspector'], style: TextStyle(fontSize: 12, color: Colors.grey.shade700))),
-                    Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text("${data['score']}", textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _textDark))),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12), 
+                      child: Text(
+                        data['score'] != null ? "${data['score']}" : "-", 
+                        textAlign: TextAlign.center, 
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _textDark),
+                      ),
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: Center(
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: isWarning ? Colors.orange.withOpacity(0.1) : _brandTeal.withOpacity(0.1), border: Border.all(color: isWarning ? Colors.orange.withOpacity(0.3) : _brandTeal.withOpacity(0.3)), borderRadius: BorderRadius.circular(12)),
-                          child: Text(data['status'], style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isWarning ? Colors.orange.shade700 : _brandTeal)),
+                          decoration: BoxDecoration(color: badgeBgColor, border: Border.all(color: badgeBorderColor), borderRadius: BorderRadius.circular(12)),
+                          child: Text(data['status'], style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: badgeTextColor)),
                         ),
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       child: InkWell(
-                        onTap: () {},
+                        onTap: () => _showInspectionDetails(data),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
@@ -658,3 +779,4 @@ class _OwnerAnalyticsScreenState extends State<OwnerAnalyticsScreen> {
     );
   }
 }
+

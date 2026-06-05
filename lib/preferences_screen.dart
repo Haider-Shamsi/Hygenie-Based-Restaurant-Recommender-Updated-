@@ -55,13 +55,12 @@ class _UserPreferencesScreenState extends State<UserPreferencesScreen> {
         return;
       }
 
-      final response = await http.get(
-        Uri.parse('${Config.baseUrl}/api/accounts/profile/preferences/'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Token $token',
-        },
-      );
+      final headers = await Config.defaultHeaders();
+      var response = await http.get(Uri.parse('${Config.baseUrl}/api/accounts/profile/preferences/'), headers: headers);
+      if (response.statusCode == 401) {
+        final uriWithAuth = await Config.uriWithAuth('/api/accounts/profile/preferences/');
+        response = await http.get(uriWithAuth);
+      }
 
       if (response.statusCode != 200) {
         setState(() {
@@ -110,12 +109,10 @@ class _UserPreferencesScreenState extends State<UserPreferencesScreen> {
     });
 
     try {
-      final response = await http.patch(
+      final headers = await Config.defaultHeaders();
+      var response = await http.patch(
         Uri.parse('${Config.baseUrl}/api/accounts/profile/preferences/'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Token $token',
-        },
+        headers: headers,
         body: json.encode({
           'min_hygiene_score': _minHygieneScore.round(),
           'exclude_flagged': _excludeFlagged,
@@ -123,6 +120,16 @@ class _UserPreferencesScreenState extends State<UserPreferencesScreen> {
           'cuisine_preferences': _selectedCuisines,
         }),
       );
+
+      if (response.statusCode == 401) {
+        final uriWithAuth = await Config.uriWithAuth('/api/accounts/profile/preferences/');
+        response = await http.patch(uriWithAuth, body: json.encode({
+          'min_hygiene_score': _minHygieneScore.round(),
+          'exclude_flagged': _excludeFlagged,
+          'distance_radius_km': _distanceRadius.round(),
+          'cuisine_preferences': _selectedCuisines,
+        }));
+      }
 
       if (!mounted) return;
 
