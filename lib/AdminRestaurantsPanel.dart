@@ -862,16 +862,23 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
                                     label: const Text("Schedule Inspection"),
                                     style: OutlinedButton.styleFrom(foregroundColor: _textDark),
                                   ),
-                                  OutlinedButton.icon(
-                                    onPressed: () async {
-                                      await _updateRestaurantStatus(restaurant.id, 'suspended');
-                                      setModalState(() {
-                                        detailFuture = _fetchRestaurantDetail(restaurant.id);
-                                      });
-                                    },
-                                    icon: const Icon(Icons.block, size: 16),
-                                    label: const Text("Suspend"),
-                                    style: OutlinedButton.styleFrom(foregroundColor: Colors.orange),
+                                  Builder(
+                                    builder: (context) {
+                                      final currentStatus = (detail['status'] ?? restaurant.status ?? '').toString().toLowerCase();
+                                      final isCurrentlySuspended = currentStatus.contains('suspend');
+                                      return OutlinedButton.icon(
+                                        onPressed: () async {
+                                          final newStatus = isCurrentlySuspended ? 'active' : 'suspended';
+                                          await _updateRestaurantStatus(restaurant.id, newStatus);
+                                          setModalState(() {
+                                            detailFuture = _fetchRestaurantDetail(restaurant.id);
+                                          });
+                                        },
+                                        icon: Icon(isCurrentlySuspended ? Icons.play_arrow : Icons.block, size: 16),
+                                        label: Text(isCurrentlySuspended ? "Activate" : "Suspend"),
+                                        style: OutlinedButton.styleFrom(foregroundColor: isCurrentlySuspended ? _brandTeal : Colors.orange),
+                                      );
+                                    }
                                   ),
                                   OutlinedButton.icon(
                                     onPressed: () async {

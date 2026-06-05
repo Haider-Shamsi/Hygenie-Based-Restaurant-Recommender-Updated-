@@ -238,6 +238,7 @@ class HygieneIssueReport(models.Model):
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='issue_reports')
     category = models.CharField(max_length=40, choices=CATEGORY_CHOICES)
     description = models.CharField(max_length=800)
+    image_proof = models.FileField(upload_to='hygiene_reports/images/', null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_SUBMITTED)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -262,6 +263,7 @@ class OwnerReportResponse(models.Model):
     report = models.OneToOneField(HygieneIssueReport, on_delete=models.CASCADE, related_name='owner_response')
     text = models.TextField()
     evidence = models.FileField(upload_to='evidence_documents/', null=True, blank=True)
+    evidence_image = models.FileField(upload_to='evidence_images/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

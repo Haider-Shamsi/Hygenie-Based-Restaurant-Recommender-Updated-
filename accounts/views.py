@@ -10,7 +10,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
-from django.db.models import Avg, Count
+from django.db.models import Avg, Count, Q
 from django.utils import timezone
 from rest_framework import generics
 from rest_framework import permissions
@@ -409,27 +409,25 @@ def _update_hygiene_from_reviews(restaurant):
     ).exclude(moderation_status=RestaurantReview.MODERATION_REMOVED)
 
     total = reviews.count()
-    if total == 0:
-        return
+    if total > 0:
+        avg_rating = reviews.aggregate(Avg('rating'))['rating__avg']
+        restaurant.user_rating = float(avg_rating or 0.0)
+        restaurant.save(update_fields=['user_rating'])
 
-    scores = []
-    for review in reviews:
-        sentiment = _predict_sentiment(review.comment)
-        scores.append(float(sentiment['score']))
+    try:
+        inspected_rating = float(restaurant.rating_value or 0.0)
+    except ValueError:
+        inspected_rating = 0.0
 
-    if not scores:
-        return
-
-    avg_score = sum(scores) / len(scores)
-    weight = min(0.20, 0.03 * math.log(1 + total))
-    delta = 10.0 * weight * avg_score
-    current_score = float(restaurant.hygiene_score)
-    new_score = max(0.0, min(100.0, current_score + delta))
+    user_rating = float(restaurant.user_rating or 0.0)
+    prev_score = restaurant.hygiene_score
+    new_score = 0.7 * inspected_rating + 0.3 * (user_rating * 20.0)
+    new_score = max(0.0, min(100.0, new_score))
 
     if not HygieneScoreHistory.objects.filter(restaurant=restaurant).exists():
         HygieneScoreHistory.objects.create(
             restaurant=restaurant,
-            score=current_score,
+            score=prev_score,
             previous_score=None,
             source='initial',
         )
@@ -437,11 +435,11 @@ def _update_hygiene_from_reviews(restaurant):
     restaurant.hygiene_score = new_score
     restaurant.save(update_fields=['hygiene_score'])
 
-    if abs(new_score - current_score) >= 0.001:
+    if abs(new_score - prev_score) >= 0.001:
         HygieneScoreHistory.objects.create(
             restaurant=restaurant,
             score=new_score,
-            previous_score=current_score,
+            previous_score=prev_score,
             source='nlp_update',
         )
 
@@ -931,8 +929,8 @@ class HygieneAlertListView(APIView):
             )
 
         qs = HygieneAlert.objects.filter(
-            user=request.user,
-            restaurant__hygiene_score__lt=preferences.min_hygiene_score,
+            Q(user=request.user) &
+            (Q(restaurant__hygiene_score__lt=preferences.min_hygiene_score) | Q(alert_type=HygieneAlert.TYPE_INSPECTION_WARNING))
         ).select_related('restaurant')
 
         max_distance = request.query_params.get('max_distance')
@@ -957,8 +955,8 @@ class HygieneAlertListView(APIView):
 
         serializer = HygieneAlertSerializer(qs, many=True)
         total_qs = HygieneAlert.objects.filter(
-            user=request.user,
-            restaurant__hygiene_score__lt=preferences.min_hygiene_score,
+            Q(user=request.user) &
+            (Q(restaurant__hygiene_score__lt=preferences.min_hygiene_score) | Q(alert_type=HygieneAlert.TYPE_INSPECTION_WARNING))
         )
         return Response(
             {
@@ -1303,10 +1301,11 @@ class RestaurantReviewListCreateView(APIView):
 
 class HygieneIssueReportListCreateView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get(self, request, restaurant_id):
         reports = HygieneIssueReport.objects.filter(restaurant_id=restaurant_id, user=request.user)
-        serializer = HygieneIssueReportSerializer(reports, many=True)
+        serializer = HygieneIssueReportSerializer(reports, many=True, context={'request': request})
         return Response({'count': reports.count(), 'results': serializer.data}, status=status.HTTP_200_OK)
 
     def post(self, request, restaurant_id):
@@ -1319,11 +1318,14 @@ class HygieneIssueReportListCreateView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        image_proof_file = request.FILES.get('image_proof')
+
         report = HygieneIssueReport.objects.create(
             user=request.user,
             restaurant=restaurant,
             category=serializer.validated_data['category'],
             description=serializer.validated_data['description'].strip(),
+            image_proof=image_proof_file,
         )
 
         profile, _, _ = _ensure_user_state(request.user)
@@ -1341,7 +1343,7 @@ class HygieneIssueReportListCreateView(APIView):
                 score_snapshot=int(round(restaurant.hygiene_score)),
             )
 
-        out = HygieneIssueReportSerializer(report)
+        out = HygieneIssueReportSerializer(report, context={'request': request})
         return Response(out.data, status=status.HTTP_201_CREATED)
 
 
@@ -1573,6 +1575,7 @@ class OwnerHygieneReportsView(APIView):
                     'text': report.owner_response.text,
                     'date': report.owner_response.created_at.strftime('%b %d, %Y'),
                     'evidence_url': request.build_absolute_uri(report.owner_response.evidence.url) if report.owner_response.evidence else None,
+                    'evidence_image_url': request.build_absolute_uri(report.owner_response.evidence_image.url) if report.owner_response.evidence_image else None,
                 }
             results.append({
                 'id': str(report.id),
@@ -1582,6 +1585,7 @@ class OwnerHygieneReportsView(APIView):
                 'issue_type': report.get_category_display(),
                 'priority': _admin_report_priority(report.category).title(),
                 'description': report.description,
+                'image_proof_url': request.build_absolute_uri(report.image_proof.url) if report.image_proof else None,
                 'status': _map_owner_report_status(report.status),
                 'owner_response': owner_response,
             })
@@ -1607,10 +1611,13 @@ class OwnerHygieneReportResponseView(APIView):
             return Response({'detail': 'Report not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         evidence_file = request.FILES.get('evidence')
+        evidence_image_file = request.FILES.get('evidence_image')
         
         defaults = {'text': text}
         if evidence_file:
             defaults['evidence'] = evidence_file
+        if evidence_image_file:
+            defaults['evidence_image'] = evidence_image_file
 
         response_obj, _created = OwnerReportResponse.objects.update_or_create(
             report=report,
@@ -1625,11 +1632,16 @@ class OwnerHygieneReportResponseView(APIView):
         if response_obj.evidence:
             evidence_url = request.build_absolute_uri(response_obj.evidence.url)
 
+        evidence_image_url = None
+        if response_obj.evidence_image:
+            evidence_image_url = request.build_absolute_uri(response_obj.evidence_image.url)
+
         return Response(
             {
                 'text': response_obj.text,
                 'date': response_obj.created_at.strftime('%b %d, %Y'),
                 'evidence_url': evidence_url,
+                'evidence_image_url': evidence_image_url,
             },
             status=status.HTTP_200_OK,
         )
@@ -2083,6 +2095,7 @@ class AdminReportsView(APIView):
                     'text': report.owner_response.text,
                     'date': report.owner_response.created_at.strftime('%Y-%m-%d'),
                     'evidence_url': request.build_absolute_uri(report.owner_response.evidence.url) if report.owner_response.evidence else None,
+                    'evidence_image_url': request.build_absolute_uri(report.owner_response.evidence_image.url) if report.owner_response.evidence_image else None,
                 }
             results.append({
                 'id': str(report.id),
@@ -2103,7 +2116,7 @@ class AdminReportsView(APIView):
                 'priority': _admin_report_priority(report.category),
                 'status': _admin_report_status(report.status),
                 'description': report.description,
-                'photos': [],
+                'photos': [request.build_absolute_uri(report.image_proof.url)] if report.image_proof else [],
                 'nlp_analysis': _analyze_report_nlp(report.description),
                 'owner_response': owner_response,
                 'timeline': [
@@ -2232,7 +2245,27 @@ class AdminRestaurantDetailView(APIView):
                 restaurant.status = normalized
 
         if 'hygiene_score' in request.data:
-            restaurant.hygiene_score = float(request.data.get('hygiene_score') or 0)
+            inspected_rating = float(request.data.get('hygiene_score') or 0.0)
+            restaurant.rating_value = str(int(inspected_rating))
+            
+            user_rating = float(restaurant.user_rating or 0.0)
+            prev_score = restaurant.hygiene_score
+            new_score = 0.7 * inspected_rating + 0.3 * (user_rating * 20.0)
+            restaurant.hygiene_score = max(0.0, min(100.0, new_score))
+            
+            if not HygieneScoreHistory.objects.filter(restaurant=restaurant).exists():
+                HygieneScoreHistory.objects.create(
+                    restaurant=restaurant,
+                    score=prev_score,
+                    previous_score=None,
+                    source='initial',
+                )
+            HygieneScoreHistory.objects.create(
+                restaurant=restaurant,
+                score=restaurant.hygiene_score,
+                previous_score=prev_score,
+                source='admin_update'
+            )
 
         if 'admin_notes' in request.data:
             restaurant.admin_notes = request.data.get('admin_notes') or ''
