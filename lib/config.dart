@@ -6,7 +6,12 @@ class Config {
   // Use your computer's local IP (e.g. http://192.168.1.46:8000) if using a physical device on the same Wi-Fi.
   
   // Set your desired backend URL here:
-  static const String baseUrl = 'http://127.0.0.1:8000';
+   static const String _productionUrl = 'http://abdullahgilani.pythonanywhere.com';
+
+  static String get baseUrl {
+    return _productionUrl;
+  }
+  //static const String baseUrl = 'http://127.0.0.1:8000';
 
   /// Helper to build default headers with standard JSON content-type
   /// and authorization token if it exists in SharedPreferences.
@@ -40,9 +45,5 @@ class Config {
 }
 
 // class Config {
-//  static const String _productionUrl = 'http://abdullahgilani.pythonanywhere.com';
-
-//  static String get baseUrl {
-//    return _productionUrl;
-//  }
+ 
 // }
