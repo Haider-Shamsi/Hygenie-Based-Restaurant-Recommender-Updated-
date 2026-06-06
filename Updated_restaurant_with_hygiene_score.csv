@@ -1,532 +1,531 @@
 BusinessName,BusinessType,RatingValue,InspectionDate,Address,PostCode,Province,user_rating,Hygiene_Score,Latitude,Longitude
-Restaurant_1,Restaurant/Cafe/Shop,Pass,17/12/2024,Address_1,40100,Punjab,3.1,76.9,31.64101,74.331766
-Restaurant_2,Restaurant/Cafe/Shop,Pass,06/07/2025,Address_2,46000,Punjab,1.8,65.2,31.626452,74.357702
-Restaurant_3,Restaurant/Cafe/Shop,Pass,16/06/2025,Address_3,46000,Punjab,1.1,58.9,31.596634,74.207676
-Restaurant_4,Restaurant/Cafe/Shop,Pass,06/03/2025,Address_4,60000,Punjab,2.3,69.7,31.405379,74.231773
-Restaurant_5,Restaurant/Cafe/Shop,Pass,10/06/2024,Address_5,60000,Punjab,2.3,69.7,31.675653,74.310205
-Restaurant_6,Restaurant/Cafe/Shop,Pass,11/07/2025,Address_6,46000,Punjab,4,85,31.442496,74.401895
-Restaurant_7,Restaurant/Cafe/Shop,Pass,14/02/2024,Address_7,38000,Punjab,3.5,80.5,31.440704,74.490283
-Restaurant_8,Restaurant/Cafe/Shop,Pass,08/03/2025,Address_8,40100,Punjab,2.2,68.8,31.508327,74.234631
-Restaurant_9,Restaurant/Cafe/Shop,Pass,04/04/2024,Address_9,55150,Punjab,4.6,90.4,31.565105,74.321657
-Restaurant_10,Restaurant/Cafe/Shop,Pass,27/05/2024,Address_10,60000,Punjab,1.1,58.9,31.536229,74.344084
-Restaurant_11,Restaurant/Cafe/Shop,Pass,11/10/2025,Address_11,55150,Punjab,4.2,86.8,31.482534,74.239572
-Restaurant_12,Restaurant/Cafe/Shop,Pass,26/06/2025,Address_12,54000,Punjab,2.6,72.4,31.642802,74.265239
-Restaurant_13,Restaurant/Cafe/Shop,Improvement Required,09/06/2024,Address_13,46000,Punjab,1.1,44.9,31.418179,74.295461
-Restaurant_14,Restaurant/Cafe/Shop,Pass,10/01/2025,Address_14,46000,Punjab,1.7,64.3,31.643995,74.38034
-Restaurant_15,Restaurant/Cafe/Shop,Improvement Required,10/04/2025,Address_15,46000,Punjab,3.9,70.1,31.433657,74.482279
-Restaurant_16,Restaurant/Cafe/Shop,Pass,04/01/2024,Address_16,46000,Punjab,4.3,87.7,31.498445,74.212524
-Restaurant_17,Restaurant/Cafe/Shop,Pass,23/07/2024,Address_17,54000,Punjab,1.8,65.2,31.637546,74.385921
-Restaurant_18,Restaurant/Cafe/Shop,Pass,07/09/2025,Address_18,46000,Punjab,1.4,61.6,31.434479,74.277164
-Restaurant_19,Restaurant/Cafe/Shop,Pass,26/08/2025,Address_19,46000,Punjab,1.2,59.8,31.671125,74.322849
-Restaurant_20,Restaurant/Cafe/Shop,Pass,18/04/2024,Address_20,54000,Punjab,3.2,77.8,31.646907,74.465027
-Restaurant_21,Restaurant/Cafe/Shop,Pass,20/10/2024,Address_21,60000,Punjab,2.3,69.7,31.59581,74.38937
-Restaurant_22,Restaurant/Cafe/Shop,Pass,22/05/2024,Address_22,55150,Punjab,2.1,67.9,31.519576,74.2202
-Restaurant_23,Restaurant/Cafe/Shop,Improvement Required,08/07/2024,Address_23,54000,Punjab,2.8,60.2,31.460886,74.35585
-Restaurant_24,Restaurant/Cafe/Shop,Improvement Required,12/06/2025,Address_24,60000,Punjab,1.8,51.2,31.452451,74.298191
-Restaurant_25,Restaurant/Cafe/Shop,Pass,06/07/2024,Address_25,54000,Punjab,1.1,58.9,31.641912,74.209229
-Restaurant_26,Restaurant/Cafe/Shop,Pass,11/02/2024,Address_26,46000,Punjab,3.8,83.2,31.617956,74.286595
-Restaurant_27,Restaurant/Cafe/Shop,Pass,01/11/2024,Address_27,40100,Punjab,4.9,93.1,31.528318,74.380633
-Restaurant_28,Restaurant/Cafe/Shop,Pass,24/07/2025,Address_28,40100,Punjab,1.4,61.6,31.421216,74.203798
-Restaurant_29,Restaurant/Cafe/Shop,Pass,18/09/2025,Address_29,46000,Punjab,1.6,63.4,31.688663,74.359173
-Restaurant_30,Restaurant/Cafe/Shop,Pass,24/11/2025,Address_30,38000,Punjab,4.8,92.2,31.473204,74.429467
-Restaurant_31,Restaurant/Cafe/Shop,Pass,17/11/2024,Address_31,54000,Punjab,3.6,81.4,31.536537,74.212052
-Restaurant_32,Restaurant/Cafe/Shop,Pass,07/02/2024,Address_32,60000,Punjab,3.1,76.9,31.590991,74.256964
-Restaurant_33,Restaurant/Cafe/Shop,Pass,26/02/2024,Address_33,54000,Punjab,2.6,72.4,31.641487,74.319729
-Restaurant_34,Restaurant/Cafe/Shop,Pass,29/10/2025,Address_34,60000,Punjab,2.7,73.3,31.447133,74.320704
-Restaurant_35,Restaurant/Cafe/Shop,Pass,25/06/2024,Address_35,38000,Punjab,4.9,93.1,31.504039,74.463174
-Restaurant_36,Restaurant/Cafe/Shop,Pass,15/07/2025,Address_36,54000,Punjab,1,58,31.594748,74.271475
-Restaurant_37,Restaurant/Cafe/Shop,Pass,26/12/2025,Address_37,54000,Punjab,4.3,87.7,31.478348,74.37472
-Restaurant_38,Restaurant/Cafe/Shop,Pass,08/08/2025,Address_38,54000,Punjab,2.2,68.8,31.581052,74.423816
-Restaurant_39,Restaurant/Cafe/Shop,Pass,13/07/2024,Address_39,46000,Punjab,4.3,87.7,31.58269,74.249692
-Restaurant_40,Restaurant/Cafe/Shop,Pass,21/08/2024,Address_40,46000,Punjab,3.5,80.5,31.460185,74.309585
-Restaurant_41,Restaurant/Cafe/Shop,Pass,07/05/2025,Address_41,55150,Punjab,4,85,31.651988,74.403948
-Restaurant_42,Restaurant/Cafe/Shop,Pass,16/08/2024,Address_42,38000,Punjab,2.7,73.3,31.588001,74.412134
-Restaurant_43,Restaurant/Cafe/Shop,Pass,04/04/2025,Address_43,46000,Punjab,2.7,73.3,31.579814,74.248557
-Restaurant_44,Restaurant/Cafe/Shop,Pass,12/01/2025,Address_44,40100,Punjab,3.7,82.3,31.535466,74.366076
-Restaurant_45,Restaurant/Cafe/Shop,Pass,25/10/2025,Address_45,55150,Punjab,1.1,58.9,31.430292,74.367817
-Restaurant_46,Restaurant/Cafe/Shop,Pass,29/08/2025,Address_46,40100,Punjab,2.6,72.4,31.56204,74.415646
-Restaurant_47,Restaurant/Cafe/Shop,Pass,28/09/2024,Address_47,60000,Punjab,4.2,86.8,31.566135,74.254532
-Restaurant_48,Restaurant/Cafe/Shop,Pass,15/06/2024,Address_48,55150,Punjab,1.1,58.9,31.610706,74.344328
-Restaurant_49,Restaurant/Cafe/Shop,Pass,06/12/2025,Address_49,55150,Punjab,3.5,80.5,31.648595,74.232356
-Restaurant_50,Restaurant/Cafe/Shop,Awaiting Inspection,28/03/2024,Address_50,46000,Punjab,3.6,63.9,31.565144,74.234243
-Restaurant_51,Restaurant/Cafe/Shop,Pass,13/01/2024,Address_51,38000,Punjab,2.7,73.3,31.58662,74.377786
-Restaurant_52,Restaurant/Cafe/Shop,Pass,30/07/2024,Address_52,38000,Punjab,2.3,69.7,31.529724,74.239503
-Restaurant_53,Restaurant/Cafe/Shop,Pass,10/04/2024,Address_53,46000,Punjab,4.8,92.2,31.506209,74.350948
-Restaurant_54,Restaurant/Cafe/Shop,Awaiting Inspection,12/05/2025,Address_54,60000,Punjab,1.7,46.8,31.468783,74.465592
-Restaurant_55,Restaurant/Cafe/Shop,Pass,19/04/2025,Address_55,60000,Punjab,4.4,88.6,31.611653,74.32707
-Restaurant_56,Restaurant/Cafe/Shop,Pass,18/01/2025,Address_56,60000,Punjab,3.2,77.8,31.664791,74.284369
-Restaurant_57,Restaurant/Cafe/Shop,Pass,26/06/2025,Address_57,38000,Punjab,1.5,62.5,31.524042,74.246659
-Restaurant_58,Restaurant/Cafe/Shop,Pass,25/11/2025,Address_58,55150,Punjab,3.2,77.8,31.421875,74.372719
-Restaurant_59,Restaurant/Cafe/Shop,Pass,12/04/2025,Address_59,54000,Punjab,3.1,76.9,31.562394,74.286477
-Restaurant_60,Restaurant/Cafe/Shop,Pass,18/07/2024,Address_60,54000,Punjab,1.5,62.5,31.541851,74.470737
-Restaurant_61,Restaurant/Cafe/Shop,Awaiting Inspection,29/03/2024,Address_61,38000,Punjab,1.5,45,31.585652,74.225852
-Restaurant_62,Restaurant/Cafe/Shop,Pass,21/04/2024,Address_62,55150,Punjab,1.3,60.7,31.613198,74.294747
-Restaurant_63,Restaurant/Cafe/Shop,Pass,25/09/2025,Address_63,54000,Punjab,4.2,86.8,31.578892,74.427818
-Restaurant_64,Restaurant/Cafe/Shop,Improvement Required,13/12/2025,Address_64,60000,Punjab,3.7,68.3,31.508407,74.299644
-Restaurant_65,Restaurant/Cafe/Shop,Awaiting Inspection,31/03/2024,Address_65,55150,Punjab,3.8,65.7,31.432303,74.20559
-Restaurant_66,Restaurant/Cafe/Shop,Pass,25/11/2025,Address_66,38000,Punjab,1.3,60.7,31.559594,74.251474
-Restaurant_67,Restaurant/Cafe/Shop,Pass,20/01/2024,Address_67,38000,Punjab,2.1,67.9,31.463092,74.352128
-Restaurant_68,Restaurant/Cafe/Shop,Pass,04/02/2024,Address_68,55150,Punjab,3.2,77.8,31.463629,74.44412
-Restaurant_69,Restaurant/Cafe/Shop,Pass,11/11/2024,Address_69,55150,Punjab,2.1,67.9,31.584316,74.203353
-Restaurant_70,Restaurant/Cafe/Shop,Pass,05/09/2025,Address_70,40100,Punjab,2.2,68.8,31.430908,74.310127
-Restaurant_71,Restaurant/Cafe/Shop,Pass,24/10/2024,Address_71,60000,Punjab,4.5,89.5,31.41673,74.46411
-Restaurant_72,Restaurant/Cafe/Shop,Pass,09/03/2024,Address_72,40100,Punjab,3.5,80.5,31.403053,74.464833
-Restaurant_73,Restaurant/Cafe/Shop,Pass,20/05/2024,Address_73,54000,Punjab,2.7,73.3,31.555296,74.28059
-Restaurant_74,Restaurant/Cafe/Shop,Pass,13/10/2024,Address_74,54000,Punjab,1.5,62.5,31.436743,74.243492
-Restaurant_75,Restaurant/Cafe/Shop,Pass,08/06/2025,Address_75,38000,Punjab,4,85,31.634079,74.214075
-Restaurant_76,Restaurant/Cafe/Shop,Awaiting Inspection,21/03/2025,Address_76,38000,Punjab,2.3,52.2,31.506909,74.202123
-Restaurant_77,Restaurant/Cafe/Shop,Improvement Required,13/09/2024,Address_77,55150,Punjab,4.7,77.3,31.514094,74.28906
-Restaurant_78,Restaurant/Cafe/Shop,Improvement Required,21/09/2025,Address_78,38000,Punjab,3.8,69.2,31.438932,74.472977
-Restaurant_79,Restaurant/Cafe/Shop,Pass,27/11/2025,Address_79,40100,Punjab,2,67,31.545002,74.316978
-Restaurant_80,Restaurant/Cafe/Shop,Pass,09/01/2024,Address_80,60000,Punjab,1.1,58.9,31.612662,74.426691
-Restaurant_81,Restaurant/Cafe/Shop,Pass,21/10/2025,Address_81,40100,Punjab,4.6,90.4,31.435444,74.410966
-Restaurant_82,Restaurant/Cafe/Shop,Pass,02/07/2025,Address_82,55150,Punjab,2.4,70.6,31.616344,74.403592
-Restaurant_83,Restaurant/Cafe/Shop,Improvement Required,09/12/2025,Address_83,60000,Punjab,2.1,53.9,31.652603,74.399108
-Restaurant_84,Restaurant/Cafe/Shop,Pass,31/01/2024,Address_84,54000,Punjab,2.3,69.7,31.676943,74.261699
-Restaurant_85,Restaurant/Cafe/Shop,Pass,05/04/2025,Address_85,46000,Punjab,3.5,80.5,31.422334,74.294235
-Restaurant_86,Restaurant/Cafe/Shop,Awaiting Inspection,12/07/2024,Address_86,46000,Punjab,3.3,61.2,31.483267,74.464772
-Restaurant_87,Restaurant/Cafe/Shop,Pass,03/03/2025,Address_87,60000,Punjab,1.4,61.6,31.445977,74.209188
-Restaurant_88,Restaurant/Cafe/Shop,Pass,06/11/2024,Address_88,38000,Punjab,4.8,92.2,31.675801,74.270967
-Restaurant_89,Restaurant/Cafe/Shop,Improvement Required,28/12/2024,Address_89,54000,Punjab,4.4,74.6,31.609354,74.235456
-Restaurant_90,Restaurant/Cafe/Shop,Pass,08/09/2025,Address_90,54000,Punjab,5,94,31.509629,74.343609
-Restaurant_91,Restaurant/Cafe/Shop,Pass,19/11/2024,Address_91,46000,Punjab,2.9,75.1,31.451727,74.30572
-Restaurant_92,Restaurant/Cafe/Shop,Pass,11/02/2025,Address_92,40100,Punjab,4,85,31.564047,74.3079
-Restaurant_93,Restaurant/Cafe/Shop,Pass,18/07/2025,Address_93,46000,Punjab,2.4,70.6,31.568219,74.473963
-Restaurant_94,Restaurant/Cafe/Shop,Pass,29/12/2024,Address_94,54000,Punjab,4.7,91.3,31.683006,74.368272
-Restaurant_95,Restaurant/Cafe/Shop,Improvement Required,14/03/2024,Address_95,54000,Punjab,4.3,73.7,31.627497,74.31475
-Restaurant_96,Restaurant/Cafe/Shop,Improvement Required,22/11/2025,Address_96,60000,Punjab,3.6,67.4,31.685759,74.27461
-Restaurant_97,Restaurant/Cafe/Shop,Pass,02/03/2024,Address_97,60000,Punjab,3.1,76.9,31.656181,74.383952
-Restaurant_98,Restaurant/Cafe/Shop,Improvement Required,27/10/2024,Address_98,55150,Punjab,2.1,53.9,31.62523,74.438611
-Restaurant_99,Restaurant/Cafe/Shop,Pass,25/01/2025,Address_99,38000,Punjab,2.1,67.9,31.55275,74.301968
-Restaurant_100,Restaurant/Cafe/Shop,Pass,11/04/2025,Address_100,40100,Punjab,3.7,82.3,31.414574,74.284924
-Restaurant_101,Restaurant/Cafe/Shop,Improvement Required,09/09/2024,Address_101,38000,Punjab,4.9,79.1,31.439056,74.477045
-Restaurant_102,Restaurant/Cafe/Shop,Improvement Required,13/11/2024,Address_102,54000,Punjab,1.4,47.6,31.598063,74.420824
-Restaurant_103,Restaurant/Cafe/Shop,Pass,26/09/2025,Address_103,54000,Punjab,2.1,67.9,31.514523,74.248271
-Restaurant_104,Restaurant/Cafe/Shop,Pass,25/06/2025,Address_104,46000,Punjab,3.4,79.6,31.599246,74.365183
-Restaurant_105,Restaurant/Cafe/Shop,Pass,14/12/2024,Address_105,54000,Punjab,3.9,84.1,31.60105,74.292452
-Restaurant_106,Restaurant/Cafe/Shop,Pass,15/03/2024,Address_106,54000,Punjab,2.5,71.5,31.687061,74.406729
-Restaurant_107,Restaurant/Cafe/Shop,Pass,20/03/2025,Address_107,38000,Punjab,3,76,31.680656,74.418293
-Restaurant_108,Restaurant/Cafe/Shop,Pass,21/11/2025,Address_108,46000,Punjab,4,85,31.494638,74.394352
-Restaurant_109,Restaurant/Cafe/Shop,Pass,09/10/2025,Address_109,46000,Punjab,4.5,89.5,31.410991,74.261808
-Restaurant_110,Restaurant/Cafe/Shop,Pass,17/03/2024,Address_110,54000,Punjab,1.9,66.1,31.602656,74.450949
-Restaurant_111,Restaurant/Cafe/Shop,Awaiting Inspection,20/10/2024,Address_111,55150,Punjab,2.6,54.9,31.473366,74.368565
-Restaurant_112,Restaurant/Cafe/Shop,Pass,05/01/2024,Address_112,40100,Punjab,4.7,91.3,31.52468,74.29814
-Restaurant_113,Restaurant/Cafe/Shop,Pass,18/12/2025,Address_113,60000,Punjab,2.5,71.5,31.496901,74.405018
-Restaurant_114,Restaurant/Cafe/Shop,Pass,14/11/2025,Address_114,55150,Punjab,1.1,58.9,31.560068,74.273301
-Restaurant_115,Restaurant/Cafe/Shop,Pass,07/05/2025,Address_115,54000,Punjab,3.7,82.3,31.458662,74.397522
-Restaurant_116,Restaurant/Cafe/Shop,Pass,25/02/2024,Address_116,60000,Punjab,3.7,82.3,31.656285,74.348384
-Restaurant_117,Restaurant/Cafe/Shop,Pass,28/07/2025,Address_117,55150,Punjab,4.4,88.6,31.428819,74.244581
-Restaurant_118,Restaurant/Cafe/Shop,Pass,19/02/2025,Address_118,38000,Punjab,4.3,87.7,31.583541,74.469427
-Restaurant_119,Restaurant/Cafe/Shop,Pass,24/12/2024,Address_119,60000,Punjab,1.4,61.6,31.584333,74.371975
-Restaurant_120,Restaurant/Cafe/Shop,Pass,25/08/2025,Address_120,40100,Punjab,3.2,77.8,31.55118,74.404468
-Restaurant_121,Restaurant/Cafe/Shop,Pass,26/04/2025,Address_121,55150,Punjab,2.4,70.6,31.510049,74.215598
-Restaurant_122,Restaurant/Cafe/Shop,Pass,08/10/2024,Address_122,60000,Punjab,2.9,75.1,31.523235,74.374929
-Restaurant_123,Restaurant/Cafe/Shop,Pass,02/10/2025,Address_123,55150,Punjab,3.3,78.7,31.611667,74.448388
-Restaurant_124,Restaurant/Cafe/Shop,Pass,20/03/2025,Address_124,38000,Punjab,1.9,66.1,31.425837,74.407753
-Restaurant_125,Restaurant/Cafe/Shop,Pass,30/06/2024,Address_125,60000,Punjab,2.2,68.8,31.478221,74.222367
-Restaurant_126,Restaurant/Cafe/Shop,Pass,18/02/2024,Address_126,38000,Punjab,4.2,86.8,31.662355,74.323657
-Restaurant_127,Restaurant/Cafe/Shop,Improvement Required,19/04/2024,Address_127,60000,Punjab,1.9,52.1,31.459631,74.374213
-Restaurant_128,Restaurant/Cafe/Shop,Pass,23/02/2024,Address_128,55150,Punjab,2.1,67.9,31.466584,74.266499
-Restaurant_129,Restaurant/Cafe/Shop,Pass,05/09/2024,Address_129,60000,Punjab,3.8,83.2,31.404073,74.419144
-Restaurant_130,Restaurant/Cafe/Shop,Pass,28/01/2024,Address_130,54000,Punjab,2.1,67.9,31.566591,74.296379
-Restaurant_131,Restaurant/Cafe/Shop,Pass,13/07/2025,Address_131,55150,Punjab,4.7,91.3,31.425959,74.279826
-Restaurant_132,Restaurant/Cafe/Shop,Pass,16/02/2024,Address_132,55150,Punjab,3.7,82.3,31.506862,74.28354
-Restaurant_133,Restaurant/Cafe/Shop,Pass,13/06/2024,Address_133,55150,Punjab,2.1,67.9,31.625236,74.283817
-Restaurant_134,Restaurant/Cafe/Shop,Pass,25/11/2024,Address_134,55150,Punjab,1.1,58.9,31.519921,74.483984
-Restaurant_135,Restaurant/Cafe/Shop,Improvement Required,10/08/2024,Address_135,40100,Punjab,4.3,73.7,31.502202,74.273211
-Restaurant_136,Restaurant/Cafe/Shop,Pass,29/08/2025,Address_136,46000,Punjab,4.6,90.4,31.632175,74.46027
-Restaurant_137,Restaurant/Cafe/Shop,Pass,05/12/2025,Address_137,60000,Punjab,4.6,90.4,31.568996,74.365514
-Restaurant_138,Restaurant/Cafe/Shop,Pass,23/10/2024,Address_138,38000,Punjab,3.4,79.6,31.517243,74.484134
-Restaurant_139,Restaurant/Cafe/Shop,Pass,08/05/2025,Address_139,46000,Punjab,2.4,70.6,31.512991,74.343044
-Restaurant_140,Restaurant/Cafe/Shop,Pass,21/05/2024,Address_140,46000,Punjab,2.7,73.3,31.497053,74.318475
-Restaurant_141,Restaurant/Cafe/Shop,Pass,10/10/2025,Address_141,40100,Punjab,2.6,72.4,31.663646,74.430863
-Restaurant_142,Restaurant/Cafe/Shop,Improvement Required,18/12/2025,Address_142,60000,Punjab,2.3,55.7,31.688127,74.315901
-Restaurant_143,Restaurant/Cafe/Shop,Awaiting Inspection,15/05/2025,Address_143,38000,Punjab,4.8,74.7,31.536052,74.246434
-Restaurant_144,Restaurant/Cafe/Shop,Pass,23/12/2024,Address_144,38000,Punjab,1.4,61.6,31.601547,74.368225
-Restaurant_145,Restaurant/Cafe/Shop,Pass,02/01/2025,Address_145,55150,Punjab,4.8,92.2,31.582192,74.339535
-Restaurant_146,Restaurant/Cafe/Shop,Improvement Required,20/01/2024,Address_146,38000,Punjab,3.6,67.4,31.645086,74.233548
-Restaurant_147,Restaurant/Cafe/Shop,Pass,29/06/2025,Address_147,40100,Punjab,1.4,61.6,31.587497,74.244789
-Restaurant_148,Restaurant/Cafe/Shop,Improvement Required,11/11/2024,Address_148,60000,Punjab,1.3,46.7,31.443523,74.310867
-Restaurant_149,Restaurant/Cafe/Shop,Pass,29/03/2025,Address_149,60000,Punjab,4.6,90.4,31.68275,74.44916
-Restaurant_150,Restaurant/Cafe/Shop,Pass,13/04/2025,Address_150,40100,Punjab,3.7,82.3,31.574295,74.484312
-Restaurant_151,Restaurant/Cafe/Shop,Pass,24/07/2025,Address_151,38000,Punjab,4.8,92.2,31.500504,74.443728
-Restaurant_152,Restaurant/Cafe/Shop,Improvement Required,13/06/2024,Address_152,38000,Punjab,2.5,57.5,31.457008,74.335957
-Restaurant_153,Restaurant/Cafe/Shop,Pass,05/02/2024,Address_153,55150,Punjab,1.8,65.2,31.413227,74.466813
-Restaurant_154,Restaurant/Cafe/Shop,Pass,17/05/2024,Address_154,55150,Punjab,4.1,85.9,31.440793,74.299296
-Restaurant_155,Restaurant/Cafe/Shop,Pass,16/05/2024,Address_155,55150,Punjab,5,94,31.520188,74.339648
-Restaurant_156,Restaurant/Cafe/Shop,Pass,16/05/2025,Address_156,40100,Punjab,3.8,83.2,31.531247,74.204783
-Restaurant_157,Restaurant/Cafe/Shop,Pass,10/04/2025,Address_157,40100,Punjab,3.4,79.6,31.541597,74.424531
-Restaurant_158,Restaurant/Cafe/Shop,Pass,10/03/2024,Address_158,40100,Punjab,1.6,63.4,31.434585,74.45223
-Restaurant_159,Restaurant/Cafe/Shop,Pass,18/08/2024,Address_159,40100,Punjab,4.4,88.6,31.673503,74.342475
-Restaurant_160,Restaurant/Cafe/Shop,Improvement Required,30/09/2025,Address_160,38000,Punjab,1.4,47.6,31.487369,74.462249
-Restaurant_161,Restaurant/Cafe/Shop,Pass,19/09/2025,Address_161,54000,Punjab,3.3,78.7,31.607428,74.393434
-Restaurant_162,Restaurant/Cafe/Shop,Pass,26/02/2025,Address_162,54000,Punjab,3.6,81.4,31.666343,74.356768
-Restaurant_163,Restaurant/Cafe/Shop,Pass,08/05/2025,Address_163,54000,Punjab,1,58,31.661956,74.391996
-Restaurant_164,Restaurant/Cafe/Shop,Pass,09/11/2024,Address_164,60000,Punjab,4.3,87.7,31.600472,74.370469
-Restaurant_165,Restaurant/Cafe/Shop,Pass,10/06/2024,Address_165,55150,Punjab,2.4,70.6,31.684815,74.282766
-Restaurant_166,Restaurant/Cafe/Shop,Pass,24/12/2025,Address_166,60000,Punjab,2.9,75.1,31.598028,74.352245
-Restaurant_167,Restaurant/Cafe/Shop,Pass,17/06/2025,Address_167,40100,Punjab,2.9,75.1,31.547949,74.471899
-Restaurant_168,Restaurant/Cafe/Shop,Pass,26/12/2025,Address_168,40100,Punjab,1.2,59.8,31.59533,74.358722
-Restaurant_169,Restaurant/Cafe/Shop,Pass,29/01/2025,Address_169,55150,Punjab,2.4,70.6,31.534216,74.306972
-Restaurant_170,Restaurant/Cafe/Shop,Pass,05/11/2024,Address_170,40100,Punjab,1.6,63.4,31.465385,74.373541
-Restaurant_171,Restaurant/Cafe/Shop,Pass,02/11/2024,Address_171,38000,Punjab,3.6,81.4,31.512683,74.32318
-Restaurant_172,Restaurant/Cafe/Shop,Pass,19/03/2024,Address_172,55150,Punjab,2.9,75.1,31.640259,74.301327
-Restaurant_173,Restaurant/Cafe/Shop,Pass,20/07/2025,Address_173,38000,Punjab,3.1,76.9,31.638585,74.39816
-Restaurant_174,Restaurant/Cafe/Shop,Pass,21/03/2024,Address_174,40100,Punjab,3.9,84.1,31.541407,74.32584
-Restaurant_175,Restaurant/Cafe/Shop,Pass,19/07/2025,Address_175,40100,Punjab,1.8,65.2,31.556368,74.306968
-Restaurant_176,Restaurant/Cafe/Shop,Pass,09/11/2024,Address_176,38000,Punjab,3.7,82.3,31.563143,74.33755
-Restaurant_177,Restaurant/Cafe/Shop,Pass,15/08/2024,Address_177,40100,Punjab,2.5,71.5,31.669362,74.40032
-Restaurant_178,Restaurant/Cafe/Shop,Pass,15/05/2025,Address_178,54000,Punjab,3.2,77.8,31.656559,74.359104
-Restaurant_179,Restaurant/Cafe/Shop,Pass,09/04/2024,Address_179,46000,Punjab,4.4,88.6,31.556425,74.238894
-Restaurant_180,Restaurant/Cafe/Shop,Pass,26/11/2025,Address_180,46000,Punjab,4.8,92.2,31.537527,74.200842
-Restaurant_181,Restaurant/Cafe/Shop,Pass,05/01/2024,Address_181,55150,Punjab,2.5,71.5,31.480014,74.349201
-Restaurant_182,Restaurant/Cafe/Shop,Pass,15/11/2025,Address_182,40100,Punjab,4.2,86.8,31.469903,74.236949
-Restaurant_183,Restaurant/Cafe/Shop,Pass,26/04/2024,Address_183,38000,Punjab,3.7,82.3,31.435573,74.344104
-Restaurant_184,Restaurant/Cafe/Shop,Pass,19/09/2024,Address_184,55150,Punjab,3.3,78.7,31.544631,74.361194
-Restaurant_185,Restaurant/Cafe/Shop,Pass,09/07/2024,Address_185,46000,Punjab,1.5,62.5,31.612165,74.266297
-Restaurant_186,Restaurant/Cafe/Shop,Pass,31/01/2025,Address_186,54000,Punjab,1.3,60.7,31.579067,74.44256
-Restaurant_187,Restaurant/Cafe/Shop,Pass,14/01/2024,Address_187,55150,Punjab,2.3,69.7,31.58272,74.448835
-Restaurant_188,Restaurant/Cafe/Shop,Improvement Required,08/02/2025,Address_188,54000,Punjab,4.9,79.1,31.548702,74.287022
-Restaurant_189,Restaurant/Cafe/Shop,Pass,09/01/2024,Address_189,54000,Punjab,3.5,80.5,31.50094,74.360398
-Restaurant_190,Restaurant/Cafe/Shop,Pass,06/04/2025,Address_190,38000,Punjab,2.6,72.4,31.680661,74.319126
-Restaurant_191,Restaurant/Cafe/Shop,Improvement Required,02/11/2024,Address_191,38000,Punjab,5,80,31.408575,74.362098
-Restaurant_192,Restaurant/Cafe/Shop,Pass,15/06/2025,Address_192,55150,Punjab,1.6,63.4,31.561724,74.342409
-Restaurant_193,Restaurant/Cafe/Shop,Pass,14/05/2024,Address_193,54000,Punjab,1.3,60.7,31.588926,74.477311
-Restaurant_194,Restaurant/Cafe/Shop,Pass,29/06/2025,Address_194,54000,Punjab,1.1,58.9,31.442929,74.427314
-Restaurant_195,Restaurant/Cafe/Shop,Improvement Required,11/01/2025,Address_195,40100,Punjab,3,62,31.640358,74.367045
-Restaurant_196,Restaurant/Cafe/Shop,Improvement Required,30/04/2025,Address_196,46000,Punjab,1.9,52.1,31.507612,74.363464
-Restaurant_197,Restaurant/Cafe/Shop,Improvement Required,13/04/2025,Address_197,38000,Punjab,1.9,52.1,31.603194,74.370469
-Restaurant_198,Restaurant/Cafe/Shop,Pass,15/02/2024,Address_198,60000,Punjab,1.2,59.8,31.669135,74.201045
-Restaurant_199,Restaurant/Cafe/Shop,Pass,07/01/2024,Address_199,46000,Punjab,4.4,88.6,31.442478,74.414595
-Restaurant_200,Restaurant/Cafe/Shop,Pass,19/05/2024,Address_200,54000,Punjab,3.6,81.4,31.536448,74.263014
-Restaurant_201,Restaurant/Cafe/Shop,Pass,27/11/2025,Address_201,55150,Punjab,3.8,83.2,31.552859,74.487574
-Restaurant_202,Restaurant/Cafe/Shop,Pass,20/01/2024,Address_202,54000,Punjab,5,94,31.601777,74.237948
-Restaurant_203,Restaurant/Cafe/Shop,Pass,05/08/2025,Address_203,55150,Punjab,4,85,31.636281,74.214784
-Restaurant_204,Restaurant/Cafe/Shop,Improvement Required,06/03/2025,Address_204,55150,Punjab,3.8,69.2,31.456779,74.456754
-Restaurant_205,Restaurant/Cafe/Shop,Improvement Required,22/06/2024,Address_205,55150,Punjab,1.9,52.1,31.666321,74.337892
-Restaurant_206,Restaurant/Cafe/Shop,Pass,08/06/2025,Address_206,60000,Punjab,3.4,79.6,31.676692,74.321716
-Restaurant_207,Restaurant/Cafe/Shop,Pass,13/03/2024,Address_207,55150,Punjab,4.1,85.9,31.595606,74.307708
-Restaurant_208,Restaurant/Cafe/Shop,Improvement Required,15/06/2024,Address_208,38000,Punjab,2.2,54.8,31.681897,74.2481
-Restaurant_209,Restaurant/Cafe/Shop,Pass,22/09/2025,Address_209,60000,Punjab,4.7,91.3,31.571015,74.484593
-Restaurant_210,Restaurant/Cafe/Shop,Pass,01/12/2025,Address_210,38000,Punjab,3.5,80.5,31.536563,74.341431
-Restaurant_211,Restaurant/Cafe/Shop,Pass,12/07/2025,Address_211,60000,Punjab,4.8,92.2,31.482873,74.397326
-Restaurant_212,Restaurant/Cafe/Shop,Pass,10/01/2024,Address_212,40100,Punjab,3.3,78.7,31.480001,74.434594
-Restaurant_213,Restaurant/Cafe/Shop,Pass,12/09/2024,Address_213,40100,Punjab,2,67,31.500005,74.271156
-Restaurant_214,Restaurant/Cafe/Shop,Improvement Required,26/12/2025,Address_214,55150,Punjab,1.5,48.5,31.421104,74.278686
-Restaurant_215,Restaurant/Cafe/Shop,Pass,29/10/2025,Address_215,46000,Punjab,4.4,88.6,31.658268,74.387839
-Restaurant_216,Restaurant/Cafe/Shop,Pass,16/09/2024,Address_216,54000,Punjab,2,67,31.665887,74.471922
-Restaurant_217,Restaurant/Cafe/Shop,Pass,21/07/2024,Address_217,38000,Punjab,3,76,31.507038,74.266254
-Restaurant_218,Restaurant/Cafe/Shop,Pass,29/10/2024,Address_218,54000,Punjab,1.8,65.2,31.640704,74.379242
-Restaurant_219,Restaurant/Cafe/Shop,Improvement Required,17/09/2024,Address_219,38000,Punjab,2.9,61.1,31.676915,74.234546
-Restaurant_220,Restaurant/Cafe/Shop,Improvement Required,16/07/2025,Address_220,60000,Punjab,3.2,63.8,31.534917,74.231771
-Restaurant_221,Restaurant/Cafe/Shop,Pass,20/05/2025,Address_221,60000,Punjab,4.7,91.3,31.648557,74.290216
-Restaurant_222,Restaurant/Cafe/Shop,Improvement Required,24/02/2025,Address_222,55150,Punjab,1.6,49.4,31.559653,74.296969
-Restaurant_223,Restaurant/Cafe/Shop,Improvement Required,12/07/2025,Address_223,55150,Punjab,4.8,78.2,31.495514,74.307404
-Restaurant_224,Restaurant/Cafe/Shop,Pass,14/08/2025,Address_224,55150,Punjab,3.7,82.3,31.438165,74.286892
-Restaurant_225,Restaurant/Cafe/Shop,Pass,21/12/2024,Address_225,38000,Punjab,1.6,63.4,31.443639,74.396635
-Restaurant_226,Restaurant/Cafe/Shop,Awaiting Inspection,31/12/2025,Address_226,55150,Punjab,4.6,72.9,31.58606,74.317826
-Restaurant_227,Restaurant/Cafe/Shop,Pass,07/07/2024,Address_227,54000,Punjab,2.8,74.2,31.510219,74.433355
-Restaurant_228,Restaurant/Cafe/Shop,Pass,29/02/2024,Address_228,40100,Punjab,3.9,84.1,31.416261,74.350065
-Restaurant_229,Restaurant/Cafe/Shop,Awaiting Inspection,29/01/2025,Address_229,40100,Punjab,3.9,66.6,31.677354,74.3145
-Restaurant_230,Restaurant/Cafe/Shop,Pass,05/10/2024,Address_230,40100,Punjab,3.5,80.5,31.441503,74.490045
-Restaurant_231,Restaurant/Cafe/Shop,Pass,13/03/2024,Address_231,54000,Punjab,3.2,77.8,31.425462,74.232583
-Restaurant_232,Restaurant/Cafe/Shop,Improvement Required,27/08/2024,Address_232,46000,Punjab,3.2,63.8,31.507932,74.372224
-Restaurant_233,Restaurant/Cafe/Shop,Pass,02/02/2024,Address_233,60000,Punjab,2,67,31.608189,74.25779
-Restaurant_234,Restaurant/Cafe/Shop,Pass,07/06/2024,Address_234,38000,Punjab,2.5,71.5,31.674997,74.355095
-Restaurant_235,Restaurant/Cafe/Shop,Pass,12/04/2025,Address_235,46000,Punjab,1.6,63.4,31.614436,74.318867
-Restaurant_236,Restaurant/Cafe/Shop,Pass,13/10/2024,Address_236,40100,Punjab,1.4,61.6,31.619646,74.297896
-Restaurant_237,Restaurant/Cafe/Shop,Awaiting Inspection,28/04/2025,Address_237,60000,Punjab,2.6,54.9,31.4376,74.425741
-Restaurant_238,Restaurant/Cafe/Shop,Pass,07/09/2025,Address_238,40100,Punjab,1.4,61.6,31.50702,74.31659
-Restaurant_239,Restaurant/Cafe/Shop,Pass,09/10/2024,Address_239,46000,Punjab,4.8,92.2,31.469728,74.217627
-Restaurant_240,Restaurant/Cafe/Shop,Awaiting Inspection,01/06/2024,Address_240,54000,Punjab,1.3,43.2,31.522178,74.223562
-Restaurant_241,Restaurant/Cafe/Shop,Improvement Required,15/09/2025,Address_241,54000,Punjab,1.6,49.4,31.634557,74.237528
-Restaurant_242,Restaurant/Cafe/Shop,Pass,07/09/2025,Address_242,38000,Punjab,2.2,68.8,31.532293,74.426318
-Restaurant_243,Restaurant/Cafe/Shop,Improvement Required,02/10/2025,Address_243,40100,Punjab,1.9,52.1,31.587808,74.482116
-Restaurant_244,Restaurant/Cafe/Shop,Awaiting Inspection,05/08/2025,Address_244,55150,Punjab,1.1,41.4,31.586752,74.276209
-Restaurant_245,Restaurant/Cafe/Shop,Pass,26/08/2025,Address_245,60000,Punjab,3.3,78.7,31.659417,74.25305
-Restaurant_246,Restaurant/Cafe/Shop,Pass,24/05/2025,Address_246,46000,Punjab,4.6,90.4,31.460338,74.46787
-Restaurant_247,Restaurant/Cafe/Shop,Pass,29/05/2024,Address_247,40100,Punjab,2.5,71.5,31.59693,74.433506
-Restaurant_248,Restaurant/Cafe/Shop,Pass,30/07/2025,Address_248,40100,Punjab,3.4,79.6,31.405324,74.286999
-Restaurant_249,Restaurant/Cafe/Shop,Pass,31/10/2025,Address_249,60000,Punjab,4.1,85.9,31.671525,74.343541
-Restaurant_250,Restaurant/Cafe/Shop,Pass,07/05/2024,Address_250,60000,Punjab,4.8,92.2,31.451828,74.389505
-Restaurant_251,Restaurant/Cafe/Shop,Pass,12/08/2025,Address_251,60000,Punjab,4.2,86.8,31.536652,74.389735
-Restaurant_252,Restaurant/Cafe/Shop,Pass,17/10/2024,Address_252,55150,Punjab,1.6,63.4,31.464332,74.44008
-Restaurant_253,Restaurant/Cafe/Shop,Pass,19/10/2025,Address_253,55150,Punjab,2.7,73.3,31.462222,74.412479
-Restaurant_254,Restaurant/Cafe/Shop,Pass,17/09/2024,Address_254,60000,Punjab,1.6,63.4,31.654863,74.22147
-Restaurant_255,Restaurant/Cafe/Shop,Pass,05/09/2025,Address_255,60000,Punjab,1,58,31.603751,74.319372
-Restaurant_256,Restaurant/Cafe/Shop,Awaiting Inspection,22/01/2025,Address_256,38000,Punjab,2.6,54.9,31.576735,74.396531
-Restaurant_257,Restaurant/Cafe/Shop,Pass,22/12/2025,Address_257,40100,Punjab,3.5,80.5,31.588894,74.217321
-Restaurant_258,Restaurant/Cafe/Shop,Improvement Required,17/12/2025,Address_258,46000,Punjab,3.7,68.3,31.416788,74.323036
-Restaurant_259,Restaurant/Cafe/Shop,Improvement Required,05/10/2024,Address_259,38000,Punjab,2.8,60.2,31.498298,74.313361
-Restaurant_260,Restaurant/Cafe/Shop,Pass,24/04/2024,Address_260,55150,Punjab,5,94,31.686494,74.257556
-Restaurant_261,Restaurant/Cafe/Shop,Pass,25/08/2025,Address_261,46000,Punjab,1.4,61.6,31.682546,74.380121
-Restaurant_262,Restaurant/Cafe/Shop,Improvement Required,08/06/2024,Address_262,40100,Punjab,4.1,71.9,31.674906,74.282377
-Restaurant_263,Restaurant/Cafe/Shop,Pass,23/11/2025,Address_263,55150,Punjab,1.9,66.1,31.636573,74.385167
-Restaurant_264,Restaurant/Cafe/Shop,Pass,17/07/2024,Address_264,38000,Punjab,1.4,61.6,31.569372,74.225378
-Restaurant_265,Restaurant/Cafe/Shop,Pass,14/11/2025,Address_265,38000,Punjab,2.8,74.2,31.568006,74.4422
-Restaurant_266,Restaurant/Cafe/Shop,Pass,20/12/2024,Address_266,55150,Punjab,1.2,59.8,31.63017,74.365828
-Restaurant_267,Restaurant/Cafe/Shop,Pass,16/12/2025,Address_267,60000,Punjab,1.9,66.1,31.449389,74.340796
-Restaurant_268,Restaurant/Cafe/Shop,Pass,24/12/2024,Address_268,38000,Punjab,3.6,81.4,31.443528,74.411938
-Restaurant_269,Restaurant/Cafe/Shop,Pass,04/11/2025,Address_269,54000,Punjab,1.6,63.4,31.44516,74.481316
-Restaurant_270,Restaurant/Cafe/Shop,Pass,02/07/2025,Address_270,55150,Punjab,2.3,69.7,31.570378,74.392658
-Restaurant_271,Restaurant/Cafe/Shop,Awaiting Inspection,06/08/2025,Address_271,60000,Punjab,1.1,41.4,31.670268,74.23443
-Restaurant_272,Restaurant/Cafe/Shop,Pass,15/10/2025,Address_272,40100,Punjab,3.1,76.9,31.412816,74.240082
-Restaurant_273,Restaurant/Cafe/Shop,Improvement Required,15/11/2024,Address_273,60000,Punjab,3.6,67.4,31.460424,74.273154
-Restaurant_274,Restaurant/Cafe/Shop,Pass,01/12/2025,Address_274,38000,Punjab,2.3,69.7,31.414965,74.212104
-Restaurant_275,Restaurant/Cafe/Shop,Improvement Required,19/10/2024,Address_275,55150,Punjab,3.1,62.9,31.58551,74.205109
-Restaurant_276,Restaurant/Cafe/Shop,Improvement Required,11/08/2025,Address_276,54000,Punjab,2.5,57.5,31.505623,74.222145
-Restaurant_277,Restaurant/Cafe/Shop,Pass,17/11/2024,Address_277,46000,Punjab,2.2,68.8,31.420842,74.257975
-Restaurant_278,Restaurant/Cafe/Shop,Pass,21/11/2024,Address_278,46000,Punjab,3,76,31.524984,74.393813
-Restaurant_279,Restaurant/Cafe/Shop,Pass,10/07/2025,Address_279,55150,Punjab,3.8,83.2,31.597186,74.380056
-Restaurant_280,Restaurant/Cafe/Shop,Pass,05/02/2025,Address_280,40100,Punjab,4.1,85.9,31.587131,74.421782
-Restaurant_281,Restaurant/Cafe/Shop,Awaiting Inspection,11/12/2025,Address_281,40100,Punjab,2.3,52.2,31.474394,74.214605
-Restaurant_282,Restaurant/Cafe/Shop,Pass,14/01/2025,Address_282,54000,Punjab,3.3,78.7,31.466188,74.278306
-Restaurant_283,Restaurant/Cafe/Shop,Pass,13/11/2024,Address_283,55150,Punjab,3.2,77.8,31.550895,74.372311
-Restaurant_284,Restaurant/Cafe/Shop,Pass,30/01/2024,Address_284,38000,Punjab,4,85,31.680692,74.36072
-Restaurant_285,Restaurant/Cafe/Shop,Pass,27/09/2024,Address_285,40100,Punjab,2.4,70.6,31.413196,74.361261
-Restaurant_286,Restaurant/Cafe/Shop,Pass,29/03/2025,Address_286,38000,Punjab,4.4,88.6,31.59798,74.246752
-Restaurant_287,Restaurant/Cafe/Shop,Pass,28/05/2025,Address_287,60000,Punjab,4,85,31.592196,74.288855
-Restaurant_288,Restaurant/Cafe/Shop,Pass,20/12/2024,Address_288,46000,Punjab,4.4,88.6,31.687737,74.481941
-Restaurant_289,Restaurant/Cafe/Shop,Awaiting Inspection,02/12/2024,Address_289,40100,Punjab,1.8,47.7,31.663386,74.436715
-Restaurant_290,Restaurant/Cafe/Shop,Pass,22/12/2025,Address_290,55150,Punjab,4.1,85.9,31.683046,74.403852
-Restaurant_291,Restaurant/Cafe/Shop,Awaiting Inspection,28/05/2025,Address_291,60000,Punjab,1.5,45,31.510881,74.490356
-Restaurant_292,Restaurant/Cafe/Shop,Pass,23/07/2025,Address_292,54000,Punjab,1.8,65.2,31.539798,74.337044
-Restaurant_293,Restaurant/Cafe/Shop,Improvement Required,25/09/2025,Address_293,40100,Punjab,3.2,63.8,31.553423,74.293029
-Restaurant_294,Restaurant/Cafe/Shop,Pass,18/10/2024,Address_294,54000,Punjab,1.4,61.6,31.484877,74.405931
-Restaurant_295,Restaurant/Cafe/Shop,Pass,06/08/2025,Address_295,55150,Punjab,3.2,77.8,31.424749,74.286542
-Restaurant_296,Restaurant/Cafe/Shop,Pass,16/03/2024,Address_296,38000,Punjab,4.8,92.2,31.454223,74.21654
-Restaurant_297,Restaurant/Cafe/Shop,Pass,21/07/2025,Address_297,54000,Punjab,2.8,74.2,31.67548,74.477278
-Restaurant_298,Restaurant/Cafe/Shop,Improvement Required,27/06/2025,Address_298,55150,Punjab,1.9,52.1,31.628105,74.426801
-Restaurant_299,Restaurant/Cafe/Shop,Pass,24/12/2024,Address_299,38000,Punjab,2.1,67.9,31.401714,74.462543
-Restaurant_300,Restaurant/Cafe/Shop,Pass,04/12/2025,Address_300,60000,Punjab,2.9,75.1,31.496086,74.292605
-Restaurant_301,Restaurant/Cafe/Shop,Awaiting Inspection,01/12/2025,Address_301,60000,Punjab,1.6,45.9,31.632004,74.431397
-Restaurant_302,Restaurant/Cafe/Shop,Awaiting Inspection,24/08/2025,Address_302,40100,Punjab,1,40.5,31.535123,74.379663
-Restaurant_303,Restaurant/Cafe/Shop,Pass,26/09/2024,Address_303,46000,Punjab,2.2,68.8,31.531006,74.228033
-Restaurant_304,Restaurant/Cafe/Shop,Improvement Required,20/12/2024,Address_304,40100,Punjab,3.9,70.1,31.635881,74.296231
-Restaurant_305,Restaurant/Cafe/Shop,Pass,25/05/2025,Address_305,40100,Punjab,3.2,77.8,31.64881,74.433831
-Restaurant_306,Restaurant/Cafe/Shop,Pass,24/08/2024,Address_306,38000,Punjab,1.1,58.9,31.451674,74.484742
-Restaurant_307,Restaurant/Cafe/Shop,Pass,14/04/2024,Address_307,55150,Punjab,3.6,81.4,31.549988,74.275585
-Restaurant_308,Restaurant/Cafe/Shop,Pass,03/04/2024,Address_308,55150,Punjab,2.3,69.7,31.432492,74.387657
-Restaurant_309,Restaurant/Cafe/Shop,Pass,28/10/2024,Address_309,46000,Punjab,2,67,31.574778,74.216606
-Restaurant_310,Restaurant/Cafe/Shop,Pass,18/03/2025,Address_310,40100,Punjab,1.2,59.8,31.552389,74.352501
-Restaurant_311,Restaurant/Cafe/Shop,Pass,15/03/2025,Address_311,40100,Punjab,2.3,69.7,31.510571,74.452383
-Restaurant_312,Restaurant/Cafe/Shop,Awaiting Inspection,23/04/2024,Address_312,38000,Punjab,1.6,45.9,31.659776,74.480151
-Restaurant_313,Restaurant/Cafe/Shop,Pass,27/01/2025,Address_313,55150,Punjab,4.8,92.2,31.540397,74.212888
-Restaurant_314,Restaurant/Cafe/Shop,Pass,01/06/2025,Address_314,38000,Punjab,2.6,72.4,31.525442,74.464781
-Restaurant_315,Restaurant/Cafe/Shop,Pass,13/06/2025,Address_315,38000,Punjab,3.5,80.5,31.485115,74.46324
-Restaurant_316,Restaurant/Cafe/Shop,Pass,27/04/2024,Address_316,55150,Punjab,2.5,71.5,31.620735,74.480553
-Restaurant_317,Restaurant/Cafe/Shop,Pass,21/05/2024,Address_317,54000,Punjab,1.3,60.7,31.594877,74.405786
-Restaurant_318,Restaurant/Cafe/Shop,Pass,13/01/2024,Address_318,55150,Punjab,3.6,81.4,31.563906,74.370987
-Restaurant_319,Restaurant/Cafe/Shop,Pass,17/10/2024,Address_319,54000,Punjab,3.9,84.1,31.541535,74.32896
-Restaurant_320,Restaurant/Cafe/Shop,Pass,15/01/2025,Address_320,40100,Punjab,4.1,85.9,31.486207,74.260622
-Restaurant_321,Restaurant/Cafe/Shop,Pass,02/04/2025,Address_321,40100,Punjab,2.8,74.2,31.60491,74.219278
-Restaurant_322,Restaurant/Cafe/Shop,Pass,02/08/2025,Address_322,46000,Punjab,3.3,78.7,31.585151,74.476049
-Restaurant_323,Restaurant/Cafe/Shop,Improvement Required,02/12/2024,Address_323,55150,Punjab,4.8,78.2,31.456941,74.236327
-Restaurant_324,Restaurant/Cafe/Shop,Pass,03/11/2025,Address_324,40100,Punjab,2.5,71.5,31.41463,74.432674
-Restaurant_325,Restaurant/Cafe/Shop,Improvement Required,18/01/2025,Address_325,60000,Punjab,2.6,58.4,31.665407,74.353513
-Restaurant_326,Restaurant/Cafe/Shop,Pass,18/04/2025,Address_326,46000,Punjab,1.2,59.8,31.532107,74.365715
-Restaurant_327,Restaurant/Cafe/Shop,Awaiting Inspection,21/04/2025,Address_327,40100,Punjab,3.6,63.9,31.626984,74.311545
-Restaurant_328,Restaurant/Cafe/Shop,Pass,02/05/2024,Address_328,38000,Punjab,2,67,31.491806,74.202604
-Restaurant_329,Restaurant/Cafe/Shop,Improvement Required,25/12/2024,Address_329,60000,Punjab,1.2,45.8,31.651014,74.375959
-Restaurant_330,Restaurant/Cafe/Shop,Pass,07/02/2024,Address_330,40100,Punjab,1.1,58.9,31.674031,74.459483
-Restaurant_331,Restaurant/Cafe/Shop,Improvement Required,09/08/2025,Address_331,46000,Punjab,3.8,69.2,31.571499,74.388409
-Restaurant_332,Restaurant/Cafe/Shop,Pass,27/03/2025,Address_332,60000,Punjab,2,67,31.568717,74.345011
-Restaurant_333,Restaurant/Cafe/Shop,Pass,18/04/2025,Address_333,55150,Punjab,3.2,77.8,31.473279,74.378983
-Restaurant_334,Restaurant/Cafe/Shop,Pass,20/05/2024,Address_334,46000,Punjab,3.2,77.8,31.607236,74.458796
-Restaurant_335,Restaurant/Cafe/Shop,Improvement Required,09/09/2025,Address_335,46000,Punjab,4.6,76.4,31.606724,74.426832
-Restaurant_336,Restaurant/Cafe/Shop,Pass,21/02/2025,Address_336,40100,Punjab,4.5,89.5,31.466383,74.241676
-Restaurant_337,Restaurant/Cafe/Shop,Pass,27/02/2024,Address_337,55150,Punjab,2.8,74.2,31.67945,74.243729
-Restaurant_338,Restaurant/Cafe/Shop,Pass,05/04/2024,Address_338,60000,Punjab,1.7,64.3,31.468261,74.252105
-Restaurant_339,Restaurant/Cafe/Shop,Improvement Required,15/06/2024,Address_339,46000,Punjab,4.4,74.6,31.514732,74.244349
-Restaurant_340,Restaurant/Cafe/Shop,Pass,07/11/2025,Address_340,38000,Punjab,1.1,58.9,31.410854,74.321202
-Restaurant_341,Restaurant/Cafe/Shop,Pass,03/12/2025,Address_341,46000,Punjab,2.1,67.9,31.493065,74.480536
-Restaurant_342,Restaurant/Cafe/Shop,Awaiting Inspection,06/12/2025,Address_342,55150,Punjab,1.6,45.9,31.420836,74.299199
-Restaurant_343,Restaurant/Cafe/Shop,Pass,09/03/2025,Address_343,40100,Punjab,3.9,84.1,31.476606,74.289285
-Restaurant_344,Restaurant/Cafe/Shop,Pass,05/05/2025,Address_344,54000,Punjab,2.8,74.2,31.41508,74.470249
-Restaurant_345,Restaurant/Cafe/Shop,Pass,28/09/2024,Address_345,55150,Punjab,2.4,70.6,31.404881,74.357005
-Restaurant_346,Restaurant/Cafe/Shop,Pass,20/02/2024,Address_346,46000,Punjab,4.3,87.7,31.500425,74.483679
-Restaurant_347,Restaurant/Cafe/Shop,Pass,17/02/2025,Address_347,38000,Punjab,4.5,89.5,31.582126,74.30378
-Restaurant_348,Restaurant/Cafe/Shop,Improvement Required,01/09/2024,Address_348,38000,Punjab,1.3,46.7,31.468677,74.217926
-Restaurant_349,Restaurant/Cafe/Shop,Improvement Required,18/08/2025,Address_349,38000,Punjab,3.6,67.4,31.404152,74.348518
-Restaurant_350,Restaurant/Cafe/Shop,Pass,13/05/2025,Address_350,46000,Punjab,3.3,78.7,31.440329,74.328896
-Restaurant_351,Restaurant/Cafe/Shop,Awaiting Inspection,11/01/2024,Address_351,54000,Punjab,2.8,56.7,31.509905,74.344698
-Restaurant_352,Restaurant/Cafe/Shop,Pass,18/07/2025,Address_352,54000,Punjab,2.1,67.9,31.552774,74.338188
-Restaurant_353,Restaurant/Cafe/Shop,Pass,26/01/2024,Address_353,38000,Punjab,3.1,76.9,31.641386,74.282532
-Restaurant_354,Restaurant/Cafe/Shop,Pass,13/01/2024,Address_354,54000,Punjab,1.6,63.4,31.684545,74.438999
-Restaurant_355,Restaurant/Cafe/Shop,Pass,26/02/2025,Address_355,55150,Punjab,5,94,31.644183,74.3659
-Restaurant_356,Restaurant/Cafe/Shop,Pass,07/06/2024,Address_356,46000,Punjab,4.5,89.5,31.49465,74.387527
-Restaurant_357,Restaurant/Cafe/Shop,Pass,15/04/2024,Address_357,46000,Punjab,2,67,31.668207,74.221912
-Restaurant_358,Restaurant/Cafe/Shop,Improvement Required,21/09/2025,Address_358,46000,Punjab,2.4,56.6,31.536369,74.250349
-Restaurant_359,Restaurant/Cafe/Shop,Pass,28/06/2025,Address_359,54000,Punjab,4.6,90.4,31.508589,74.286259
-Restaurant_360,Restaurant/Cafe/Shop,Pass,21/01/2025,Address_360,46000,Punjab,4.8,92.2,31.598824,74.2107
-Restaurant_361,Restaurant/Cafe/Shop,Pass,25/09/2024,Address_361,46000,Punjab,3,76,31.560621,74.453465
-Restaurant_362,Restaurant/Cafe/Shop,Pass,23/12/2025,Address_362,46000,Punjab,3.2,77.8,31.639277,74.205838
-Restaurant_363,Restaurant/Cafe/Shop,Pass,01/10/2025,Address_363,60000,Punjab,4.8,92.2,31.67925,74.270068
-Restaurant_364,Restaurant/Cafe/Shop,Pass,19/04/2025,Address_364,60000,Punjab,2.8,74.2,31.422568,74.328498
-Restaurant_365,Restaurant/Cafe/Shop,Pass,28/11/2024,Address_365,40100,Punjab,1.8,65.2,31.413522,74.336464
-Restaurant_366,Restaurant/Cafe/Shop,Improvement Required,17/01/2025,Address_366,54000,Punjab,1.3,46.7,31.463096,74.21551
-Restaurant_367,Restaurant/Cafe/Shop,Improvement Required,24/02/2025,Address_367,60000,Punjab,4.9,79.1,31.423475,74.294173
-Restaurant_368,Restaurant/Cafe/Shop,Pass,06/01/2025,Address_368,55150,Punjab,4,85,31.441128,74.252636
-Restaurant_369,Restaurant/Cafe/Shop,Pass,23/02/2024,Address_369,60000,Punjab,1.8,65.2,31.522027,74.46619
-Restaurant_370,Restaurant/Cafe/Shop,Pass,23/02/2025,Address_370,60000,Punjab,4.7,91.3,31.636617,74.215494
-Restaurant_371,Restaurant/Cafe/Shop,Pass,29/01/2024,Address_371,55150,Punjab,3.9,84.1,31.529698,74.308807
-Restaurant_372,Restaurant/Cafe/Shop,Pass,14/04/2025,Address_372,46000,Punjab,1.1,58.9,31.500112,74.350044
-Restaurant_373,Restaurant/Cafe/Shop,Improvement Required,22/09/2025,Address_373,46000,Punjab,4.3,73.7,31.533083,74.317418
-Restaurant_374,Restaurant/Cafe/Shop,Pass,10/06/2025,Address_374,46000,Punjab,4.6,90.4,31.661892,74.424492
-Restaurant_375,Restaurant/Cafe/Shop,Pass,21/01/2025,Address_375,55150,Punjab,4.1,85.9,31.679888,74.274085
-Restaurant_376,Restaurant/Cafe/Shop,Pass,14/12/2025,Address_376,46000,Punjab,3.2,77.8,31.462196,74.431631
-Restaurant_377,Restaurant/Cafe/Shop,Awaiting Inspection,27/12/2025,Address_377,55150,Punjab,1.9,48.6,31.581994,74.281143
-Restaurant_378,Restaurant/Cafe/Shop,Pass,05/11/2025,Address_378,46000,Punjab,2.4,70.6,31.568201,74.40384
-Restaurant_379,Restaurant/Cafe/Shop,Improvement Required,07/09/2025,Address_379,54000,Punjab,1.1,44.9,31.559158,74.348244
-Restaurant_380,Restaurant/Cafe/Shop,Pass,09/12/2024,Address_380,54000,Punjab,5,94,31.423525,74.315687
-Restaurant_381,Restaurant/Cafe/Shop,Pass,14/11/2024,Address_381,54000,Punjab,1.7,64.3,31.551198,74.353414
-Restaurant_382,Restaurant/Cafe/Shop,Pass,29/10/2025,Address_382,38000,Punjab,2.4,70.6,31.465283,74.223708
-Restaurant_383,Restaurant/Cafe/Shop,Pass,24/01/2025,Address_383,54000,Punjab,1.1,58.9,31.57426,74.281153
-Restaurant_384,Restaurant/Cafe/Shop,Pass,23/04/2024,Address_384,54000,Punjab,3.4,79.6,31.470039,74.288578
-Restaurant_385,Restaurant/Cafe/Shop,Improvement Required,16/05/2024,Address_385,60000,Punjab,2.9,61.1,31.610309,74.307235
-Restaurant_386,Restaurant/Cafe/Shop,Pass,27/11/2024,Address_386,38000,Punjab,2.7,73.3,31.4661,74.370842
-Restaurant_387,Restaurant/Cafe/Shop,Pass,28/05/2024,Address_387,40100,Punjab,1.9,66.1,31.462968,74.39002
-Restaurant_388,Restaurant/Cafe/Shop,Pass,15/12/2025,Address_388,55150,Punjab,3.2,77.8,31.578841,74.21024
-Restaurant_389,Restaurant/Cafe/Shop,Pass,06/10/2025,Address_389,60000,Punjab,2.6,72.4,31.515918,74.47798
-Restaurant_390,Restaurant/Cafe/Shop,Pass,03/08/2025,Address_390,46000,Punjab,3.2,77.8,31.684621,74.280284
-Restaurant_391,Restaurant/Cafe/Shop,Pass,30/01/2024,Address_391,55150,Punjab,4,85,31.62096,74.235391
-Restaurant_392,Restaurant/Cafe/Shop,Improvement Required,27/07/2025,Address_392,55150,Punjab,4.4,74.6,31.418559,74.393322
-Restaurant_393,Restaurant/Cafe/Shop,Pass,03/09/2025,Address_393,60000,Punjab,4.3,87.7,31.631571,74.377746
-Restaurant_394,Restaurant/Cafe/Shop,Pass,31/07/2024,Address_394,38000,Punjab,4.5,89.5,31.611399,74.380466
-Restaurant_395,Restaurant/Cafe/Shop,Pass,22/12/2025,Address_395,54000,Punjab,3.6,81.4,31.539918,74.208831
-Restaurant_396,Restaurant/Cafe/Shop,Pass,05/04/2025,Address_396,60000,Punjab,4.5,89.5,31.530567,74.290262
-Restaurant_397,Restaurant/Cafe/Shop,Pass,15/01/2024,Address_397,60000,Punjab,3.6,81.4,31.419783,74.379059
-Restaurant_398,Restaurant/Cafe/Shop,Pass,30/08/2024,Address_398,55150,Punjab,3.5,80.5,31.524215,74.378628
-Restaurant_399,Restaurant/Cafe/Shop,Pass,09/03/2024,Address_399,60000,Punjab,1.4,61.6,31.423863,74.245228
-Restaurant_400,Restaurant/Cafe/Shop,Pass,13/06/2024,Address_400,46000,Punjab,3.9,84.1,31.645859,74.23847
-Restaurant_401,Restaurant/Cafe/Shop,Pass,03/03/2025,Address_401,40100,Punjab,3.1,76.9,31.671481,74.40706
-Restaurant_402,Restaurant/Cafe/Shop,Awaiting Inspection,13/04/2025,Address_402,40100,Punjab,1.5,45,31.614969,74.470303
-Restaurant_403,Restaurant/Cafe/Shop,Improvement Required,07/01/2025,Address_403,38000,Punjab,2.2,54.8,31.601751,74.439906
-Restaurant_404,Restaurant/Cafe/Shop,Improvement Required,07/02/2025,Address_404,55150,Punjab,1.1,44.9,31.451141,74.426472
-Restaurant_405,Restaurant/Cafe/Shop,Improvement Required,01/07/2024,Address_405,54000,Punjab,2.2,54.8,31.439997,74.229696
-Restaurant_406,Restaurant/Cafe/Shop,Pass,26/05/2025,Address_406,40100,Punjab,3.1,76.9,31.428071,74.242585
-Restaurant_407,Restaurant/Cafe/Shop,Pass,01/01/2024,Address_407,60000,Punjab,2.1,67.9,31.667395,74.36947
-Restaurant_408,Restaurant/Cafe/Shop,Improvement Required,21/10/2025,Address_408,55150,Punjab,3.7,68.3,31.568325,74.363943
-Restaurant_409,Restaurant/Cafe/Shop,Pass,24/09/2025,Address_409,40100,Punjab,1.5,62.5,31.451138,74.468893
-Restaurant_410,Restaurant/Cafe/Shop,Pass,25/10/2024,Address_410,60000,Punjab,3.8,83.2,31.621135,74.351978
-Restaurant_411,Restaurant/Cafe/Shop,Pass,11/03/2024,Address_411,38000,Punjab,1.5,62.5,31.678303,74.241979
-Restaurant_412,Restaurant/Cafe/Shop,Pass,07/09/2025,Address_412,55150,Punjab,1.1,58.9,31.47708,74.424202
-Restaurant_413,Restaurant/Cafe/Shop,Pass,20/05/2025,Address_413,55150,Punjab,4.4,88.6,31.504371,74.368554
-Restaurant_414,Restaurant/Cafe/Shop,Pass,27/09/2025,Address_414,38000,Punjab,4.1,85.9,31.485824,74.399043
-Restaurant_415,Restaurant/Cafe/Shop,Pass,11/01/2025,Address_415,55150,Punjab,4.2,86.8,31.502566,74.46371
-Restaurant_416,Restaurant/Cafe/Shop,Awaiting Inspection,28/04/2025,Address_416,55150,Punjab,2.5,54,31.519514,74.378291
-Restaurant_417,Restaurant/Cafe/Shop,Pass,19/09/2025,Address_417,46000,Punjab,1,58,31.40387,74.233527
-Restaurant_418,Restaurant/Cafe/Shop,Pass,30/03/2025,Address_418,40100,Punjab,4,85,31.612798,74.474614
-Restaurant_419,Restaurant/Cafe/Shop,Awaiting Inspection,11/06/2024,Address_419,54000,Punjab,1.5,45,31.613265,74.296627
-Restaurant_420,Restaurant/Cafe/Shop,Awaiting Inspection,05/04/2024,Address_420,60000,Punjab,3.3,61.2,31.492048,74.375379
-Restaurant_421,Restaurant/Cafe/Shop,Pass,30/12/2025,Address_421,54000,Punjab,3.4,79.6,31.573953,74.412194
-Restaurant_422,Restaurant/Cafe/Shop,Pass,20/06/2024,Address_422,54000,Punjab,2.7,73.3,31.537369,74.451996
-Restaurant_423,Restaurant/Cafe/Shop,Pass,16/11/2024,Address_423,38000,Punjab,2.4,70.6,31.433918,74.390673
-Restaurant_424,Restaurant/Cafe/Shop,Pass,30/10/2025,Address_424,46000,Punjab,3.5,80.5,31.632043,74.439705
-Restaurant_425,Restaurant/Cafe/Shop,Pass,31/10/2025,Address_425,54000,Punjab,1.5,62.5,31.676824,74.267128
-Restaurant_426,Restaurant/Cafe/Shop,Pass,13/04/2024,Address_426,60000,Punjab,4.6,90.4,31.488537,74.326251
-Restaurant_427,Restaurant/Cafe/Shop,Pass,21/09/2025,Address_427,40100,Punjab,4.6,90.4,31.547377,74.37012
-Restaurant_428,Restaurant/Cafe/Shop,Pass,31/01/2024,Address_428,38000,Punjab,3.2,77.8,31.533128,74.440817
-Restaurant_429,Restaurant/Cafe/Shop,Pass,09/01/2025,Address_429,60000,Punjab,3.6,81.4,31.618739,74.321444
-Restaurant_430,Restaurant/Cafe/Shop,Pass,22/05/2024,Address_430,55150,Punjab,4,85,31.560463,74.475699
-Restaurant_431,Restaurant/Cafe/Shop,Pass,06/08/2025,Address_431,40100,Punjab,2.4,70.6,31.598009,74.399844
-Restaurant_432,Restaurant/Cafe/Shop,Pass,28/10/2025,Address_432,60000,Punjab,2.4,70.6,31.427262,74.273382
-Restaurant_433,Restaurant/Cafe/Shop,Pass,06/07/2024,Address_433,40100,Punjab,3.9,84.1,31.655316,74.370182
-Restaurant_434,Restaurant/Cafe/Shop,Improvement Required,23/11/2025,Address_434,54000,Punjab,3.7,68.3,31.564808,74.322763
-Restaurant_435,Restaurant/Cafe/Shop,Pass,21/03/2025,Address_435,60000,Punjab,1.9,66.1,31.477607,74.444026
-Restaurant_436,Restaurant/Cafe/Shop,Pass,07/12/2025,Address_436,38000,Punjab,2.6,72.4,31.49481,74.381991
-Restaurant_437,Restaurant/Cafe/Shop,Pass,27/01/2025,Address_437,40100,Punjab,2.4,70.6,31.588664,74.304614
-Restaurant_438,Restaurant/Cafe/Shop,Pass,21/12/2024,Address_438,46000,Punjab,2.6,72.4,31.677719,74.350519
-Restaurant_439,Restaurant/Cafe/Shop,Pass,28/06/2025,Address_439,38000,Punjab,2.1,67.9,31.600248,74.345521
-Restaurant_440,Restaurant/Cafe/Shop,Pass,24/12/2024,Address_440,60000,Punjab,3.8,83.2,31.459641,74.258604
-Restaurant_441,Restaurant/Cafe/Shop,Pass,26/03/2024,Address_441,54000,Punjab,2.1,67.9,31.646951,74.384228
-Restaurant_442,Restaurant/Cafe/Shop,Improvement Required,28/07/2025,Address_442,40100,Punjab,5,80,31.508175,74.274603
-Restaurant_443,Restaurant/Cafe/Shop,Pass,07/01/2025,Address_443,54000,Punjab,3.5,80.5,31.624188,74.372837
-Restaurant_444,Restaurant/Cafe/Shop,Improvement Required,30/08/2025,Address_444,38000,Punjab,2.5,57.5,31.614499,74.256933
-Restaurant_445,Restaurant/Cafe/Shop,Pass,14/09/2025,Address_445,60000,Punjab,2.7,73.3,31.511784,74.263388
-Restaurant_446,Restaurant/Cafe/Shop,Improvement Required,15/10/2024,Address_446,38000,Punjab,2,53,31.422167,74.363913
-Restaurant_447,Restaurant/Cafe/Shop,Pass,27/04/2024,Address_447,46000,Punjab,1.1,58.9,31.543328,74.456207
-Restaurant_448,Restaurant/Cafe/Shop,Improvement Required,10/03/2025,Address_448,60000,Punjab,3.9,70.1,31.458594,74.216573
-Restaurant_449,Restaurant/Cafe/Shop,Pass,09/11/2024,Address_449,54000,Punjab,1.7,64.3,31.521113,74.4685
-Restaurant_450,Restaurant/Cafe/Shop,Pass,08/06/2025,Address_450,55150,Punjab,1,58,31.679057,74.268299
-Restaurant_451,Restaurant/Cafe/Shop,Pass,04/12/2024,Address_451,40100,Punjab,2.5,71.5,31.601627,74.318923
-Restaurant_452,Restaurant/Cafe/Shop,Pass,10/03/2024,Address_452,46000,Punjab,2.9,75.1,31.667049,74.263705
-Restaurant_453,Restaurant/Cafe/Shop,Awaiting Inspection,06/06/2024,Address_453,40100,Punjab,3.3,61.2,31.609764,74.224636
-Restaurant_454,Restaurant/Cafe/Shop,Pass,23/03/2025,Address_454,38000,Punjab,4.7,91.3,31.462776,74.445298
-Restaurant_455,Restaurant/Cafe/Shop,Improvement Required,09/02/2024,Address_455,60000,Punjab,2.8,60.2,31.603827,74.259124
-Restaurant_456,Restaurant/Cafe/Shop,Pass,19/07/2025,Address_456,54000,Punjab,1.7,64.3,31.401369,74.387273
-Restaurant_457,Restaurant/Cafe/Shop,Improvement Required,17/06/2025,Address_457,38000,Punjab,1.9,52.1,31.417505,74.216064
-Restaurant_458,Restaurant/Cafe/Shop,Pass,30/05/2024,Address_458,38000,Punjab,4.5,89.5,31.672878,74.217244
-Restaurant_459,Restaurant/Cafe/Shop,Pass,15/09/2025,Address_459,55150,Punjab,2,67,31.475429,74.211547
-Restaurant_460,Restaurant/Cafe/Shop,Pass,04/03/2024,Address_460,54000,Punjab,3.4,79.6,31.651978,74.369951
-Restaurant_461,Restaurant/Cafe/Shop,Improvement Required,01/06/2025,Address_461,60000,Punjab,1,44,31.569481,74.256003
-Restaurant_462,Restaurant/Cafe/Shop,Pass,06/11/2025,Address_462,40100,Punjab,4.1,85.9,31.430393,74.241308
-Restaurant_463,Restaurant/Cafe/Shop,Pass,02/04/2025,Address_463,46000,Punjab,1.3,60.7,31.540578,74.342708
-Restaurant_464,Restaurant/Cafe/Shop,Pass,23/07/2025,Address_464,60000,Punjab,2.6,72.4,31.540434,74.223196
-Restaurant_465,Restaurant/Cafe/Shop,Pass,20/12/2025,Address_465,38000,Punjab,1.6,63.4,31.539994,74.227856
-Restaurant_466,Restaurant/Cafe/Shop,Pass,01/12/2024,Address_466,40100,Punjab,2.5,71.5,31.45312,74.483374
-Restaurant_467,Restaurant/Cafe/Shop,Improvement Required,25/01/2024,Address_467,46000,Punjab,2.9,61.1,31.422473,74.257235
-Restaurant_468,Restaurant/Cafe/Shop,Pass,30/07/2025,Address_468,38000,Punjab,4.7,91.3,31.606655,74.40954
-Restaurant_469,Restaurant/Cafe/Shop,Pass,14/12/2024,Address_469,38000,Punjab,4.5,89.5,31.424498,74.386644
-Restaurant_470,Restaurant/Cafe/Shop,Pass,30/10/2025,Address_470,38000,Punjab,2.6,72.4,31.563605,74.2445
-Restaurant_471,Restaurant/Cafe/Shop,Pass,02/04/2024,Address_471,55150,Punjab,3.6,81.4,31.514721,74.216742
-Restaurant_472,Restaurant/Cafe/Shop,Improvement Required,06/04/2024,Address_472,40100,Punjab,4.4,74.6,31.572036,74.343826
-Restaurant_473,Restaurant/Cafe/Shop,Pass,25/11/2024,Address_473,38000,Punjab,1.6,63.4,31.5925,74.428475
-Restaurant_474,Restaurant/Cafe/Shop,Awaiting Inspection,01/04/2024,Address_474,54000,Punjab,3.8,65.7,31.496112,74.486093
-Restaurant_475,Restaurant/Cafe/Shop,Pass,29/03/2025,Address_475,60000,Punjab,3.3,78.7,31.473627,74.279385
-Restaurant_476,Restaurant/Cafe/Shop,Pass,16/07/2025,Address_476,60000,Punjab,2,67,31.650359,74.292787
-Restaurant_477,Restaurant/Cafe/Shop,Pass,02/01/2025,Address_477,38000,Punjab,3.8,83.2,31.46218,74.333238
-Restaurant_478,Restaurant/Cafe/Shop,Pass,01/09/2025,Address_478,60000,Punjab,3.1,76.9,31.61232,74.345091
-Restaurant_479,Restaurant/Cafe/Shop,Pass,22/10/2025,Address_479,60000,Punjab,1.8,65.2,31.639173,74.294313
-Restaurant_480,Restaurant/Cafe/Shop,Pass,28/08/2024,Address_480,40100,Punjab,1.2,59.8,31.488171,74.330808
-Restaurant_481,Restaurant/Cafe/Shop,Pass,24/11/2025,Address_481,54000,Punjab,2.2,68.8,31.649885,74.263068
-Restaurant_482,Restaurant/Cafe/Shop,Pass,24/03/2025,Address_482,38000,Punjab,1.6,63.4,31.567333,74.46499
-Restaurant_483,Restaurant/Cafe/Shop,Improvement Required,01/09/2025,Address_483,46000,Punjab,4.4,74.6,31.495534,74.213918
-Restaurant_484,Restaurant/Cafe/Shop,Pass,27/04/2025,Address_484,38000,Punjab,1.4,61.6,31.625813,74.311337
-Restaurant_485,Restaurant/Cafe/Shop,Improvement Required,16/09/2025,Address_485,54000,Punjab,3.4,65.6,31.600224,74.309208
-Restaurant_486,Restaurant/Cafe/Shop,Pass,16/09/2024,Address_486,55150,Punjab,2.9,75.1,31.523421,74.432986
-Restaurant_487,Restaurant/Cafe/Shop,Improvement Required,16/12/2025,Address_487,55150,Punjab,3.2,63.8,31.413989,74.456191
-Restaurant_488,Restaurant/Cafe/Shop,Pass,31/07/2024,Address_488,40100,Punjab,3.9,84.1,31.463694,74.456004
-Restaurant_489,Restaurant/Cafe/Shop,Awaiting Inspection,15/07/2024,Address_489,38000,Punjab,1.6,45.9,31.427762,74.390523
-Restaurant_490,Restaurant/Cafe/Shop,Pass,04/06/2025,Address_490,60000,Punjab,3.4,79.6,31.626318,74.214184
-Restaurant_491,Restaurant/Cafe/Shop,Pass,17/01/2024,Address_491,60000,Punjab,3.3,78.7,31.481323,74.346075
-Restaurant_492,Restaurant/Cafe/Shop,Pass,20/01/2024,Address_492,46000,Punjab,4.6,90.4,31.507002,74.480684
-Restaurant_493,Restaurant/Cafe/Shop,Pass,18/02/2025,Address_493,54000,Punjab,3.9,84.1,31.619894,74.299337
-Restaurant_494,Restaurant/Cafe/Shop,Pass,27/07/2024,Address_494,46000,Punjab,3.9,84.1,31.583559,74.224592
-Restaurant_495,Restaurant/Cafe/Shop,Improvement Required,19/04/2024,Address_495,38000,Punjab,1.9,52.1,31.593234,74.386552
-Restaurant_496,Restaurant/Cafe/Shop,Pass,17/04/2025,Address_496,38000,Punjab,3.2,77.8,31.509562,74.45006
-Restaurant_497,Restaurant/Cafe/Shop,Pass,03/03/2024,Address_497,40100,Punjab,3,76,31.663412,74.396574
-Restaurant_498,Restaurant/Cafe/Shop,Pass,02/01/2025,Address_498,40100,Punjab,3.6,81.4,31.569092,74.324229
-Restaurant_499,Restaurant/Cafe/Shop,Pass,22/05/2024,Address_499,60000,Punjab,1.3,60.7,31.412214,74.487124
-Restaurant_500,Restaurant/Cafe/Shop,Pass,09/06/2024,Address_500,55150,Punjab,4.7,91.3,31.642514,74.218642
-Restaurant_501,Restaurant/Cafe/Shop,Pass,13/07/2025,Address_501,40100,Punjab,1.1,58.9,31.640654,74.454331
-Restaurant_502,Restaurant/Cafe/Shop,Pass,01/12/2025,Address_502,46000,Punjab,1.3,60.7,31.56605,74.395421
-Restaurant_503,Restaurant/Cafe/Shop,Pass,11/09/2024,Address_503,55150,Punjab,4.4,88.6,31.647496,74.455699
-Restaurant_504,Restaurant/Cafe/Shop,Pass,22/12/2025,Address_504,54000,Punjab,2.6,72.4,31.561438,74.333712
-Restaurant_505,Restaurant/Cafe/Shop,Improvement Required,23/10/2025,Address_505,46000,Punjab,2.7,59.3,31.518362,74.350361
-Restaurant_506,Restaurant/Cafe/Shop,Pass,14/04/2025,Address_506,40100,Punjab,1.2,59.8,31.408061,74.25486
-Restaurant_507,Restaurant/Cafe/Shop,Awaiting Inspection,02/07/2025,Address_507,46000,Punjab,4.2,69.3,31.639081,74.397664
-Restaurant_508,Restaurant/Cafe/Shop,Pass,01/05/2024,Address_508,55150,Punjab,3.3,78.7,31.529615,74.299336
-Restaurant_509,Restaurant/Cafe/Shop,Pass,17/05/2024,Address_509,60000,Punjab,3.4,79.6,31.440986,74.299483
-Restaurant_510,Restaurant/Cafe/Shop,Awaiting Inspection,25/02/2024,Address_510,54000,Punjab,2.9,57.6,31.649113,74.314308
-Restaurant_511,Restaurant/Cafe/Shop,Pass,03/10/2024,Address_511,54000,Punjab,1.7,64.3,31.67364,74.406448
-Restaurant_512,Restaurant/Cafe/Shop,Pass,02/05/2024,Address_512,46000,Punjab,4.9,93.1,31.645188,74.420792
-Restaurant_513,Restaurant/Cafe/Shop,Pass,25/05/2024,Address_513,55150,Punjab,3.2,77.8,31.559072,74.20503
-Restaurant_514,Restaurant/Cafe/Shop,Improvement Required,29/10/2025,Address_514,54000,Punjab,2.8,60.2,31.676888,74.385853
-Restaurant_515,Restaurant/Cafe/Shop,Improvement Required,10/01/2024,Address_515,60000,Punjab,1.8,51.2,31.622938,74.420908
-Restaurant_516,Restaurant/Cafe/Shop,Improvement Required,30/04/2024,Address_516,46000,Punjab,4.7,77.3,31.404791,74.253382
-Restaurant_517,Restaurant/Cafe/Shop,Awaiting Inspection,02/01/2025,Address_517,60000,Punjab,4.5,72,31.448593,74.228382
-Restaurant_518,Restaurant/Cafe/Shop,Pass,23/09/2024,Address_518,54000,Punjab,3,76,31.592819,74.272885
-Restaurant_519,Restaurant/Cafe/Shop,Awaiting Inspection,05/12/2025,Address_519,40100,Punjab,3.5,63,31.677444,74.397244
-Restaurant_520,Restaurant/Cafe/Shop,Improvement Required,30/11/2024,Address_520,55150,Punjab,2.9,61.1,31.631873,74.377322
-Restaurant_521,Restaurant/Cafe/Shop,Improvement Required,01/11/2025,Address_521,55150,Punjab,1.9,52.1,31.500539,74.359842
-Restaurant_522,Restaurant/Cafe/Shop,Pass,04/01/2024,Address_522,60000,Punjab,1.9,66.1,31.475979,74.311626
-Restaurant_523,Restaurant/Cafe/Shop,Exempt,22/12/2025,Address_523,60000,Punjab,4.4,81.6,31.432552,74.281843
-Restaurant_524,Restaurant/Cafe/Shop,Pass,14/07/2025,Address_524,55150,Punjab,2.6,72.4,31.611172,74.238335
-Restaurant_525,Restaurant/Cafe/Shop,Improvement Required,02/10/2024,Address_525,60000,Punjab,3.6,67.4,31.583466,74.298562
-Restaurant_526,Restaurant/Cafe/Shop,Pass,21/01/2025,Address_526,60000,Punjab,2.2,68.8,31.452277,74.216996
-Restaurant_527,Restaurant/Cafe/Shop,Improvement Required,07/08/2024,Address_527,46000,Punjab,2.4,56.6,31.622677,74.355642
-Restaurant_528,Restaurant/Cafe/Shop,Pass,21/01/2025,Address_528,40100,Punjab,2.9,75.1,31.639959,74.22361
-Restaurant_529,Restaurant/Cafe/Shop,Improvement Required,07/01/2025,Address_529,54000,Punjab,2.3,55.7,31.645207,74.344284
-Restaurant_530,Restaurant/Cafe/Shop,Improvement Required,01/01/2025,Address_530,60000,Punjab,4.9,79.1,31.663089,74.329853
-,,,,,,,,, , 
+Borough Bistro,Restaurant/Cafe/Shop,Pass,17/12/2024,Address_1,40100,Punjab,3.1,76.9,31.64101,74.331766
+Bombay Darbar,Restaurant/Cafe/Shop,Pass,06/07/2025,Address_2,46000,Punjab,1.8,65.2,31.626452,74.357702
+Solo Primi,Restaurant/Cafe/Shop,Pass,16/06/2025,Address_3,46000,Punjab,1.1,58.9,31.596634,74.207676
+Mayfair Lion,Restaurant/Cafe/Shop,Pass,06/03/2025,Address_4,60000,Punjab,2.3,69.7,31.405379,74.231773
+Mayfair Oak,Restaurant/Cafe/Shop,Pass,10/06/2024,Address_5,60000,Punjab,2.3,69.7,31.675653,74.310205
+Chelsea Market (1),Restaurant/Cafe/Shop,Pass,11/07/2025,Address_6,46000,Punjab,4,85,31.442496,74.401895
+Zaiqa Biryani (1),Restaurant/Cafe/Shop,Pass,14/02/2024,Address_7,38000,Punjab,3.5,80.5,31.440704,74.490283
+Petra Grill,Restaurant/Cafe/Shop,Pass,08/03/2025,Address_8,40100,Punjab,2.2,68.8,31.508327,74.234631
+Aegean Lebanon,Restaurant/Cafe/Shop,Pass,04/04/2024,Address_9,55150,Punjab,4.6,90.4,31.565105,74.321657
+Osteria Bolognese,Restaurant/Cafe/Shop,Pass,27/05/2024,Address_10,60000,Punjab,1.1,58.9,31.536229,74.344084
+El Greco Garden,Restaurant/Cafe/Shop,Pass,11/10/2025,Address_11,55150,Punjab,4.2,86.8,31.482534,74.239572
+Chipotle Kitchen,Restaurant/Cafe/Shop,Pass,26/06/2025,Address_12,54000,Punjab,2.6,72.4,31.642802,74.265239
+Fiesta Loco,Restaurant/Cafe/Shop,Improvement Required,09/06/2024,Address_13,46000,Punjab,1.1,44.9,31.418179,74.295461
+Albion Grille,Restaurant/Cafe/Shop,Pass,10/01/2025,Address_14,46000,Punjab,1.7,64.3,31.643995,74.38034
+Sweet Sins Grind,Restaurant/Cafe/Shop,Improvement Required,10/04/2025,Address_15,46000,Punjab,3.9,70.1,31.433657,74.482279
+Amore Napoli,Restaurant/Cafe/Shop,Pass,04/01/2024,Address_16,46000,Punjab,4.3,87.7,31.498445,74.212524
+Zaiqa Cafe,Restaurant/Cafe/Shop,Pass,23/07/2024,Address_17,54000,Punjab,1.8,65.2,31.637546,74.385921
+La Taqueria Salsa,Restaurant/Cafe/Shop,Pass,07/09/2025,Address_18,46000,Punjab,1.4,61.6,31.434479,74.277164
+Java Bakehouse,Restaurant/Cafe/Shop,Pass,26/08/2025,Address_19,46000,Punjab,1.2,59.8,31.671125,74.322849
+The White Castle (1),Restaurant/Cafe/Shop,Pass,18/04/2024,Address_20,54000,Punjab,3.2,77.8,31.646907,74.465027
+Sultan Mint,Restaurant/Cafe/Shop,Pass,20/10/2024,Address_21,60000,Punjab,2.3,69.7,31.59581,74.38937
+Aegean Tree,Restaurant/Cafe/Shop,Pass,22/05/2024,Address_22,55150,Punjab,2.1,67.9,31.519576,74.2202
+Cancun Cantina,Restaurant/Cafe/Shop,Improvement Required,08/07/2024,Address_23,54000,Punjab,2.8,60.2,31.460886,74.35585
+Roma Bistro (1),Restaurant/Cafe/Shop,Improvement Required,12/06/2025,Address_24,60000,Punjab,1.8,51.2,31.452451,74.298191
+Pizzeria Primi,Restaurant/Cafe/Shop,Pass,06/07/2024,Address_25,54000,Punjab,1.1,58.9,31.641912,74.209229
+Chelsea Roast House,Restaurant/Cafe/Shop,Pass,11/02/2024,Address_26,46000,Punjab,3.8,83.2,31.617956,74.286595
+La Piazza Enzo,Restaurant/Cafe/Shop,Pass,01/11/2024,Address_27,40100,Punjab,4.9,93.1,31.528318,74.380633
+Senor Sol,Restaurant/Cafe/Shop,Pass,24/07/2025,Address_28,40100,Punjab,1.4,61.6,31.421216,74.203798
+Pasta Olive,Restaurant/Cafe/Shop,Pass,18/09/2025,Address_29,46000,Punjab,1.6,63.4,31.688663,74.359173
+Noodle Lantern,Restaurant/Cafe/Shop,Pass,24/11/2025,Address_30,38000,Punjab,4.8,92.2,31.473204,74.429467
+Guacamole Bonita,Restaurant/Cafe/Shop,Pass,17/11/2024,Address_31,54000,Punjab,3.6,81.4,31.536537,74.212052
+Lebanese Grill,Restaurant/Cafe/Shop,Pass,07/02/2024,Address_32,60000,Punjab,3.1,76.9,31.590991,74.256964
+Gourmet Fresh,Restaurant/Cafe/Shop,Pass,26/02/2024,Address_33,54000,Punjab,2.6,72.4,31.641487,74.319729
+El Sombrero Frog,Restaurant/Cafe/Shop,Pass,29/10/2025,Address_34,60000,Punjab,2.7,73.3,31.447133,74.320704
+Milano Bella,Restaurant/Cafe/Shop,Pass,25/06/2024,Address_35,38000,Punjab,4.9,93.1,31.504039,74.463174
+Mayfair Crown,Restaurant/Cafe/Shop,Pass,15/07/2025,Address_36,54000,Punjab,1,58,31.594748,74.271475
+Turbo Wrap,Restaurant/Cafe/Shop,Pass,26/12/2025,Address_37,54000,Punjab,4.3,87.7,31.478348,74.37472
+Noodle Palace,Restaurant/Cafe/Shop,Pass,08/08/2025,Address_38,54000,Punjab,2.2,68.8,31.581052,74.423816
+Espresso Perk,Restaurant/Cafe/Shop,Pass,13/07/2024,Address_39,46000,Punjab,4.3,87.7,31.58269,74.249692
+Masala Karahi,Restaurant/Cafe/Shop,Pass,21/08/2024,Address_40,46000,Punjab,3.5,80.5,31.460185,74.309585
+Chinatown Kitchen,Restaurant/Cafe/Shop,Pass,07/05/2025,Address_41,55150,Punjab,4,85,31.651988,74.403948
+Pasta Bolognese,Restaurant/Cafe/Shop,Pass,16/08/2024,Address_42,38000,Punjab,2.7,73.3,31.588001,74.412134
+Morning Leaves,Restaurant/Cafe/Shop,Pass,04/04/2025,Address_43,46000,Punjab,2.7,73.3,31.579814,74.248557
+Dynasty Blossom (1),Restaurant/Cafe/Shop,Pass,12/01/2025,Address_44,40100,Punjab,3.7,82.3,31.535466,74.366076
+Chili Express,Restaurant/Cafe/Shop,Pass,25/10/2025,Address_45,55150,Punjab,1.1,58.9,31.430292,74.367817
+Morning Bean,Restaurant/Cafe/Shop,Pass,29/08/2025,Address_46,40100,Punjab,2.6,72.4,31.56204,74.415646
+Fast & Fry,Restaurant/Cafe/Shop,Pass,28/09/2024,Address_47,60000,Punjab,4.2,86.8,31.566135,74.254532
+Jalapeno Burrito,Restaurant/Cafe/Shop,Pass,15/06/2024,Address_48,55150,Punjab,1.1,58.9,31.610706,74.344328
+The Red Head,Restaurant/Cafe/Shop,Pass,06/12/2025,Address_49,55150,Punjab,3.5,80.5,31.648595,74.232356
+Gyro Grill,Restaurant/Cafe/Shop,Awaiting Inspection,28/03/2024,Address_50,46000,Punjab,3.6,63.9,31.565144,74.234243
+Canton Express,Restaurant/Cafe/Shop,Pass,13/01/2024,Address_51,38000,Punjab,2.7,73.3,31.58662,74.377786
+The Pizza Coop,Restaurant/Cafe/Shop,Pass,30/07/2024,Address_52,38000,Punjab,2.3,69.7,31.529724,74.239503
+Gusto Bella,Restaurant/Cafe/Shop,Pass,10/04/2024,Address_53,46000,Punjab,4.8,92.2,31.506209,74.350948
+Plaza Cantina,Restaurant/Cafe/Shop,Awaiting Inspection,12/05/2025,Address_54,60000,Punjab,1.7,46.8,31.468783,74.465592
+Sichuan Spice,Restaurant/Cafe/Shop,Pass,19/04/2025,Address_55,60000,Punjab,4.4,88.6,31.611653,74.32707
+Moroccan Garden,Restaurant/Cafe/Shop,Pass,18/01/2025,Address_56,60000,Punjab,3.2,77.8,31.664791,74.284369
+Solo Vita,Restaurant/Cafe/Shop,Pass,26/06/2025,Address_57,38000,Punjab,1.5,62.5,31.524042,74.246659
+La Salsa Burrito,Restaurant/Cafe/Shop,Pass,25/11/2025,Address_58,55150,Punjab,3.2,77.8,31.421875,74.372719
+Munchies Zone,Restaurant/Cafe/Shop,Pass,12/04/2025,Address_59,54000,Punjab,3.1,76.9,31.562394,74.286477
+Trattoria Kitchen,Restaurant/Cafe/Shop,Pass,18/07/2024,Address_60,54000,Punjab,1.5,62.5,31.541851,74.470737
+Pastry Bakehouse,Restaurant/Cafe/Shop,Awaiting Inspection,29/03/2024,Address_61,38000,Punjab,1.5,45,31.585652,74.225852
+Plaza Burrito,Restaurant/Cafe/Shop,Pass,21/04/2024,Address_62,55150,Punjab,1.3,60.7,31.613198,74.294747
+Brunch & Cozy,Restaurant/Cafe/Shop,Pass,25/09/2025,Address_63,54000,Punjab,4.2,86.8,31.578892,74.427818
+Street Patties,Restaurant/Cafe/Shop,Improvement Required,13/12/2025,Address_64,60000,Punjab,3.7,68.3,31.508407,74.299644
+Morning Junction,Restaurant/Cafe/Shop,Awaiting Inspection,31/03/2024,Address_65,55150,Punjab,3.8,65.7,31.432303,74.20559
+El Taco Mexico,Restaurant/Cafe/Shop,Pass,25/11/2025,Address_66,38000,Punjab,1.3,60.7,31.559594,74.251474
+Wrap Steaks (1),Restaurant/Cafe/Shop,Pass,20/01/2024,Address_67,38000,Punjab,2.1,67.9,31.463092,74.352128
+Chopsticks Garden,Restaurant/Cafe/Shop,Pass,04/02/2024,Address_68,55150,Punjab,3.2,77.8,31.463629,74.44412
+Sherwood Kitchen,Restaurant/Cafe/Shop,Pass,11/11/2024,Address_69,55150,Punjab,2.1,67.9,31.584316,74.203353
+Crete Corner,Restaurant/Cafe/Shop,Pass,05/09/2025,Address_70,40100,Punjab,2.2,68.8,31.430908,74.310127
+Wrap Patties,Restaurant/Cafe/Shop,Pass,24/10/2024,Address_71,60000,Punjab,4.5,89.5,31.41673,74.46411
+Westminster Tavern,Restaurant/Cafe/Shop,Pass,09/03/2024,Address_72,40100,Punjab,3.5,80.5,31.403053,74.464833
+Pizzeria Grill,Restaurant/Cafe/Shop,Pass,20/05/2024,Address_73,54000,Punjab,2.7,73.3,31.555296,74.28059
+Queen's Eatery,Restaurant/Cafe/Shop,Pass,13/10/2024,Address_74,54000,Punjab,1.5,62.5,31.436743,74.243492
+Street Hot Dog,Restaurant/Cafe/Shop,Pass,08/06/2025,Address_75,38000,Punjab,4,85,31.634079,74.214075
+Senor Plaza,Restaurant/Cafe/Shop,Awaiting Inspection,21/03/2025,Address_76,38000,Punjab,2.3,52.2,31.506909,74.202123
+Tandoori Biryani,Restaurant/Cafe/Shop,Improvement Required,13/09/2024,Address_77,55150,Punjab,4.7,77.3,31.514094,74.28906
+Cornerstone Brew,Restaurant/Cafe/Shop,Improvement Required,21/09/2025,Address_78,38000,Punjab,3.8,69.2,31.438932,74.472977
+Beans & Brew (2),Restaurant/Cafe/Shop,Pass,27/11/2025,Address_79,40100,Punjab,2,67,31.545002,74.316978
+Greek Spot,Restaurant/Cafe/Shop,Pass,09/01/2024,Address_80,60000,Punjab,1.1,58.9,31.612662,74.426691
+Falafel Delights,Restaurant/Cafe/Shop,Pass,21/10/2025,Address_81,40100,Punjab,4.6,90.4,31.435444,74.410966
+Blue Mug Palace,Restaurant/Cafe/Shop,Pass,02/07/2025,Address_82,55150,Punjab,2.4,70.6,31.616344,74.403592
+Aroma Dew,Restaurant/Cafe/Shop,Improvement Required,09/12/2025,Address_83,60000,Punjab,2.1,53.9,31.652603,74.399108
+Daily House,Restaurant/Cafe/Shop,Pass,31/01/2024,Address_84,54000,Punjab,2.3,69.7,31.676943,74.261699
+The Royal Head,Restaurant/Cafe/Shop,Pass,05/04/2025,Address_85,46000,Punjab,3.5,80.5,31.422334,74.294235
+Java Pastry,Restaurant/Cafe/Shop,Awaiting Inspection,12/07/2024,Address_86,46000,Punjab,3.3,61.2,31.483267,74.464772
+Spicy Dhaba,Restaurant/Cafe/Shop,Pass,03/03/2025,Address_87,60000,Punjab,1.4,61.6,31.445977,74.209188
+Khyber Nights,Restaurant/Cafe/Shop,Pass,06/11/2024,Address_88,38000,Punjab,4.8,92.2,31.675801,74.270967
+Wrap Shop,Restaurant/Cafe/Shop,Improvement Required,28/12/2024,Address_89,54000,Punjab,4.4,74.6,31.609354,74.235456
+Snack Fresh,Restaurant/Cafe/Shop,Pass,08/09/2025,Address_90,54000,Punjab,5,94,31.509629,74.343609
+Aroma House (1),Restaurant/Cafe/Shop,Pass,19/11/2024,Address_91,46000,Punjab,2.9,75.1,31.451727,74.30572
+Bella Pasta,Restaurant/Cafe/Shop,Pass,11/02/2025,Address_92,40100,Punjab,4,85,31.564047,74.3079
+Lahore Feast,Restaurant/Cafe/Shop,Pass,18/07/2025,Address_93,46000,Punjab,2.4,70.6,31.568219,74.473963
+Roma Vita,Restaurant/Cafe/Shop,Pass,29/12/2024,Address_94,54000,Punjab,4.7,91.3,31.683006,74.368272
+Napoli Vita,Restaurant/Cafe/Shop,Improvement Required,14/03/2024,Address_95,54000,Punjab,4.3,73.7,31.627497,74.31475
+Chelsea Crown,Restaurant/Cafe/Shop,Improvement Required,22/11/2025,Address_96,60000,Punjab,3.6,67.4,31.685759,74.27461
+Morning Brew,Restaurant/Cafe/Shop,Pass,02/03/2024,Address_97,60000,Punjab,3.1,76.9,31.656181,74.383952
+Tuscan Napoli,Restaurant/Cafe/Shop,Improvement Required,27/10/2024,Address_98,55150,Punjab,2.1,53.9,31.62523,74.438611
+Gourmet Fries (1),Restaurant/Cafe/Shop,Pass,25/01/2025,Address_99,38000,Punjab,2.1,67.9,31.55275,74.301968
+Peshawar Handi,Restaurant/Cafe/Shop,Pass,11/04/2025,Address_100,40100,Punjab,3.7,82.3,31.414574,74.284924
+Green Leaf Bakery,Restaurant/Cafe/Shop,Improvement Required,09/09/2024,Address_101,38000,Punjab,4.9,79.1,31.439056,74.477045
+Munchies Attack,Restaurant/Cafe/Shop,Improvement Required,13/11/2024,Address_102,54000,Punjab,1.4,47.6,31.598063,74.420824
+Bella Vita,Restaurant/Cafe/Shop,Pass,26/09/2025,Address_103,54000,Punjab,2.1,67.9,31.514523,74.248271
+La Salsa Avocado,Restaurant/Cafe/Shop,Pass,25/06/2025,Address_104,46000,Punjab,3.4,79.6,31.599246,74.365183
+London Crown,Restaurant/Cafe/Shop,Pass,14/12/2024,Address_105,54000,Punjab,3.9,84.1,31.60105,74.292452
+Dynasty Blossom,Restaurant/Cafe/Shop,Pass,15/03/2024,Address_106,54000,Punjab,2.5,71.5,31.687061,74.406729
+Veracruz Eats,Restaurant/Cafe/Shop,Pass,20/03/2025,Address_107,38000,Punjab,3,76,31.680656,74.418293
+Solo Grill,Restaurant/Cafe/Shop,Pass,21/11/2025,Address_108,46000,Punjab,4,85,31.494638,74.394352
+Hong Kong Garden,Restaurant/Cafe/Shop,Pass,09/10/2025,Address_109,46000,Punjab,4.5,89.5,31.410991,74.261808
+Trattoria Ristorante,Restaurant/Cafe/Shop,Pass,17/03/2024,Address_110,54000,Punjab,1.9,66.1,31.602656,74.450949
+Chili Grill,Restaurant/Cafe/Shop,Awaiting Inspection,20/10/2024,Address_111,55150,Punjab,2.6,54.9,31.473366,74.368565
+Highland Fleece,Restaurant/Cafe/Shop,Pass,05/01/2024,Address_112,40100,Punjab,4.7,91.3,31.52468,74.29814
+Red Cafe,Restaurant/Cafe/Shop,Pass,18/12/2025,Address_113,60000,Punjab,2.5,71.5,31.496901,74.405018
+The Pizza Spot,Restaurant/Cafe/Shop,Pass,14/11/2025,Address_114,55150,Punjab,1.1,58.9,31.560068,74.273301
+Buns & Delight,Restaurant/Cafe/Shop,Pass,07/05/2025,Address_115,54000,Punjab,3.7,82.3,31.458662,74.397522
+Crispy Fry,Restaurant/Cafe/Shop,Pass,25/02/2024,Address_116,60000,Punjab,3.7,82.3,31.656285,74.348384
+The Golden Fleece,Restaurant/Cafe/Shop,Pass,28/07/2025,Address_117,55150,Punjab,4.4,88.6,31.428819,74.244581
+Shake Burger,Restaurant/Cafe/Shop,Pass,19/02/2025,Address_118,38000,Punjab,4.3,87.7,31.583541,74.469427
+Zaiqa Lal Qila,Restaurant/Cafe/Shop,Pass,24/12/2024,Address_119,60000,Punjab,1.4,61.6,31.584333,74.371975
+Mayfair Bistro,Restaurant/Cafe/Shop,Pass,25/08/2025,Address_120,40100,Punjab,3.2,77.8,31.55118,74.404468
+Sapori Venezia,Restaurant/Cafe/Shop,Pass,26/04/2025,Address_121,55150,Punjab,2.4,70.6,31.510049,74.215598
+Cozy Bakery,Restaurant/Cafe/Shop,Pass,08/10/2024,Address_122,60000,Punjab,2.9,75.1,31.523235,74.374929
+Desi Junction,Restaurant/Cafe/Shop,Pass,02/10/2025,Address_123,55150,Punjab,3.3,78.7,31.611667,74.448388
+Golden Kitchen,Restaurant/Cafe/Shop,Pass,20/03/2025,Address_124,38000,Punjab,1.9,66.1,31.425837,74.407753
+Roma Bistro,Restaurant/Cafe/Shop,Pass,30/06/2024,Address_125,60000,Punjab,2.2,68.8,31.478221,74.222367
+Peking Lee,Restaurant/Cafe/Shop,Pass,18/02/2024,Address_126,38000,Punjab,4.2,86.8,31.662355,74.323657
+Zaiqa Biryani,Restaurant/Cafe/Shop,Improvement Required,19/04/2024,Address_127,60000,Punjab,1.9,52.1,31.459631,74.374213
+Casa Avocado,Restaurant/Cafe/Shop,Pass,23/02/2024,Address_128,55150,Punjab,2.1,67.9,31.466584,74.266499
+Gourmet Zone,Restaurant/Cafe/Shop,Pass,05/09/2024,Address_129,60000,Punjab,3.8,83.2,31.404073,74.419144
+Moroccan Blue,Restaurant/Cafe/Shop,Pass,28/01/2024,Address_130,54000,Punjab,2.1,67.9,31.566591,74.296379
+Shun Great Wall,Restaurant/Cafe/Shop,Pass,13/07/2025,Address_131,55150,Punjab,4.7,91.3,31.425959,74.279826
+Hong Kong House,Restaurant/Cafe/Shop,Pass,16/02/2024,Address_132,55150,Punjab,3.7,82.3,31.506862,74.28354
+La Taqueria Amigos,Restaurant/Cafe/Shop,Pass,13/06/2024,Address_133,55150,Punjab,2.1,67.9,31.625236,74.283817
+Snack Hot Dog,Restaurant/Cafe/Shop,Pass,25/11/2024,Address_134,55150,Punjab,1.1,58.9,31.519921,74.483984
+El Taco Avocado,Restaurant/Cafe/Shop,Improvement Required,10/08/2024,Address_135,40100,Punjab,4.3,73.7,31.502202,74.273211
+Aztec Loco,Restaurant/Cafe/Shop,Pass,29/08/2025,Address_136,46000,Punjab,4.6,90.4,31.632175,74.46027
+The Tea Palace,Restaurant/Cafe/Shop,Pass,05/12/2025,Address_137,60000,Punjab,4.6,90.4,31.568996,74.365514
+Donut Fresh,Restaurant/Cafe/Shop,Pass,23/10/2024,Address_138,38000,Punjab,3.4,79.6,31.517243,74.484134
+Chipotle Loco,Restaurant/Cafe/Shop,Pass,08/05/2025,Address_139,46000,Punjab,2.4,70.6,31.512991,74.343044
+Punjab Cafe,Restaurant/Cafe/Shop,Pass,21/05/2024,Address_140,46000,Punjab,2.7,73.3,31.497053,74.318475
+Quick Fry,Restaurant/Cafe/Shop,Pass,10/10/2025,Address_141,40100,Punjab,2.6,72.4,31.663646,74.430863
+Crispy Fry (1),Restaurant/Cafe/Shop,Improvement Required,18/12/2025,Address_142,60000,Punjab,2.3,55.7,31.688127,74.315901
+Turbo Burger,Restaurant/Cafe/Shop,Awaiting Inspection,15/05/2025,Address_143,38000,Punjab,4.8,74.7,31.536052,74.246434
+Senor Burrito,Restaurant/Cafe/Shop,Pass,23/12/2024,Address_144,38000,Punjab,1.4,61.6,31.601547,74.368225
+Khyber Darbar,Restaurant/Cafe/Shop,Pass,02/01/2025,Address_145,55150,Punjab,4.8,92.2,31.582192,74.339535
+Moroccan Tree,Restaurant/Cafe/Shop,Improvement Required,20/01/2024,Address_146,38000,Punjab,3.6,67.4,31.645086,74.233548
+Borough Crown,Restaurant/Cafe/Shop,Pass,29/06/2025,Address_147,40100,Punjab,1.4,61.6,31.587497,74.244789
+Highland Crown,Restaurant/Cafe/Shop,Improvement Required,11/11/2024,Address_148,60000,Punjab,1.3,46.7,31.443523,74.310867
+Lebanese Bistro,Restaurant/Cafe/Shop,Pass,29/03/2025,Address_149,60000,Punjab,4.6,90.4,31.68275,74.44916
+Chipotle Fiesta,Restaurant/Cafe/Shop,Pass,13/04/2025,Address_150,40100,Punjab,3.7,82.3,31.574295,74.484312
+La Piazza Bolognese,Restaurant/Cafe/Shop,Pass,24/07/2025,Address_151,38000,Punjab,4.8,92.2,31.500504,74.443728
+Brunch & Bakehouse,Restaurant/Cafe/Shop,Improvement Required,13/06/2024,Address_152,38000,Punjab,2.5,57.5,31.457008,74.335957
+Lahore Spices,Restaurant/Cafe/Shop,Pass,05/02/2024,Address_153,55150,Punjab,1.8,65.2,31.413227,74.466813
+Golden Cafe,Restaurant/Cafe/Shop,Pass,17/05/2024,Address_154,55150,Punjab,4.1,85.9,31.440793,74.299296
+Donut Zone,Restaurant/Cafe/Shop,Pass,16/05/2024,Address_155,55150,Punjab,5,94,31.520188,74.339648
+Urban Pastry,Restaurant/Cafe/Shop,Pass,16/05/2025,Address_156,40100,Punjab,3.8,83.2,31.531247,74.204783
+Jalapeno Loco,Restaurant/Cafe/Shop,Pass,10/04/2025,Address_157,40100,Punjab,3.4,79.6,31.541597,74.424531
+Chili Eats,Restaurant/Cafe/Shop,Pass,10/03/2024,Address_158,40100,Punjab,1.6,63.4,31.434585,74.45223
+Tuscan Italia,Restaurant/Cafe/Shop,Pass,18/08/2024,Address_159,40100,Punjab,4.4,88.6,31.673503,74.342475
+Saffron Dhaba,Restaurant/Cafe/Shop,Improvement Required,30/09/2025,Address_160,38000,Punjab,1.4,47.6,31.487369,74.462249
+Sindh Karahi,Restaurant/Cafe/Shop,Pass,19/09/2025,Address_161,54000,Punjab,3.3,78.7,31.607428,74.393434
+The Pizza Bites,Restaurant/Cafe/Shop,Pass,26/02/2025,Address_162,54000,Punjab,3.6,81.4,31.666343,74.356768
+Chopsticks Lee,Restaurant/Cafe/Shop,Pass,08/05/2025,Address_163,54000,Punjab,1,58,31.661956,74.391996
+Urban Cozy,Restaurant/Cafe/Shop,Pass,09/11/2024,Address_164,60000,Punjab,4.3,87.7,31.600472,74.370469
+Sherwood Horses,Restaurant/Cafe/Shop,Pass,10/06/2024,Address_165,55150,Punjab,2.4,70.6,31.684815,74.282766
+El Sombrero Loco,Restaurant/Cafe/Shop,Pass,24/12/2025,Address_166,60000,Punjab,2.9,75.1,31.598028,74.352245
+The Daily Espresso,Restaurant/Cafe/Shop,Pass,17/06/2025,Address_167,40100,Punjab,2.9,75.1,31.547949,74.471899
+Hummus Eats,Restaurant/Cafe/Shop,Pass,26/12/2025,Address_168,40100,Punjab,1.2,59.8,31.59533,74.358722
+The White Castle,Restaurant/Cafe/Shop,Pass,29/01/2025,Address_169,55150,Punjab,2.4,70.6,31.534216,74.306972
+Morning Bakery,Restaurant/Cafe/Shop,Pass,05/11/2024,Address_170,40100,Punjab,1.6,63.4,31.465385,74.373541
+Thames Market,Restaurant/Cafe/Shop,Pass,02/11/2024,Address_171,38000,Punjab,3.6,81.4,31.512683,74.32318
+The White Thistle,Restaurant/Cafe/Shop,Pass,19/03/2024,Address_172,55150,Punjab,2.9,75.1,31.640259,74.301327
+Osteria Enzo,Restaurant/Cafe/Shop,Pass,20/07/2025,Address_173,38000,Punjab,3.1,76.9,31.638585,74.39816
+Aztec Grill,Restaurant/Cafe/Shop,Pass,21/03/2024,Address_174,40100,Punjab,3.9,84.1,31.541407,74.32584
+La Dolce Italia,Restaurant/Cafe/Shop,Pass,19/07/2025,Address_175,40100,Punjab,1.8,65.2,31.556368,74.306968
+Tandoori Dhaba,Restaurant/Cafe/Shop,Pass,09/11/2024,Address_176,38000,Punjab,3.7,82.3,31.563143,74.33755
+Olive Tree,Restaurant/Cafe/Shop,Pass,15/08/2024,Address_177,40100,Punjab,2.5,71.5,31.669362,74.40032
+Sultan Cafe,Restaurant/Cafe/Shop,Pass,15/05/2025,Address_178,54000,Punjab,3.2,77.8,31.656559,74.359104
+Munchies Fry,Restaurant/Cafe/Shop,Pass,09/04/2024,Address_179,46000,Punjab,4.4,88.6,31.556425,74.238894
+Alexandria Pita,Restaurant/Cafe/Shop,Pass,26/11/2025,Address_180,46000,Punjab,4.8,92.2,31.537527,74.200842
+Sweet Sins Bakehouse,Restaurant/Cafe/Shop,Pass,05/01/2024,Address_181,55150,Punjab,2.5,71.5,31.480014,74.349201
+Shanghai Spice,Restaurant/Cafe/Shop,Pass,15/11/2025,Address_182,40100,Punjab,4.2,86.8,31.469903,74.236949
+Gusto Kitchen,Restaurant/Cafe/Shop,Pass,26/04/2024,Address_183,38000,Punjab,3.7,82.3,31.435573,74.344104
+Chicken Fry,Restaurant/Cafe/Shop,Pass,19/09/2024,Address_184,55150,Punjab,3.3,78.7,31.544631,74.361194
+Espresso Bakery,Restaurant/Cafe/Shop,Pass,09/07/2024,Address_185,46000,Punjab,1.5,62.5,31.612165,74.266297
+Red Bar,Restaurant/Cafe/Shop,Pass,31/01/2025,Address_186,54000,Punjab,1.3,60.7,31.579067,74.44256
+Lotus Bar,Restaurant/Cafe/Shop,Pass,14/01/2024,Address_187,55150,Punjab,2.3,69.7,31.58272,74.448835
+Fortune Bistro,Restaurant/Cafe/Shop,Improvement Required,08/02/2025,Address_188,54000,Punjab,4.9,79.1,31.548702,74.287022
+Mayfair Pub,Restaurant/Cafe/Shop,Pass,09/01/2024,Address_189,54000,Punjab,3.5,80.5,31.50094,74.360398
+Shahi Cuisine,Restaurant/Cafe/Shop,Pass,06/04/2025,Address_190,38000,Punjab,2.6,72.4,31.680661,74.319126
+Bella Venezia,Restaurant/Cafe/Shop,Improvement Required,02/11/2024,Address_191,38000,Punjab,5,80,31.408575,74.362098
+Lebanese Lounge,Restaurant/Cafe/Shop,Pass,15/06/2025,Address_192,55150,Punjab,1.6,63.4,31.561724,74.342409
+Cantina Cilantro,Restaurant/Cafe/Shop,Pass,14/05/2024,Address_193,54000,Punjab,1.3,60.7,31.588926,74.477311
+Napoli Pasta,Restaurant/Cafe/Shop,Pass,29/06/2025,Address_194,54000,Punjab,1.1,58.9,31.442929,74.427314
+Osteria Toscana,Restaurant/Cafe/Shop,Improvement Required,11/01/2025,Address_195,40100,Punjab,3,62,31.640358,74.367045
+The Daily Pastry,Restaurant/Cafe/Shop,Improvement Required,30/04/2025,Address_196,46000,Punjab,1.9,52.1,31.507612,74.363464
+Chicken Fry (1),Restaurant/Cafe/Shop,Improvement Required,13/04/2025,Address_197,38000,Punjab,1.9,52.1,31.603194,74.370469
+Green Leaf Vienna,Restaurant/Cafe/Shop,Pass,15/02/2024,Address_198,60000,Punjab,1.2,59.8,31.669135,74.201045
+The Pizza Hot Dog,Restaurant/Cafe/Shop,Pass,07/01/2024,Address_199,46000,Punjab,4.4,88.6,31.442478,74.414595
+Bella Olive,Restaurant/Cafe/Shop,Pass,19/05/2024,Address_200,54000,Punjab,3.6,81.4,31.536448,74.263014
+Tuscan Italia (1),Restaurant/Cafe/Shop,Pass,27/11/2025,Address_201,55150,Punjab,3.8,83.2,31.552859,74.487574
+The Velvet Bean,Restaurant/Cafe/Shop,Pass,20/01/2024,Address_202,54000,Punjab,5,94,31.601777,74.237948
+Bella Enzo,Restaurant/Cafe/Shop,Pass,05/08/2025,Address_203,55150,Punjab,4,85,31.636281,74.214784
+The Fryer Coop,Restaurant/Cafe/Shop,Improvement Required,06/03/2025,Address_204,55150,Punjab,3.8,69.2,31.456779,74.456754
+Da Bistro,Restaurant/Cafe/Shop,Improvement Required,22/06/2024,Address_205,55150,Punjab,1.9,52.1,31.666321,74.337892
+Chopsticks Express,Restaurant/Cafe/Shop,Pass,08/06/2025,Address_206,60000,Punjab,3.4,79.6,31.676692,74.321716
+Athens Olive,Restaurant/Cafe/Shop,Pass,13/03/2024,Address_207,55150,Punjab,4.1,85.9,31.595606,74.307708
+Cancun Express,Restaurant/Cafe/Shop,Improvement Required,15/06/2024,Address_208,38000,Punjab,2.2,54.8,31.681897,74.2481
+Aztec Bonita,Restaurant/Cafe/Shop,Pass,22/09/2025,Address_209,60000,Punjab,4.7,91.3,31.571015,74.484593
+Snack Pizza,Restaurant/Cafe/Shop,Pass,01/12/2025,Address_210,38000,Punjab,3.5,80.5,31.536563,74.341431
+El Taco Bonita,Restaurant/Cafe/Shop,Pass,12/07/2025,Address_211,60000,Punjab,4.8,92.2,31.482873,74.397326
+Napoli Grill,Restaurant/Cafe/Shop,Pass,10/01/2024,Address_212,40100,Punjab,3.3,78.7,31.480001,74.434594
+El Taco Bites,Restaurant/Cafe/Shop,Pass,12/09/2024,Address_213,40100,Punjab,2,67,31.500005,74.271156
+Wrap Steaks,Restaurant/Cafe/Shop,Improvement Required,26/12/2025,Address_214,55150,Punjab,1.5,48.5,31.421104,74.278686
+Gusto Napoli,Restaurant/Cafe/Shop,Pass,29/10/2025,Address_215,46000,Punjab,4.4,88.6,31.658268,74.387839
+Peshawar Spices,Restaurant/Cafe/Shop,Pass,16/09/2024,Address_216,54000,Punjab,2,67,31.665887,74.471922
+Albion Pub,Restaurant/Cafe/Shop,Pass,21/07/2024,Address_217,38000,Punjab,3,76,31.507038,74.266254
+Zaytoun Lebanon,Restaurant/Cafe/Shop,Pass,29/10/2024,Address_218,54000,Punjab,1.8,65.2,31.640704,74.379242
+Albion Crown,Restaurant/Cafe/Shop,Improvement Required,17/09/2024,Address_219,38000,Punjab,2.9,61.1,31.676915,74.234546
+Copper Cafe,Restaurant/Cafe/Shop,Improvement Required,16/07/2025,Address_220,60000,Punjab,3.2,63.8,31.534917,74.231771
+Roma Venezia,Restaurant/Cafe/Shop,Pass,20/05/2025,Address_221,60000,Punjab,4.7,91.3,31.648557,74.290216
+Beans & Brew,Restaurant/Cafe/Shop,Improvement Required,24/02/2025,Address_222,55150,Punjab,1.6,49.4,31.559653,74.296969
+Sultan Meze,Restaurant/Cafe/Shop,Improvement Required,12/07/2025,Address_223,55150,Punjab,4.8,78.2,31.495514,74.307404
+Cafe Dew,Restaurant/Cafe/Shop,Pass,14/08/2025,Address_224,55150,Punjab,3.7,82.3,31.438165,74.286892
+Veracruz Amigos,Restaurant/Cafe/Shop,Pass,21/12/2024,Address_225,38000,Punjab,1.6,63.4,31.443639,74.396635
+Burrito Eats,Restaurant/Cafe/Shop,Awaiting Inspection,31/12/2025,Address_226,55150,Punjab,4.6,72.9,31.58606,74.317826
+Bombay Cuisine,Restaurant/Cafe/Shop,Pass,07/07/2024,Address_227,54000,Punjab,2.8,74.2,31.510219,74.433355
+Plaza Mexico,Restaurant/Cafe/Shop,Pass,29/02/2024,Address_228,40100,Punjab,3.9,84.1,31.416261,74.350065
+Chipotle Loco (1),Restaurant/Cafe/Shop,Awaiting Inspection,29/01/2025,Address_229,40100,Punjab,3.9,66.6,31.677354,74.3145
+Bombay Nights,Restaurant/Cafe/Shop,Pass,05/10/2024,Address_230,40100,Punjab,3.5,80.5,31.441503,74.490045
+El Taco Loco,Restaurant/Cafe/Shop,Pass,13/03/2024,Address_231,54000,Punjab,3.2,77.8,31.425462,74.232583
+Coffee House,Restaurant/Cafe/Shop,Improvement Required,27/08/2024,Address_232,46000,Punjab,3.2,63.8,31.507932,74.372224
+Wok & Hei,Restaurant/Cafe/Shop,Pass,02/02/2024,Address_233,60000,Punjab,2,67,31.608189,74.25779
+Punjab Grill,Restaurant/Cafe/Shop,Pass,07/06/2024,Address_234,38000,Punjab,2.5,71.5,31.674997,74.355095
+Cosa Bistro,Restaurant/Cafe/Shop,Pass,12/04/2025,Address_235,46000,Punjab,1.6,63.4,31.614436,74.318867
+Pastry Dew,Restaurant/Cafe/Shop,Pass,13/10/2024,Address_236,40100,Punjab,1.4,61.6,31.619646,74.297896
+Cornerstone Bean,Restaurant/Cafe/Shop,Awaiting Inspection,28/04/2025,Address_237,60000,Punjab,2.6,54.9,31.4376,74.425741
+Copper Cuisine,Restaurant/Cafe/Shop,Pass,07/09/2025,Address_238,40100,Punjab,1.4,61.6,31.50702,74.31659
+Chicken Coop,Restaurant/Cafe/Shop,Pass,09/10/2024,Address_239,46000,Punjab,4.8,92.2,31.469728,74.217627
+Sweet Sins Perk,Restaurant/Cafe/Shop,Awaiting Inspection,01/06/2024,Address_240,54000,Punjab,1.3,43.2,31.522178,74.223562
+Chinatown Roll,Restaurant/Cafe/Shop,Improvement Required,15/09/2025,Address_241,54000,Punjab,1.6,49.4,31.634557,74.237528
+Zaiqa Dhaba,Restaurant/Cafe/Shop,Pass,07/09/2025,Address_242,38000,Punjab,2.2,68.8,31.532293,74.426318
+Bella Toscana,Restaurant/Cafe/Shop,Improvement Required,02/10/2025,Address_243,40100,Punjab,1.9,52.1,31.587808,74.482116
+Quick Hot Dog,Restaurant/Cafe/Shop,Awaiting Inspection,05/08/2025,Address_244,55150,Punjab,1.1,41.4,31.586752,74.276209
+Florence Luigi,Restaurant/Cafe/Shop,Pass,26/08/2025,Address_245,60000,Punjab,3.3,78.7,31.659417,74.25305
+Greek Tavern,Restaurant/Cafe/Shop,Pass,24/05/2025,Address_246,46000,Punjab,4.6,90.4,31.460338,74.46787
+Canton Hei,Restaurant/Cafe/Shop,Pass,29/05/2024,Address_247,40100,Punjab,2.5,71.5,31.59693,74.433506
+Copper House,Restaurant/Cafe/Shop,Pass,30/07/2025,Address_248,40100,Punjab,3.4,79.6,31.405324,74.286999
+Chelsea Market,Restaurant/Cafe/Shop,Pass,31/10/2025,Address_249,60000,Punjab,4.1,85.9,31.671525,74.343541
+Windsor Castle,Restaurant/Cafe/Shop,Pass,07/05/2024,Address_250,60000,Punjab,4.8,92.2,31.451828,74.389505
+Shahi House,Restaurant/Cafe/Shop,Pass,12/08/2025,Address_251,60000,Punjab,4.2,86.8,31.536652,74.389735
+Windsor Pantry,Restaurant/Cafe/Shop,Pass,17/10/2024,Address_252,55150,Punjab,1.6,63.4,31.464332,74.44008
+Morning Perk,Restaurant/Cafe/Shop,Pass,19/10/2025,Address_253,55150,Punjab,2.7,73.3,31.462222,74.412479
+Shahi House (1),Restaurant/Cafe/Shop,Pass,17/09/2024,Address_254,60000,Punjab,1.6,63.4,31.654863,74.22147
+Pastry Bakery,Restaurant/Cafe/Shop,Pass,05/09/2025,Address_255,60000,Punjab,1,58,31.603751,74.319372
+Golden Blossom,Restaurant/Cafe/Shop,Awaiting Inspection,22/01/2025,Address_256,38000,Punjab,2.6,54.9,31.576735,74.396531
+The Golden Crown,Restaurant/Cafe/Shop,Pass,22/12/2025,Address_257,40100,Punjab,3.5,80.5,31.588894,74.217321
+Delhi Grill,Restaurant/Cafe/Shop,Improvement Required,17/12/2025,Address_258,46000,Punjab,3.7,68.3,31.416788,74.323036
+Veracruz Mexico,Restaurant/Cafe/Shop,Improvement Required,05/10/2024,Address_259,38000,Punjab,2.8,60.2,31.498298,74.313361
+Fast & Fresh,Restaurant/Cafe/Shop,Pass,24/04/2024,Address_260,55150,Punjab,5,94,31.686494,74.257556
+Highland Fleece (1),Restaurant/Cafe/Shop,Pass,25/08/2025,Address_261,46000,Punjab,1.4,61.6,31.682546,74.380121
+La Salsa Frog,Restaurant/Cafe/Shop,Improvement Required,08/06/2024,Address_262,40100,Punjab,4.1,71.9,31.674906,74.282377
+King's Pub,Restaurant/Cafe/Shop,Pass,23/11/2025,Address_263,55150,Punjab,1.9,66.1,31.636573,74.385167
+Lahore Tikka,Restaurant/Cafe/Shop,Pass,17/07/2024,Address_264,38000,Punjab,1.4,61.6,31.569372,74.225378
+Veracruz Frog,Restaurant/Cafe/Shop,Pass,14/11/2025,Address_265,38000,Punjab,2.8,74.2,31.568006,74.4422
+Senor Grill,Restaurant/Cafe/Shop,Pass,20/12/2024,Address_266,55150,Punjab,1.2,59.8,31.63017,74.365828
+Burger Spot,Restaurant/Cafe/Shop,Pass,16/12/2025,Address_267,60000,Punjab,1.9,66.1,31.449389,74.340796
+Duke's Inn,Restaurant/Cafe/Shop,Pass,24/12/2024,Address_268,38000,Punjab,3.6,81.4,31.443528,74.411938
+Bosphorus Breeze,Restaurant/Cafe/Shop,Pass,04/11/2025,Address_269,54000,Punjab,1.6,63.4,31.44516,74.481316
+Sizzling Delight,Restaurant/Cafe/Shop,Pass,02/07/2025,Address_270,55150,Punjab,2.3,69.7,31.570378,74.392658
+Fast & Express,Restaurant/Cafe/Shop,Awaiting Inspection,06/08/2025,Address_271,60000,Punjab,1.1,41.4,31.670268,74.23443
+Golden Hei,Restaurant/Cafe/Shop,Pass,15/10/2025,Address_272,40100,Punjab,3.1,76.9,31.412816,74.240082
+Sindh Kitchen,Restaurant/Cafe/Shop,Improvement Required,15/11/2024,Address_273,60000,Punjab,3.6,67.4,31.460424,74.273154
+Wrap Delight,Restaurant/Cafe/Shop,Pass,01/12/2025,Address_274,38000,Punjab,2.3,69.7,31.414965,74.212104
+Taj Tikka,Restaurant/Cafe/Shop,Improvement Required,19/10/2024,Address_275,55150,Punjab,3.1,62.9,31.58551,74.205109
+Coffee Junction,Restaurant/Cafe/Shop,Improvement Required,11/08/2025,Address_276,54000,Punjab,2.5,57.5,31.505623,74.222145
+Chipotle Bites,Restaurant/Cafe/Shop,Pass,17/11/2024,Address_277,46000,Punjab,2.2,68.8,31.420842,74.257975
+Olive Eats,Restaurant/Cafe/Shop,Pass,21/11/2024,Address_278,46000,Punjab,3,76,31.524984,74.393813
+Chopsticks Hei,Restaurant/Cafe/Shop,Pass,10/07/2025,Address_279,55150,Punjab,3.8,83.2,31.597186,74.380056
+Sindh Chutney,Restaurant/Cafe/Shop,Pass,05/02/2025,Address_280,40100,Punjab,4.1,85.9,31.587131,74.421782
+Delhi Bistro,Restaurant/Cafe/Shop,Awaiting Inspection,11/12/2025,Address_281,40100,Punjab,2.3,52.2,31.474394,74.214605
+Wrap Coop,Restaurant/Cafe/Shop,Pass,14/01/2025,Address_282,54000,Punjab,3.3,78.7,31.466188,74.278306
+Red Kitchen,Restaurant/Cafe/Shop,Pass,13/11/2024,Address_283,55150,Punjab,3.2,77.8,31.550895,74.372311
+Imperial Cafe,Restaurant/Cafe/Shop,Pass,30/01/2024,Address_284,38000,Punjab,4,85,31.680692,74.36072
+El Sombrero Bonita,Restaurant/Cafe/Shop,Pass,27/09/2024,Address_285,40100,Punjab,2.4,70.6,31.413196,74.361261
+Wrap Wrap,Restaurant/Cafe/Shop,Pass,29/03/2025,Address_286,38000,Punjab,4.4,88.6,31.59798,74.246752
+Aroma Corner,Restaurant/Cafe/Shop,Pass,28/05/2025,Address_287,60000,Punjab,4,85,31.592196,74.288855
+Shahi Darbar,Restaurant/Cafe/Shop,Pass,20/12/2024,Address_288,46000,Punjab,4.4,88.6,31.687737,74.481941
+Chopsticks Great Wall,Restaurant/Cafe/Shop,Awaiting Inspection,02/12/2024,Address_289,40100,Punjab,1.8,47.7,31.663386,74.436715
+Crispy Delight,Restaurant/Cafe/Shop,Pass,22/12/2025,Address_290,55150,Punjab,4.1,85.9,31.683046,74.403852
+The Red Pantry,Restaurant/Cafe/Shop,Awaiting Inspection,28/05/2025,Address_291,60000,Punjab,1.5,45,31.510881,74.490356
+Tres Mexico,Restaurant/Cafe/Shop,Pass,23/07/2025,Address_292,54000,Punjab,1.8,65.2,31.539798,74.337044
+The Red Dining,Restaurant/Cafe/Shop,Improvement Required,25/09/2025,Address_293,40100,Punjab,3.2,63.8,31.553423,74.293029
+Lotus Spice,Restaurant/Cafe/Shop,Pass,18/10/2024,Address_294,54000,Punjab,1.4,61.6,31.484877,74.405931
+Wok Blossom,Restaurant/Cafe/Shop,Pass,06/08/2025,Address_295,55150,Punjab,3.2,77.8,31.424749,74.286542
+Bombay Kitchen,Restaurant/Cafe/Shop,Pass,16/03/2024,Address_296,38000,Punjab,4.8,92.2,31.454223,74.21654
+Plaza Express,Restaurant/Cafe/Shop,Pass,21/07/2025,Address_297,54000,Punjab,2.8,74.2,31.67548,74.477278
+Mega Fries,Restaurant/Cafe/Shop,Improvement Required,27/06/2025,Address_298,55150,Punjab,1.9,52.1,31.628105,74.426801
+Bite Me Zone,Restaurant/Cafe/Shop,Pass,24/12/2024,Address_299,38000,Punjab,2.1,67.9,31.401714,74.462543
+The Tea Cozy,Restaurant/Cafe/Shop,Pass,04/12/2025,Address_300,60000,Punjab,2.9,75.1,31.496086,74.292605
+Burrito Eats (1),Restaurant/Cafe/Shop,Awaiting Inspection,01/12/2025,Address_301,60000,Punjab,1.6,45.9,31.632004,74.431397
+Veracruz Cilantro,Restaurant/Cafe/Shop,Awaiting Inspection,24/08/2025,Address_302,40100,Punjab,1,40.5,31.535123,74.379663
+Blue Mug Junction,Restaurant/Cafe/Shop,Pass,26/09/2024,Address_303,46000,Punjab,2.2,68.8,31.531006,74.228033
+Quick Patties,Restaurant/Cafe/Shop,Improvement Required,20/12/2024,Address_304,40100,Punjab,3.9,70.1,31.635881,74.296231
+Milano Napoli,Restaurant/Cafe/Shop,Pass,25/05/2025,Address_305,40100,Punjab,3.2,77.8,31.64881,74.433831
+Urban Vienna,Restaurant/Cafe/Shop,Pass,24/08/2024,Address_306,38000,Punjab,1.1,58.9,31.451674,74.484742
+Gourmet Bites,Restaurant/Cafe/Shop,Pass,14/04/2024,Address_307,55150,Punjab,3.6,81.4,31.549988,74.275585
+Lebanese Lebanon,Restaurant/Cafe/Shop,Pass,03/04/2024,Address_308,55150,Punjab,2.3,69.7,31.432492,74.387657
+Lebanese Tree,Restaurant/Cafe/Shop,Pass,28/10/2024,Address_309,46000,Punjab,2,67,31.574778,74.216606
+Espresso Espresso,Restaurant/Cafe/Shop,Pass,18/03/2025,Address_310,40100,Punjab,1.2,59.8,31.552389,74.352501
+Urban Cozy (1),Restaurant/Cafe/Shop,Pass,15/03/2025,Address_311,40100,Punjab,2.3,69.7,31.510571,74.452383
+The Tea Vienna,Restaurant/Cafe/Shop,Awaiting Inspection,23/04/2024,Address_312,38000,Punjab,1.6,45.9,31.659776,74.480151
+Turbo Zone,Restaurant/Cafe/Shop,Pass,27/01/2025,Address_313,55150,Punjab,4.8,92.2,31.540397,74.212888
+Napoli Primi,Restaurant/Cafe/Shop,Pass,01/06/2025,Address_314,38000,Punjab,2.6,72.4,31.525442,74.464781
+London Dining,Restaurant/Cafe/Shop,Pass,13/06/2025,Address_315,38000,Punjab,3.5,80.5,31.485115,74.46324
+Cotswold Fleece,Restaurant/Cafe/Shop,Pass,27/04/2024,Address_316,55150,Punjab,2.5,71.5,31.620735,74.480553
+Turbo Spot,Restaurant/Cafe/Shop,Pass,21/05/2024,Address_317,54000,Punjab,1.3,60.7,31.594877,74.405786
+Chinatown Garden,Restaurant/Cafe/Shop,Pass,13/01/2024,Address_318,55150,Punjab,3.6,81.4,31.563906,74.370987
+Desi Lounge,Restaurant/Cafe/Shop,Pass,17/10/2024,Address_319,54000,Punjab,3.9,84.1,31.541535,74.32896
+Cotswold Pub,Restaurant/Cafe/Shop,Pass,15/01/2025,Address_320,40100,Punjab,4.1,85.9,31.486207,74.260622
+Daily Grind,Restaurant/Cafe/Shop,Pass,02/04/2025,Address_321,40100,Punjab,2.8,74.2,31.60491,74.219278
+Amore Grill,Restaurant/Cafe/Shop,Pass,02/08/2025,Address_322,46000,Punjab,3.3,78.7,31.585151,74.476049
+Sizzling Spot,Restaurant/Cafe/Shop,Improvement Required,02/12/2024,Address_323,55150,Punjab,4.8,78.2,31.456941,74.236327
+The Velvet Brew,Restaurant/Cafe/Shop,Pass,03/11/2025,Address_324,40100,Punjab,2.5,71.5,31.41463,74.432674
+Casa Pepper,Restaurant/Cafe/Shop,Improvement Required,18/01/2025,Address_325,60000,Punjab,2.6,58.4,31.665407,74.353513
+Queen's Pantry,Restaurant/Cafe/Shop,Pass,18/04/2025,Address_326,46000,Punjab,1.2,59.8,31.532107,74.365715
+Dynasty Roll,Restaurant/Cafe/Shop,Awaiting Inspection,21/04/2025,Address_327,40100,Punjab,3.6,63.9,31.626984,74.311545
+Jalapeno Bites,Restaurant/Cafe/Shop,Pass,02/05/2024,Address_328,38000,Punjab,2,67,31.491806,74.202604
+Victorian Crown,Restaurant/Cafe/Shop,Improvement Required,25/12/2024,Address_329,60000,Punjab,1.2,45.8,31.651014,74.375959
+Peshawar Chimney,Restaurant/Cafe/Shop,Pass,07/02/2024,Address_330,40100,Punjab,1.1,58.9,31.674031,74.459483
+Hummus Pita,Restaurant/Cafe/Shop,Improvement Required,09/08/2025,Address_331,46000,Punjab,3.8,69.2,31.571499,74.388409
+Brunch & Brew,Restaurant/Cafe/Shop,Pass,27/03/2025,Address_332,60000,Punjab,2,67,31.568717,74.345011
+El Sombrero Amigos,Restaurant/Cafe/Shop,Pass,18/04/2025,Address_333,55150,Punjab,3.2,77.8,31.473279,74.378983
+The Fryer Steaks,Restaurant/Cafe/Shop,Pass,20/05/2024,Address_334,46000,Punjab,3.2,77.8,31.607236,74.458796
+The Golden Tavern,Restaurant/Cafe/Shop,Improvement Required,09/09/2025,Address_335,46000,Punjab,4.6,76.4,31.606724,74.426832
+Mediterranean Cafe,Restaurant/Cafe/Shop,Pass,21/02/2025,Address_336,40100,Punjab,4.5,89.5,31.466383,74.241676
+Sweet Sins Pastry,Restaurant/Cafe/Shop,Pass,27/02/2024,Address_337,55150,Punjab,2.8,74.2,31.67945,74.243729
+Gusto Enzo,Restaurant/Cafe/Shop,Pass,05/04/2024,Address_338,60000,Punjab,1.7,64.3,31.468261,74.252105
+Chelsea Bistro,Restaurant/Cafe/Shop,Improvement Required,15/06/2024,Address_339,46000,Punjab,4.4,74.6,31.514732,74.244349
+Albion Pub (1),Restaurant/Cafe/Shop,Pass,07/11/2025,Address_340,38000,Punjab,1.1,58.9,31.410854,74.321202
+Shun Roll,Restaurant/Cafe/Shop,Pass,03/12/2025,Address_341,46000,Punjab,2.1,67.9,31.493065,74.480536
+Windsor Castle (1),Restaurant/Cafe/Shop,Awaiting Inspection,06/12/2025,Address_342,55150,Punjab,1.6,45.9,31.420836,74.299199
+The White Market,Restaurant/Cafe/Shop,Pass,09/03/2025,Address_343,40100,Punjab,3.9,84.1,31.476606,74.289285
+Fast & Slice,Restaurant/Cafe/Shop,Pass,05/05/2025,Address_344,54000,Punjab,2.8,74.2,31.41508,74.470249
+The Royal Fleece,Restaurant/Cafe/Shop,Pass,28/09/2024,Address_345,55150,Punjab,2.4,70.6,31.404881,74.357005
+Victorian Kitchen,Restaurant/Cafe/Shop,Pass,20/02/2024,Address_346,46000,Punjab,4.3,87.7,31.500425,74.483679
+Urban Cozy (2),Restaurant/Cafe/Shop,Pass,17/02/2025,Address_347,38000,Punjab,4.5,89.5,31.582126,74.30378
+Canton Bar,Restaurant/Cafe/Shop,Improvement Required,01/09/2024,Address_348,38000,Punjab,1.3,46.7,31.468677,74.217926
+Osteria Bella,Restaurant/Cafe/Shop,Improvement Required,18/08/2025,Address_349,38000,Punjab,3.6,67.4,31.404152,74.348518
+Bite Me Attack,Restaurant/Cafe/Shop,Pass,13/05/2025,Address_350,46000,Punjab,3.3,78.7,31.440329,74.328896
+El Taco Bonita (1),Restaurant/Cafe/Shop,Awaiting Inspection,11/01/2024,Address_351,54000,Punjab,2.8,56.7,31.509905,74.344698
+Peking Taste,Restaurant/Cafe/Shop,Pass,18/07/2025,Address_352,54000,Punjab,2.1,67.9,31.552774,74.338188
+Masala House,Restaurant/Cafe/Shop,Pass,26/01/2024,Address_353,38000,Punjab,3.1,76.9,31.641386,74.282532
+The Tea Perk,Restaurant/Cafe/Shop,Pass,13/01/2024,Address_354,54000,Punjab,1.6,63.4,31.684545,74.438999
+Hummus Cafe,Restaurant/Cafe/Shop,Pass,26/02/2025,Address_355,55150,Punjab,5,94,31.644183,74.3659
+Highland Horses,Restaurant/Cafe/Shop,Pass,07/06/2024,Address_356,46000,Punjab,4.5,89.5,31.49465,74.387527
+Mayfair Market,Restaurant/Cafe/Shop,Pass,15/04/2024,Address_357,46000,Punjab,2,67,31.668207,74.221912
+Chipotle Sol,Restaurant/Cafe/Shop,Improvement Required,21/09/2025,Address_358,46000,Punjab,2.4,56.6,31.536369,74.250349
+The Daily Espresso (1),Restaurant/Cafe/Shop,Pass,28/06/2025,Address_359,54000,Punjab,4.6,90.4,31.508589,74.286259
+Windsor Kitchen,Restaurant/Cafe/Shop,Pass,21/01/2025,Address_360,46000,Punjab,4.8,92.2,31.598824,74.2107
+Dynasty Taste,Restaurant/Cafe/Shop,Pass,25/09/2024,Address_361,46000,Punjab,3,76,31.560621,74.453465
+Queen's Tavern,Restaurant/Cafe/Shop,Pass,23/12/2025,Address_362,46000,Punjab,3.2,77.8,31.639277,74.205838
+Shake Zone,Restaurant/Cafe/Shop,Pass,01/10/2025,Address_363,60000,Punjab,4.8,92.2,31.67925,74.270068
+Taco Bites,Restaurant/Cafe/Shop,Pass,19/04/2025,Address_364,60000,Punjab,2.8,74.2,31.422568,74.328498
+Daily Perk,Restaurant/Cafe/Shop,Pass,28/11/2024,Address_365,40100,Punjab,1.8,65.2,31.413522,74.336464
+The Pizza Fries,Restaurant/Cafe/Shop,Improvement Required,17/01/2025,Address_366,54000,Punjab,1.3,46.7,31.463096,74.21551
+Aroma Vienna,Restaurant/Cafe/Shop,Improvement Required,24/02/2025,Address_367,60000,Punjab,4.9,79.1,31.423475,74.294173
+El Taco Plaza,Restaurant/Cafe/Shop,Pass,06/01/2025,Address_368,55150,Punjab,4,85,31.441128,74.252636
+Mediterranean Tavern,Restaurant/Cafe/Shop,Pass,23/02/2024,Address_369,60000,Punjab,1.8,65.2,31.522027,74.46619
+Milano Vita,Restaurant/Cafe/Shop,Pass,23/02/2025,Address_370,60000,Punjab,4.7,91.3,31.636617,74.215494
+Desi Kitchen,Restaurant/Cafe/Shop,Pass,29/01/2024,Address_371,55150,Punjab,3.9,84.1,31.529698,74.308807
+Taco Grande Cilantro,Restaurant/Cafe/Shop,Pass,14/04/2025,Address_372,46000,Punjab,1.1,58.9,31.500112,74.350044
+Venice Venezia,Restaurant/Cafe/Shop,Improvement Required,22/09/2025,Address_373,46000,Punjab,4.3,73.7,31.533083,74.317418
+Shahi Dhaba,Restaurant/Cafe/Shop,Pass,10/06/2025,Address_374,46000,Punjab,4.6,90.4,31.661892,74.424492
+Buns & Coop,Restaurant/Cafe/Shop,Pass,21/01/2025,Address_375,55150,Punjab,4.1,85.9,31.679888,74.274085
+Red Palace,Restaurant/Cafe/Shop,Pass,14/12/2025,Address_376,46000,Punjab,3.2,77.8,31.462196,74.431631
+Amore Venezia,Restaurant/Cafe/Shop,Awaiting Inspection,27/12/2025,Address_377,55150,Punjab,1.9,48.6,31.581994,74.281143
+Java Bakery,Restaurant/Cafe/Shop,Pass,05/11/2025,Address_378,46000,Punjab,2.4,70.6,31.568201,74.40384
+Street Wrap,Restaurant/Cafe/Shop,Improvement Required,07/09/2025,Address_379,54000,Punjab,1.1,44.9,31.559158,74.348244
+Burrito Loco,Restaurant/Cafe/Shop,Pass,09/12/2024,Address_380,54000,Punjab,5,94,31.423525,74.315687
+Taj Lounge,Restaurant/Cafe/Shop,Pass,14/11/2024,Address_381,54000,Punjab,1.7,64.3,31.551198,74.353414
+El Sombrero Bowl,Restaurant/Cafe/Shop,Pass,29/10/2025,Address_382,38000,Punjab,2.4,70.6,31.465283,74.223708
+El Sombrero Pepper,Restaurant/Cafe/Shop,Pass,24/01/2025,Address_383,54000,Punjab,1.1,58.9,31.57426,74.281153
+The Red Pub,Restaurant/Cafe/Shop,Pass,23/04/2024,Address_384,54000,Punjab,3.4,79.6,31.470039,74.288578
+Istanbul Blue,Restaurant/Cafe/Shop,Improvement Required,16/05/2024,Address_385,60000,Punjab,2.9,61.1,31.610309,74.307235
+Shake Wrap,Restaurant/Cafe/Shop,Pass,27/11/2024,Address_386,38000,Punjab,2.7,73.3,31.4661,74.370842
+Sindh Handi,Restaurant/Cafe/Shop,Pass,28/05/2024,Address_387,40100,Punjab,1.9,66.1,31.462968,74.39002
+Bosphorus Bistro,Restaurant/Cafe/Shop,Pass,15/12/2025,Address_388,55150,Punjab,3.2,77.8,31.578841,74.21024
+Oasis Kitchen,Restaurant/Cafe/Shop,Pass,06/10/2025,Address_389,60000,Punjab,2.6,72.4,31.515918,74.47798
+Crispy Attack,Restaurant/Cafe/Shop,Pass,03/08/2025,Address_390,46000,Punjab,3.2,77.8,31.684621,74.280284
+Osteria Italia,Restaurant/Cafe/Shop,Pass,30/01/2024,Address_391,55150,Punjab,4,85,31.62096,74.235391
+Thames Dining,Restaurant/Cafe/Shop,Improvement Required,27/07/2025,Address_392,55150,Punjab,4.4,74.6,31.418559,74.393322
+Cafe Junction,Restaurant/Cafe/Shop,Pass,03/09/2025,Address_393,60000,Punjab,4.3,87.7,31.631571,74.377746
+Brunch & Leaves,Restaurant/Cafe/Shop,Pass,31/07/2024,Address_394,38000,Punjab,4.5,89.5,31.611399,74.380466
+The Tea House,Restaurant/Cafe/Shop,Pass,22/12/2025,Address_395,54000,Punjab,3.6,81.4,31.539918,74.208831
+Zaytoun Garden,Restaurant/Cafe/Shop,Pass,05/04/2025,Address_396,60000,Punjab,4.5,89.5,31.530567,74.290262
+Gourmet Fries,Restaurant/Cafe/Shop,Pass,15/01/2024,Address_397,60000,Punjab,3.6,81.4,31.419783,74.379059
+Gyro Mint,Restaurant/Cafe/Shop,Pass,30/08/2024,Address_398,55150,Punjab,3.5,80.5,31.524215,74.378628
+Saffron Spices,Restaurant/Cafe/Shop,Pass,09/03/2024,Address_399,60000,Punjab,1.4,61.6,31.423863,74.245228
+Tandoori Grill,Restaurant/Cafe/Shop,Pass,13/06/2024,Address_400,46000,Punjab,3.9,84.1,31.645859,74.23847
+Sizzling Spot (1),Restaurant/Cafe/Shop,Pass,03/03/2025,Address_401,40100,Punjab,3.1,76.9,31.671481,74.40706
+Shake Wrap (1),Restaurant/Cafe/Shop,Awaiting Inspection,13/04/2025,Address_402,40100,Punjab,1.5,45,31.614969,74.470303
+Coffee Pastry,Restaurant/Cafe/Shop,Improvement Required,07/01/2025,Address_403,38000,Punjab,2.2,54.8,31.601751,74.439906
+Crete Mint,Restaurant/Cafe/Shop,Improvement Required,07/02/2025,Address_404,55150,Punjab,1.1,44.9,31.451141,74.426472
+The Fryer Fry,Restaurant/Cafe/Shop,Improvement Required,01/07/2024,Address_405,54000,Punjab,2.2,54.8,31.439997,74.229696
+Napoli Luigi,Restaurant/Cafe/Shop,Pass,26/05/2025,Address_406,40100,Punjab,3.1,76.9,31.428071,74.242585
+The Golden Head,Restaurant/Cafe/Shop,Pass,01/01/2024,Address_407,60000,Punjab,2.1,67.9,31.667395,74.36947
+Zaytoun House,Restaurant/Cafe/Shop,Improvement Required,21/10/2025,Address_408,55150,Punjab,3.7,68.3,31.568325,74.363943
+El Sombrero Fiesta,Restaurant/Cafe/Shop,Pass,24/09/2025,Address_409,40100,Punjab,1.5,62.5,31.451138,74.468893
+Chinatown Hei,Restaurant/Cafe/Shop,Pass,25/10/2024,Address_410,60000,Punjab,3.8,83.2,31.621135,74.351978
+Beans & Brew (1),Restaurant/Cafe/Shop,Pass,11/03/2024,Address_411,38000,Punjab,1.5,62.5,31.678303,74.241979
+Prego Olive,Restaurant/Cafe/Shop,Pass,07/09/2025,Address_412,55150,Punjab,1.1,58.9,31.47708,74.424202
+Tandoori Tikka,Restaurant/Cafe/Shop,Pass,20/05/2025,Address_413,55150,Punjab,4.4,88.6,31.504371,74.368554
+Zaiqa Karahi,Restaurant/Cafe/Shop,Pass,27/09/2025,Address_414,38000,Punjab,4.1,85.9,31.485824,74.399043
+Urban Espresso,Restaurant/Cafe/Shop,Pass,11/01/2025,Address_415,55150,Punjab,4.2,86.8,31.502566,74.46371
+Cafe Cozy,Restaurant/Cafe/Shop,Awaiting Inspection,28/04/2025,Address_416,55150,Punjab,2.5,54,31.519514,74.378291
+Florence Italiano,Restaurant/Cafe/Shop,Pass,19/09/2025,Address_417,46000,Punjab,1,58,31.40387,74.233527
+Dim Sum Lee,Restaurant/Cafe/Shop,Pass,30/03/2025,Address_418,40100,Punjab,4,85,31.612798,74.474614
+Amore Pasta,Restaurant/Cafe/Shop,Awaiting Inspection,11/06/2024,Address_419,54000,Punjab,1.5,45,31.613265,74.296627
+King's Pub (1),Restaurant/Cafe/Shop,Awaiting Inspection,05/04/2024,Address_420,60000,Punjab,3.3,61.2,31.492048,74.375379
+The Royal Pub,Restaurant/Cafe/Shop,Pass,30/12/2025,Address_421,54000,Punjab,3.4,79.6,31.573953,74.412194
+Bombay Nights (1),Restaurant/Cafe/Shop,Pass,20/06/2024,Address_422,54000,Punjab,2.7,73.3,31.537369,74.451996
+Great Wall Lee,Restaurant/Cafe/Shop,Pass,16/11/2024,Address_423,38000,Punjab,2.4,70.6,31.433918,74.390673
+Roma Siciliana,Restaurant/Cafe/Shop,Pass,30/10/2025,Address_424,46000,Punjab,3.5,80.5,31.632043,74.439705
+Crispy Burger,Restaurant/Cafe/Shop,Pass,31/10/2025,Address_425,54000,Punjab,1.5,62.5,31.676824,74.267128
+El Taco Grill,Restaurant/Cafe/Shop,Pass,13/04/2024,Address_426,60000,Punjab,4.6,90.4,31.488537,74.326251
+Oasis Garden,Restaurant/Cafe/Shop,Pass,21/09/2025,Address_427,40100,Punjab,4.6,90.4,31.547377,74.37012
+Wrap Slice,Restaurant/Cafe/Shop,Pass,31/01/2024,Address_428,38000,Punjab,3.2,77.8,31.533128,74.440817
+The Velvet Cup,Restaurant/Cafe/Shop,Pass,09/01/2025,Address_429,60000,Punjab,3.6,81.4,31.618739,74.321444
+Chipotle Bowl,Restaurant/Cafe/Shop,Pass,22/05/2024,Address_430,55150,Punjab,4,85,31.560463,74.475699
+Gusto Kitchen (1),Restaurant/Cafe/Shop,Pass,06/08/2025,Address_431,40100,Punjab,2.4,70.6,31.598009,74.399844
+Cancun Loco,Restaurant/Cafe/Shop,Pass,28/10/2025,Address_432,60000,Punjab,2.4,70.6,31.427262,74.273382
+The Red Kitchen,Restaurant/Cafe/Shop,Pass,06/07/2024,Address_433,40100,Punjab,3.9,84.1,31.655316,74.370182
+Chinatown Taste,Restaurant/Cafe/Shop,Improvement Required,23/11/2025,Address_434,54000,Punjab,3.7,68.3,31.564808,74.322763
+Urban Dew,Restaurant/Cafe/Shop,Pass,21/03/2025,Address_435,60000,Punjab,1.9,66.1,31.477607,74.444026
+The Old Lion,Restaurant/Cafe/Shop,Pass,07/12/2025,Address_436,38000,Punjab,2.6,72.4,31.49481,74.381991
+Chelsea Grille,Restaurant/Cafe/Shop,Pass,27/01/2025,Address_437,40100,Punjab,2.4,70.6,31.588664,74.304614
+Victorian Crown (1),Restaurant/Cafe/Shop,Pass,21/12/2024,Address_438,46000,Punjab,2.6,72.4,31.677719,74.350519
+La Piazza Napoli,Restaurant/Cafe/Shop,Pass,28/06/2025,Address_439,38000,Punjab,2.1,67.9,31.600248,74.345521
+Great Wall Blossom,Restaurant/Cafe/Shop,Pass,24/12/2024,Address_440,60000,Punjab,3.8,83.2,31.459641,74.258604
+Lebanese Corner,Restaurant/Cafe/Shop,Pass,26/03/2024,Address_441,54000,Punjab,2.1,67.9,31.646951,74.384228
+Chipotle Avocado,Restaurant/Cafe/Shop,Improvement Required,28/07/2025,Address_442,40100,Punjab,5,80,31.508175,74.274603
+Masala Cafe,Restaurant/Cafe/Shop,Pass,07/01/2025,Address_443,54000,Punjab,3.5,80.5,31.624188,74.372837
+Solo Grill (1),Restaurant/Cafe/Shop,Improvement Required,30/08/2025,Address_444,38000,Punjab,2.5,57.5,31.614499,74.256933
+Queen's Dining,Restaurant/Cafe/Shop,Pass,14/09/2025,Address_445,60000,Punjab,2.7,73.3,31.511784,74.263388
+Sherwood Thistle,Restaurant/Cafe/Shop,Improvement Required,15/10/2024,Address_446,38000,Punjab,2,53,31.422167,74.363913
+Blue Tree,Restaurant/Cafe/Shop,Pass,27/04/2024,Address_447,46000,Punjab,1.1,58.9,31.543328,74.456207
+Espresso Corner,Restaurant/Cafe/Shop,Improvement Required,10/03/2025,Address_448,60000,Punjab,3.9,70.1,31.458594,74.216573
+Amore Luigi,Restaurant/Cafe/Shop,Pass,09/11/2024,Address_449,54000,Punjab,1.7,64.3,31.521113,74.4685
+Munchies Spot,Restaurant/Cafe/Shop,Pass,08/06/2025,Address_450,55150,Punjab,1,58,31.679057,74.268299
+Central Brew,Restaurant/Cafe/Shop,Pass,04/12/2024,Address_451,40100,Punjab,2.5,71.5,31.601627,74.318923
+Bosphorus Delights,Restaurant/Cafe/Shop,Pass,10/03/2024,Address_452,46000,Punjab,2.9,75.1,31.667049,74.263705
+La Dolce Primi,Restaurant/Cafe/Shop,Awaiting Inspection,06/06/2024,Address_453,40100,Punjab,3.3,61.2,31.609764,74.224636
+Guacamole Frog,Restaurant/Cafe/Shop,Pass,23/03/2025,Address_454,38000,Punjab,4.7,91.3,31.462776,74.445298
+Chicken Diner,Restaurant/Cafe/Shop,Improvement Required,09/02/2024,Address_455,60000,Punjab,2.8,60.2,31.603827,74.259124
+Windsor Castle (2),Restaurant/Cafe/Shop,Pass,19/07/2025,Address_456,54000,Punjab,1.7,64.3,31.401369,74.387273
+El Sombrero Fiesta (1),Restaurant/Cafe/Shop,Improvement Required,17/06/2025,Address_457,38000,Punjab,1.9,52.1,31.417505,74.216064
+Sultan Spot,Restaurant/Cafe/Shop,Pass,30/05/2024,Address_458,38000,Punjab,4.5,89.5,31.672878,74.217244
+Casa Salsa,Restaurant/Cafe/Shop,Pass,15/09/2025,Address_459,55150,Punjab,2,67,31.475429,74.211547
+Wok Bar,Restaurant/Cafe/Shop,Pass,04/03/2024,Address_460,54000,Punjab,3.4,79.6,31.651978,74.369951
+Urban Palace,Restaurant/Cafe/Shop,Improvement Required,01/06/2025,Address_461,60000,Punjab,1,44,31.569481,74.256003
+Guacamole Frog (1),Restaurant/Cafe/Shop,Pass,06/11/2025,Address_462,40100,Punjab,4.1,85.9,31.430393,74.241308
+Burger Shop,Restaurant/Cafe/Shop,Pass,02/04/2025,Address_463,46000,Punjab,1.3,60.7,31.540578,74.342708
+Cozy Espresso,Restaurant/Cafe/Shop,Pass,23/07/2025,Address_464,60000,Punjab,2.6,72.4,31.540434,74.223196
+Great Wall Blossom (1),Restaurant/Cafe/Shop,Pass,20/12/2025,Address_465,38000,Punjab,1.6,63.4,31.539994,74.227856
+The Tea Palace (1),Restaurant/Cafe/Shop,Pass,01/12/2024,Address_466,40100,Punjab,2.5,71.5,31.45312,74.483374
+Moroccan Tree (1),Restaurant/Cafe/Shop,Improvement Required,25/01/2024,Address_467,46000,Punjab,2.9,61.1,31.422473,74.257235
+The Pizza Delight,Restaurant/Cafe/Shop,Pass,30/07/2025,Address_468,38000,Punjab,4.7,91.3,31.606655,74.40954
+Falafel Cafe,Restaurant/Cafe/Shop,Pass,14/12/2024,Address_469,38000,Punjab,4.5,89.5,31.424498,74.386644
+Aegean Blue,Restaurant/Cafe/Shop,Pass,30/10/2025,Address_470,38000,Punjab,2.6,72.4,31.563605,74.2445
+The Tea Cozy (1),Restaurant/Cafe/Shop,Pass,02/04/2024,Address_471,55150,Punjab,3.6,81.4,31.514721,74.216742
+Aroma House,Restaurant/Cafe/Shop,Improvement Required,06/04/2024,Address_472,40100,Punjab,4.4,74.6,31.572036,74.343826
+Wrap Delight (1),Restaurant/Cafe/Shop,Pass,25/11/2024,Address_473,38000,Punjab,1.6,63.4,31.5925,74.428475
+Alexandria Garden,Restaurant/Cafe/Shop,Awaiting Inspection,01/04/2024,Address_474,54000,Punjab,3.8,65.7,31.496112,74.486093
+Chipotle Eats,Restaurant/Cafe/Shop,Pass,29/03/2025,Address_475,60000,Punjab,3.3,78.7,31.473627,74.279385
+Pastry Mug,Restaurant/Cafe/Shop,Pass,16/07/2025,Address_476,60000,Punjab,2,67,31.650359,74.292787
+Crete Meze,Restaurant/Cafe/Shop,Pass,02/01/2025,Address_477,38000,Punjab,3.8,83.2,31.46218,74.333238
+Sindh Lounge,Restaurant/Cafe/Shop,Pass,01/09/2025,Address_478,60000,Punjab,3.1,76.9,31.61232,74.345091
+Munchies Burger,Restaurant/Cafe/Shop,Pass,22/10/2025,Address_479,60000,Punjab,1.8,65.2,31.639173,74.294313
+La Salsa Express,Restaurant/Cafe/Shop,Pass,28/08/2024,Address_480,40100,Punjab,1.2,59.8,31.488171,74.330808
+Crete Tree,Restaurant/Cafe/Shop,Pass,24/11/2025,Address_481,54000,Punjab,2.2,68.8,31.649885,74.263068
+Lebanese Cafe,Restaurant/Cafe/Shop,Pass,24/03/2025,Address_482,38000,Punjab,1.6,63.4,31.567333,74.46499
+Aztec Express,Restaurant/Cafe/Shop,Improvement Required,01/09/2025,Address_483,46000,Punjab,4.4,74.6,31.495534,74.213918
+Central Junction,Restaurant/Cafe/Shop,Pass,27/04/2025,Address_484,38000,Punjab,1.4,61.6,31.625813,74.311337
+The Red Thistle,Restaurant/Cafe/Shop,Improvement Required,16/09/2025,Address_485,54000,Punjab,3.4,65.6,31.600224,74.309208
+The Pizza Steaks,Restaurant/Cafe/Shop,Pass,16/09/2024,Address_486,55150,Punjab,2.9,75.1,31.523421,74.432986
+Thames Dining (1),Restaurant/Cafe/Shop,Improvement Required,16/12/2025,Address_487,55150,Punjab,3.2,63.8,31.413989,74.456191
+Masala Karahi (1),Restaurant/Cafe/Shop,Pass,31/07/2024,Address_488,40100,Punjab,3.9,84.1,31.463694,74.456004
+Wrap Diner,Restaurant/Cafe/Shop,Awaiting Inspection,15/07/2024,Address_489,38000,Punjab,1.6,45.9,31.427762,74.390523
+Westminster Thistle,Restaurant/Cafe/Shop,Pass,04/06/2025,Address_490,60000,Punjab,3.4,79.6,31.626318,74.214184
+Green Leaf Leaves,Restaurant/Cafe/Shop,Pass,17/01/2024,Address_491,60000,Punjab,3.3,78.7,31.481323,74.346075
+The White Kitchen,Restaurant/Cafe/Shop,Pass,20/01/2024,Address_492,46000,Punjab,4.6,90.4,31.507002,74.480684
+Thames Lion,Restaurant/Cafe/Shop,Pass,18/02/2025,Address_493,54000,Punjab,3.9,84.1,31.619894,74.299337
+Royal Indian Bistro,Restaurant/Cafe/Shop,Pass,27/07/2024,Address_494,46000,Punjab,3.9,84.1,31.583559,74.224592
+Guacamole Mexico,Restaurant/Cafe/Shop,Improvement Required,19/04/2024,Address_495,38000,Punjab,1.9,52.1,31.593234,74.386552
+Aztec Frog,Restaurant/Cafe/Shop,Pass,17/04/2025,Address_496,38000,Punjab,3.2,77.8,31.509562,74.45006
+Borough Thistle,Restaurant/Cafe/Shop,Pass,03/03/2024,Address_497,40100,Punjab,3,76,31.663412,74.396574
+Napoli Pesto,Restaurant/Cafe/Shop,Pass,02/01/2025,Address_498,40100,Punjab,3.6,81.4,31.569092,74.324229
+Turbo Express,Restaurant/Cafe/Shop,Pass,22/05/2024,Address_499,60000,Punjab,1.3,60.7,31.412214,74.487124
+Spicy Cafe,Restaurant/Cafe/Shop,Pass,09/06/2024,Address_500,55150,Punjab,4.7,91.3,31.642514,74.218642
+Istanbul Blue (1),Restaurant/Cafe/Shop,Pass,13/07/2025,Address_501,40100,Punjab,1.1,58.9,31.640654,74.454331
+Trattoria Napoli,Restaurant/Cafe/Shop,Pass,01/12/2025,Address_502,46000,Punjab,1.3,60.7,31.56605,74.395421
+Trattoria Napoli (1),Restaurant/Cafe/Shop,Pass,11/09/2024,Address_503,55150,Punjab,4.4,88.6,31.647496,74.455699
+Chopsticks Bistro,Restaurant/Cafe/Shop,Pass,22/12/2025,Address_504,54000,Punjab,2.6,72.4,31.561438,74.333712
+Donut Steaks,Restaurant/Cafe/Shop,Improvement Required,23/10/2025,Address_505,46000,Punjab,2.7,59.3,31.518362,74.350361
+Pasta Toscana,Restaurant/Cafe/Shop,Pass,14/04/2025,Address_506,40100,Punjab,1.2,59.8,31.408061,74.25486
+Delhi Cafe,Restaurant/Cafe/Shop,Awaiting Inspection,02/07/2025,Address_507,46000,Punjab,4.2,69.3,31.639081,74.397664
+Blue Tree (1),Restaurant/Cafe/Shop,Pass,01/05/2024,Address_508,55150,Punjab,3.3,78.7,31.529615,74.299336
+Java House,Restaurant/Cafe/Shop,Pass,17/05/2024,Address_509,60000,Punjab,3.4,79.6,31.440986,74.299483
+London Eatery,Restaurant/Cafe/Shop,Awaiting Inspection,25/02/2024,Address_510,54000,Punjab,2.9,57.6,31.649113,74.314308
+Sultan Tavern,Restaurant/Cafe/Shop,Pass,03/10/2024,Address_511,54000,Punjab,1.7,64.3,31.67364,74.406448
+The Royal Lion,Restaurant/Cafe/Shop,Pass,02/05/2024,Address_512,46000,Punjab,4.9,93.1,31.645188,74.420792
+Golden Lantern,Restaurant/Cafe/Shop,Pass,25/05/2024,Address_513,55150,Punjab,3.2,77.8,31.559072,74.20503
+Gyro Cafe,Restaurant/Cafe/Shop,Improvement Required,29/10/2025,Address_514,54000,Punjab,2.8,60.2,31.676888,74.385853
+King's Roast House,Restaurant/Cafe/Shop,Improvement Required,10/01/2024,Address_515,60000,Punjab,1.8,51.2,31.622938,74.420908
+Burrito Salsa,Restaurant/Cafe/Shop,Improvement Required,30/04/2024,Address_516,46000,Punjab,4.7,77.3,31.404791,74.253382
+Alexandria Mint,Restaurant/Cafe/Shop,Awaiting Inspection,02/01/2025,Address_517,60000,Punjab,4.5,72,31.448593,74.228382
+Chopsticks Lee (1),Restaurant/Cafe/Shop,Pass,23/09/2024,Address_518,54000,Punjab,3,76,31.592819,74.272885
+Chopsticks Cafe,Restaurant/Cafe/Shop,Awaiting Inspection,05/12/2025,Address_519,40100,Punjab,3.5,63,31.677444,74.397244
+Lebanese Spot,Restaurant/Cafe/Shop,Improvement Required,30/11/2024,Address_520,55150,Punjab,2.9,61.1,31.631873,74.377322
+The Daily Brew,Restaurant/Cafe/Shop,Improvement Required,01/11/2025,Address_521,55150,Punjab,1.9,52.1,31.500539,74.359842
+Taco Grande Sol,Restaurant/Cafe/Shop,Pass,04/01/2024,Address_522,60000,Punjab,1.9,66.1,31.475979,74.311626
+Fortune Nights,Restaurant/Cafe/Shop,Exempt,22/12/2025,Address_523,60000,Punjab,4.4,81.6,31.432552,74.281843
+Zaiqa Cuisine,Restaurant/Cafe/Shop,Pass,14/07/2025,Address_524,55150,Punjab,2.6,72.4,31.611172,74.238335
+Windsor Grille,Restaurant/Cafe/Shop,Improvement Required,02/10/2024,Address_525,60000,Punjab,3.6,67.4,31.583466,74.298562
+Espresso Corner (1),Restaurant/Cafe/Shop,Pass,21/01/2025,Address_526,60000,Punjab,2.2,68.8,31.452277,74.216996
+Fiesta Express,Restaurant/Cafe/Shop,Improvement Required,07/08/2024,Address_527,46000,Punjab,2.4,56.6,31.622677,74.355642
+Donut Zone (1),Restaurant/Cafe/Shop,Pass,21/01/2025,Address_528,40100,Punjab,2.9,75.1,31.639959,74.22361
+Wrap Express,Restaurant/Cafe/Shop,Improvement Required,07/01/2025,Address_529,54000,Punjab,2.3,55.7,31.645207,74.344284
+Pasta Romana,Restaurant/Cafe/Shop,Improvement Required,01/01/2025,Address_530,60000,Punjab,4.9,79.1,31.663089,74.329853

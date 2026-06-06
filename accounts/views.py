@@ -677,7 +677,12 @@ class UserBasedRecommendationsView(APIView):
             serializer = RestaurantSerializer(ranked_restaurants, many=True)
             return Response(serializer.data)
 
-        return Response([], status=status.HTTP_200_OK)
+        qs = Restaurant.objects.all()
+        ranked = [(r, _score(r)) for r in qs]
+        ranked.sort(key=lambda x: x[1], reverse=True)
+        top = [r for r, _score_value in ranked[:10]]
+        serializer = RestaurantSerializer(top, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class DishRecommendationsView(APIView):
@@ -690,10 +695,14 @@ class DishRecommendationsView(APIView):
             interaction_type__in=['view', 'like', 'favorite', 'rate'],
         )
         interacted_ids = list(interactions.values_list('restaurant', flat=True))
-        if not interacted_ids:
-            return Response([], status=status.HTTP_200_OK)
-
-        items = _recommend_dishes_item_based(interacted_ids, limit=10)
+        
+        items = []
+        if interacted_ids:
+            items = _recommend_dishes_item_based(interacted_ids, limit=10)
+            
+        if not items:
+            items = RestaurantMenuItem.objects.select_related('restaurant').filter(is_available=True).order_by('-rating')[:10]
+            
         results = []
         for item in items:
             results.append({

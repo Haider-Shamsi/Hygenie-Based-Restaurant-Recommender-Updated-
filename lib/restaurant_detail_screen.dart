@@ -746,6 +746,7 @@ class _MenuItem {
   final double price;
   final double rating;
   final int orderCount;
+  final String category;
 
   const _MenuItem({
     required this.name,
@@ -753,6 +754,7 @@ class _MenuItem {
     required this.price,
     required this.rating,
     required this.orderCount,
+    required this.category,
   });
 
   factory _MenuItem.fromJson(Map<String, dynamic> json) {
@@ -767,7 +769,85 @@ class _MenuItem {
       price: parsedPrice,
       rating: (json['rating'] as num?)?.toDouble() ?? 0,
       orderCount: (json['order_count'] as num?)?.toInt() ?? 0,
+      category: (json['category'] as String?) ?? '',
     );
+  }
+
+  String get imageUrl {
+    final lowerName = name.toLowerCase();
+    final lowerCat = category.toLowerCase();
+
+    // 1. Pizza
+    if (lowerName.contains('pizza')) {
+      return 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=500&q=80';
+    }
+    // 2. Burger & Wings
+    if (lowerName.contains('burger') || lowerName.contains('wings')) {
+      return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80';
+    }
+    // 3. Fries / Potato
+    if (lowerName.contains('fries') || lowerName.contains('chips') || lowerName.contains('potato')) {
+      return 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=500&q=80';
+    }
+    // 4. Pasta / Lasagne / Penne
+    if (lowerName.contains('pasta') || lowerName.contains('lasagne') || lowerName.contains('penne') || lowerName.contains('carbonara') || lowerName.contains('arrabbiata')) {
+      return 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=500&q=80';
+    }
+    // 5. Biryani & Rice
+    if (lowerName.contains('biryani') || lowerName.contains('rice') || lowerName.contains('pulao')) {
+      return 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?auto=format&fit=crop&w=500&q=80';
+    }
+    // 6. Indian/South Asian Curries & Bread & Kebab (Tikka, Paneer, Naan, Kebab, Samosa, Bhaji, Dal)
+    if (lowerName.contains('tikka') || lowerName.contains('paneer') || lowerName.contains('naan') || 
+        lowerName.contains('kebab') || lowerName.contains('samosa') || lowerName.contains('bhaji') || 
+        lowerName.contains('dal') || lowerName.contains('curry') || lowerCat.contains('south asian')) {
+      return 'https://images.unsplash.com/photo-1585938338392-50a5d22beb18?auto=format&fit=crop&w=500&q=80';
+    }
+    // 7. Salads & Veggie dips (Tzatziki, Hummus, Tabbouleh, Salad)
+    if (lowerName.contains('salad') || lowerName.contains('tzatziki') || lowerName.contains('hummus') || 
+        lowerName.contains('tabbouleh') || lowerName.contains('leaves') || lowerName.contains('pita') || lowerName.contains('greek salad')) {
+      return 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=500&q=80';
+    }
+    // 8. Tacos & Mexican Wraps (Tacos, Quesadilla, Burrito, Wrap, Shawarma, Nachos, Enchiladas, Fajita, Guacamole, Pico)
+    if (lowerName.contains('taco') || lowerName.contains('quesadilla') || lowerName.contains('burrito') || 
+        lowerName.contains('wrap') || lowerName.contains('shawarma') || lowerName.contains('nachos') || 
+        lowerName.contains('enchiladas') || lowerName.contains('fajita') || lowerName.contains('guacamole') || 
+        lowerName.contains('pico') || lowerCat.contains('mexican') || lowerCat.contains('mediterranean')) {
+      return 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=500&q=80';
+    }
+    // 9. Soups
+    if (lowerName.contains('soup')) {
+      return 'https://images.unsplash.com/photo-1547592165-e1d17fed6005?auto=format&fit=crop&w=500&q=80';
+    }
+    // 10. Pies & Baked (Pie, Wellington, Pasty, Pudding)
+    if (lowerName.contains('pie') || lowerName.contains('wellington') || lowerName.contains('pasty') || lowerName.contains('pudding')) {
+      return 'https://images.unsplash.com/photo-1519869325930-281384150729?auto=format&fit=crop&w=500&q=80';
+    }
+    // 11. Drinks (Coffee, Cappuccino, Lassi, Smoothie, Milkshake, Drink, Tea, Beverage)
+    if (lowerName.contains('coffee') || lowerName.contains('cappuccino') || lowerName.contains('lassi') || 
+        lowerName.contains('smoothie') || lowerName.contains('milkshake') || lowerName.contains('drink') || 
+        lowerName.contains('tea') || lowerName.contains('beverage')) {
+      return 'https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=500&q=80';
+    }
+    // 12. Desserts (Cake, Tiramisu, Baklava, Churros, Flan, Sponge, Muffin, Croissant, Scone, Donut, Dessert, Cannoli, Gulab Jamun)
+    if (lowerName.contains('cake') || lowerName.contains('tiramisu') || lowerName.contains('baklava') || 
+        lowerName.contains('churros') || lowerName.contains('flan') || lowerName.contains('sponge') || 
+        lowerName.contains('muffin') || lowerName.contains('croissant') || lowerName.contains('scone') || 
+        lowerName.contains('donut') || lowerName.contains('dessert') || lowerName.contains('cannoli') || 
+        lowerName.contains('gulab jamun')) {
+      return 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=500&q=80';
+    }
+    // 13. Eggs / Breakfast (Toast, Eggs, Benedict, Croissant)
+    if (lowerName.contains('eggs') || lowerName.contains('toast') || lowerName.contains('benedict') || lowerName.contains('breakfast')) {
+      return 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=500&q=80';
+    }
+    // 14. Chinese items
+    if (lowerCat.contains('chinese') || lowerName.contains('dumpling') || lowerName.contains('wonton') || lowerName.contains('mein') || lowerName.contains('duck') || lowerName.contains('rolls')) {
+      return 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=500&q=80';
+    }
+    
+    // Default food fallback
+    return 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=500&q=80';
   }
 }
 
@@ -820,11 +900,17 @@ class _MenuCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                child: Container(
+                child: Image.network(
+                  item.imageUrl,
                   height: 180,
                   width: double.infinity,
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.restaurant_menu, size: 60, color: Colors.grey),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    height: 180,
+                    width: double.infinity,
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.restaurant_menu, size: 60, color: Colors.grey),
+                  ),
                 ),
               ),
               Positioned(
