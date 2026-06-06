@@ -757,15 +757,30 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     spots: _reportsTrend.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value['total'])).toList(),
                     isCurved: true,
                     color: _brandBlue,
-                    barWidth: 2,
-                    dotData: const FlDotData(show: true),
+                    barWidth: 4,
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+                        radius: 6,
+                        color: _brandBlue,
+                        strokeWidth: 0,
+                      ),
+                    ),
                   ),
                   LineChartBarData(
                     spots: _reportsTrend.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value['resolved'])).toList(),
                     isCurved: true,
                     color: _brandTeal,
                     barWidth: 2,
-                    dotData: const FlDotData(show: true),
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+                        radius: 3.5,
+                        color: _brandTeal,
+                        strokeWidth: 1.5,
+                        strokeColor: Colors.white,
+                      ),
+                    ),
                   ),
                 ],
               ),

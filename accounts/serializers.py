@@ -295,7 +295,7 @@ class OwnerReviewResponseSerializer(serializers.ModelSerializer):
 class OwnerReportResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = OwnerReportResponse
-        fields = ['text', 'created_at']
+        fields = ['text', 'evidence', 'evidence_image', 'created_at']
 
 
 class RestaurantReviewSerializer(serializers.ModelSerializer):
@@ -340,13 +340,14 @@ class HygieneIssueReportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HygieneIssueReport
-        fields = ['id', 'category', 'category_display', 'description', 'status', 'created_at']
-        read_only_fields = ['id', 'status', 'created_at', 'category_display']
+        fields = ['id', 'category', 'category_display', 'description', 'image_proof', 'status', 'created_at']
+        read_only_fields = ['id', 'status', 'created_at', 'category_display', 'image_proof']
 
 
 class HygieneIssueReportCreateSerializer(serializers.Serializer):
     category = serializers.ChoiceField(choices=HygieneIssueReport.CATEGORY_CHOICES)
     description = serializers.CharField(min_length=8, max_length=800)
+    image_proof = serializers.FileField(required=False, allow_null=True)
 
 
 class RestaurantDetailSerializer(serializers.Serializer):

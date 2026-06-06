@@ -96,7 +96,7 @@ class _OwnerReviewsManagementScreenState extends State<OwnerReviewsManagementScr
   List<OwnerReview> get _filteredReviews {
     if (_activeFilter == 'needs-response') return _reviews.where((r) => r.ownerResponse == null).toList();
     if (_activeFilter == 'responded') return _reviews.where((r) => r.ownerResponse != null).toList();
-    if (_activeFilter == 'negative') return _reviews.where((r) => r.rating <= 2).toList();
+    if (_activeFilter == 'negative') return _reviews.where((r) => r.sentiment.toLowerCase() == 'negative').toList();
     return _reviews;
   }
 
@@ -362,7 +362,7 @@ class _OwnerReviewsManagementScreenState extends State<OwnerReviewsManagementScr
       {'id': 'all', 'label': 'All Reviews', 'count': _reviews.length},
       {'id': 'needs-response', 'label': 'Needs Response', 'count': _reviews.where((r) => r.ownerResponse == null).length},
       {'id': 'responded', 'label': 'Responded', 'count': _reviews.where((r) => r.ownerResponse != null).length},
-      {'id': 'negative', 'label': 'Negative', 'count': _reviews.where((r) => r.rating <= 2).length},
+      {'id': 'negative', 'label': 'Negative', 'count': _reviews.where((r) => r.sentiment.toLowerCase() == 'negative').length},
     ];
 
     return Container(

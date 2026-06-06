@@ -111,6 +111,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
   OwnerDashboardData? _dashboardData;
   int _selectedIndex = 0;
   bool _isRequestingInspection = false;
+  List<dynamic> _warningAlerts = [];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -128,6 +129,52 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
   void initState() {
     super.initState();
     _fetchDashboardData();
+  }
+
+  Future<void> _fetchWarningAlerts() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      if (token == null) return;
+      final response = await http.get(
+        Uri.parse('${Config.baseUrl}/api/accounts/alerts/?unread_only=true'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        final List<dynamic> list = data['results'] ?? [];
+        if (mounted) {
+          setState(() {
+            _warningAlerts = list.where((a) => a['alert_type'] == 'inspection_warning').toList();
+          });
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _dismissAlert(int id) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      if (token == null) return;
+      final response = await http.patch(
+        Uri.parse('${Config.baseUrl}/api/accounts/alerts/$id/read/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        if (mounted) {
+          setState(() {
+            _warningAlerts.removeWhere((a) => a['id'] == id);
+          });
+        }
+      }
+    } catch (_) {}
   }
 
   // --- DJANGO API INTEGRATION ---
@@ -156,6 +203,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
           _dashboardData = OwnerDashboardData.fromJson(jsonData);
           _isLoading = false;
         });
+        _fetchWarningAlerts();
       } else {
         setState(() {
           _errorMessage = 'Failed to load dashboard data.';
@@ -339,6 +387,46 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (_warningAlerts.isNotEmpty) ...[
+            ..._warningAlerts.map((alert) => Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                border: Border.all(color: Colors.red.shade200),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.red.shade700, size: 24),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Warning Alert from Admin",
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade800, fontSize: 14),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          alert['message'] ?? '',
+                          style: TextStyle(color: Colors.red.shade900, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 20),
+                    onPressed: () => _dismissAlert(alert['id']),
+                    color: Colors.red.shade700,
+                  )
+                ],
+              ),
+            )),
+          ],
           _buildHeaderCard(data),
           const SizedBox(height: 20),
           _buildQuickStats(data),

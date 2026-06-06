@@ -58,6 +58,7 @@ class AdminReport {
   final String? ownerResponseText;
   final String? ownerResponseDate;
   final String? ownerResponseEvidenceUrl;
+  final String? ownerResponseEvidenceImageUrl;
 
   AdminReport({
     required this.id,
@@ -75,6 +76,7 @@ class AdminReport {
     this.ownerResponseText,
     this.ownerResponseDate,
     this.ownerResponseEvidenceUrl,
+    this.ownerResponseEvidenceImageUrl,
   });
 }
 
@@ -177,12 +179,90 @@ class _AdminReportsPanelState extends State<AdminReportsPanel> {
               ownerResponseText: ownerResp?['text'],
               ownerResponseDate: ownerResp?['date'],
               ownerResponseEvidenceUrl: ownerResp?['evidence_url'],
+              ownerResponseEvidenceImageUrl: ownerResp?['evidence_image_url'],
             );
           }).toList();
         });
       }
     } catch (_) {
       // Keep empty state if backend is unreachable.
+    }
+  }
+
+  Future<void> _exportReports() async {
+    try {
+      final reports = _filteredAndSortedReports;
+      if (reports.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No reports to export.')),
+        );
+        return;
+      }
+
+      final csvHeaders = [
+        'Report ID',
+        'Submitted Date',
+        'Reporter Name',
+        'Is Anonymous',
+        'Reporter Email',
+        'Reporter Phone',
+        'Restaurant Name',
+        'Restaurant ID',
+        'Issue Type',
+        'Priority',
+        'Status',
+        'Description',
+        'AI Severity',
+        'AI Confidence',
+        'AI Flags',
+        'Owner Response',
+        'Owner Response Date'
+      ];
+
+      final csvRows = [
+        csvHeaders.map((h) => '"${h.replaceAll('"', '""')}"').join(',')
+      ];
+
+      for (final r in reports) {
+        final row = [
+          r.reportId,
+          r.submittedDate,
+          r.reporter.name,
+          r.reporter.isAnonymous ? 'Yes' : 'No',
+          r.reporter.email ?? '',
+          r.reporter.phone ?? '',
+          r.restaurant.name,
+          r.restaurant.id,
+          r.issueType,
+          r.priority,
+          r.status,
+          r.description,
+          r.nlpAnalysis.severityAssessment,
+          '${r.nlpAnalysis.confidenceScore}%',
+          r.nlpAnalysis.autoFlags.join('; '),
+          r.ownerResponseText ?? '',
+          r.ownerResponseDate ?? '',
+        ];
+        csvRows.add(row.map((val) => '"${val.replaceAll('"', '""')}"').join(','));
+      }
+
+      final csvContent = csvRows.join('\n');
+      final bytes = utf8.encode(csvContent);
+      final base64Csv = base64Encode(bytes);
+      final dataUri = 'data:text/csv;base64,$base64Csv';
+      final uri = Uri.parse(dataUri);
+
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not trigger CSV download.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Export failed: $e')),
+      );
     }
   }
 
@@ -454,6 +534,7 @@ class _AdminReportsPanelState extends State<AdminReportsPanel> {
             DropdownMenuItem(value: 'cleanliness', child: Text("Cleanliness")),
             DropdownMenuItem(value: 'staff-hygiene', child: Text("Staff Hygiene")),
             DropdownMenuItem(value: 'pest-control', child: Text("Pest Control")),
+            DropdownMenuItem(value: 'other', child: Text("Other")),
           ],
           onChanged: (val) => setState(() => _filterCategory = val!),
         ),
@@ -468,7 +549,7 @@ class _AdminReportsPanelState extends State<AdminReportsPanel> {
           onChanged: (val) => setState(() => _sortBy = val!),
         ),
         // Export/Notify
-        OutlinedButton.icon(onPressed: (){}, icon: const Icon(Icons.download, size: 16), label: const Text("Export"), style: OutlinedButton.styleFrom(foregroundColor: _textDark, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))),
+        OutlinedButton.icon(onPressed: _exportReports, icon: const Icon(Icons.download, size: 16), label: const Text("Export"), style: OutlinedButton.styleFrom(foregroundColor: _textDark, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))),
       ],
     );
   }
@@ -729,6 +810,26 @@ class _AdminReportsPanelState extends State<AdminReportsPanel> {
                                     ),
                                   ),
                                 ],
+                              ),
+                            ),
+                          ],
+                          if (report.ownerResponseEvidenceImageUrl != null) ...[
+                            const SizedBox(height: 12),
+                            const Text("Attached Evidence Image:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                            const SizedBox(height: 6),
+                            InkWell(
+                              onTap: () => _showImageLightbox(report.ownerResponseEvidenceImageUrl!),
+                              child: Container(
+                                width: 120,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.grey.shade300),
+                                  image: DecorationImage(
+                                    image: NetworkImage(report.ownerResponseEvidenceImageUrl!),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
                               ),
                             ),
                           ],

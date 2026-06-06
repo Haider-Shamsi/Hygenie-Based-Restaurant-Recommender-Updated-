@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:fl_chart/fl_chart.dart'; 
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:file_picker/file_picker.dart';
 import 'models/restaurant.dart';
 import 'config.dart';
 class RestaurantDetailScreen extends StatefulWidget {
@@ -148,7 +149,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
     return false;
   }
 
-  Future<bool> _submitIssueReport({required String category, required String description}) async {
+  Future<bool> _submitIssueReport({required String category, required String description, PlatformFile? imageProof}) async {
     final token = await _getAuthToken();
     if (token == null || token.isEmpty) {
       if (!mounted) return false;
@@ -158,28 +159,54 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
       return false;
     }
 
-    final response = await http.post(
-      Uri.parse('${Config.baseUrl}/api/accounts/restaurants/${widget.restaurant.id}/reports/'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Token $token',
-      },
-      body: json.encode({'category': category, 'description': description}),
-    );
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${Config.baseUrl}/api/accounts/restaurants/${widget.restaurant.id}/reports/'),
+      );
+      request.headers['Authorization'] = 'Token $token';
+      request.fields['category'] = category;
+      request.fields['description'] = description;
 
-    if (response.statusCode == 201) {
+      if (imageProof != null) {
+        if (imageProof.bytes != null) {
+          request.files.add(http.MultipartFile.fromBytes(
+            'image_proof',
+            imageProof.bytes!,
+            filename: imageProof.name,
+          ));
+        } else if (imageProof.path != null) {
+          request.files.add(await http.MultipartFile.fromPath(
+            'image_proof',
+            imageProof.path!,
+            filename: imageProof.name,
+          ));
+        }
+      }
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 201) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Issue report submitted.')),
+          );
+        }
+        return true;
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Issue report submitted.')),
+          SnackBar(content: Text('Failed to submit report (${response.statusCode}).')),
         );
       }
-      return true;
-    }
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to submit report (${response.statusCode}).')),
-      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error submitting report: $e')),
+        );
+      }
     }
     return false;
   }
@@ -600,7 +627,7 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
 // --- MODAL: REPORT HYGIENE ISSUE ---
 class _ReportIssueSheet extends StatelessWidget {
   final String restaurantName;
-  final Future<bool> Function({required String category, required String description}) onSubmit;
+  final Future<bool> Function({required String category, required String description, PlatformFile? imageProof}) onSubmit;
 
   const _ReportIssueSheet({required this.restaurantName, required this.onSubmit});
 
@@ -610,78 +637,136 @@ class _ReportIssueSheet extends StatelessWidget {
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     String selectedCategory = 'food_handling';
+    PlatformFile? selectedImageProof;
     bool isSubmitting = false;
 
     return Container(
       decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
         child: StatefulBuilder(
-          builder: (context, setSheetState) => Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text("Report Hygiene Issue", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.redAccent)),
-              Text("Reporting: $restaurantName", style: const TextStyle(color: Colors.grey)),
-              const SizedBox(height: 20),
-              const Text("Issue Category", style: TextStyle(fontWeight: FontWeight.bold)),
-              DropdownButtonFormField<String>(
-                initialValue: selectedCategory,
-                items: const [
-                  DropdownMenuItem(value: 'food_handling', child: Text('Food Handling')),
-                  DropdownMenuItem(value: 'cleanliness', child: Text('Cleanliness')),
-                  DropdownMenuItem(value: 'pest_control', child: Text('Pest Control')),
-                  DropdownMenuItem(value: 'other', child: Text('Other')),
-                ],
-                onChanged: (val) {
-                  if (val == null) return;
-                  setSheetState(() {
-                    selectedCategory = val;
-                  });
-                },
-                decoration: const InputDecoration(border: OutlineInputBorder()),
-              ),
-              const SizedBox(height: 20),
-              const Text("Description", style: TextStyle(fontWeight: FontWeight.bold)),
-              TextField(
-                controller: descriptionController,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  hintText: "Describe the issue in detail...",
-                  border: OutlineInputBorder(),
+          builder: (context, setSheetState) => SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Report Hygiene Issue", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.redAccent)),
+                Text("Reporting: $restaurantName", style: const TextStyle(color: Colors.grey)),
+                const SizedBox(height: 20),
+                const Text("Issue Category", style: TextStyle(fontWeight: FontWeight.bold)),
+                DropdownButtonFormField<String>(
+                  initialValue: selectedCategory,
+                  items: const [
+                    DropdownMenuItem(value: 'food_handling', child: Text('Food Handling')),
+                    DropdownMenuItem(value: 'cleanliness', child: Text('Cleanliness')),
+                    DropdownMenuItem(value: 'pest_control', child: Text('Pest Control')),
+                    DropdownMenuItem(value: 'other', child: Text('Other')),
+                  ],
+                  onChanged: (val) {
+                    if (val == null) return;
+                    setSheetState(() {
+                      selectedCategory = val;
+                    });
+                  },
+                  decoration: const InputDecoration(border: OutlineInputBorder()),
                 ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, minimumSize: const Size(double.infinity, 50)),
-                onPressed: isSubmitting
-                    ? null
-                    : () async {
-                        final description = descriptionController.text.trim();
-                        if (description.length < 8) {
-                          messenger.showSnackBar(
-                            const SnackBar(content: Text('Please add a valid issue description.')),
-                          );
-                          return;
+                const SizedBox(height: 20),
+                const Text("Description", style: TextStyle(fontWeight: FontWeight.bold)),
+                TextField(
+                  controller: descriptionController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    hintText: "Describe the issue in detail...",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text("Image Proof", style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: selectedImageProof != null ? const Color(0xFF10B981) : Colors.black87,
+                      side: selectedImageProof != null ? const BorderSide(color: Color(0xFF10B981)) : null,
+                    ),
+                    onPressed: () async {
+                      try {
+                        final result = await FilePicker.platform.pickFiles(type: FileType.image);
+                        if (result != null && result.files.isNotEmpty) {
+                          setSheetState(() {
+                            selectedImageProof = result.files.first;
+                          });
                         }
+                      } catch (e) {
+                        messenger.showSnackBar(SnackBar(content: Text('Error picking file: $e')));
+                      }
+                    },
+                    icon: const Icon(Icons.image_outlined),
+                    label: Text(selectedImageProof == null ? "Select Image Proof" : "Change Image"),
+                  ),
+                ),
+                if (selectedImageProof != null) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.check_circle, color: Color(0xFF10B981), size: 16),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          selectedImageProof!.name,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.cancel, color: Colors.red, size: 18),
+                        onPressed: () => setSheetState(() => selectedImageProof = null),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, minimumSize: const Size(double.infinity, 50)),
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          final description = descriptionController.text.trim();
+                          if (description.length < 8) {
+                            messenger.showSnackBar(
+                              const SnackBar(content: Text('Please add a valid issue description.')),
+                            );
+                            return;
+                          }
 
-                        setSheetState(() {
-                          isSubmitting = true;
-                        });
-                        final ok = await onSubmit(category: selectedCategory, description: description);
-                        if (!navigator.mounted) return;
-                        setSheetState(() {
-                          isSubmitting = false;
-                        });
-                        if (ok) {
-                          navigator.pop(true);
-                        }
-                      },
-                child: isSubmitting
-                    ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text("Submit Report", style: TextStyle(color: Colors.white)),
-              ),
-            ],
+                          setSheetState(() {
+                            isSubmitting = true;
+                          });
+                          final ok = await onSubmit(
+                            category: selectedCategory,
+                            description: description,
+                            imageProof: selectedImageProof,
+                          );
+                          if (!navigator.mounted) return;
+                          setSheetState(() {
+                            isSubmitting = false;
+                          });
+                          if (ok) {
+                            navigator.pop(true);
+                          }
+                        },
+                  child: isSubmitting
+                      ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Text("Submit Report", style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
           ),
         ),
       ),
