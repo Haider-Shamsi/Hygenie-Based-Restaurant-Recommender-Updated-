@@ -83,6 +83,36 @@ class Restaurant {
       'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=600&q=80', // Fresh salad
       'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=600&q=80', // Desserts case
       'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=600&q=80', // Pizza close up
+      'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80', // Burger
+      'https://loremflickr.com/600/400/restaurant,food?random=100', // Food layout
+      'https://loremflickr.com/600/400/restaurant,food?random=101', // Fish dish
+      'https://loremflickr.com/600/400/restaurant,food?random=102', // Sandwich
+      'https://images.unsplash.com/photo-1543362906-acfc16c67564?auto=format&fit=crop&w=600&q=80', // Dim sum
+      'https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&fit=crop&w=600&q=80', // Sushi
+      'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=600&q=80', // Pancakes
+      'https://loremflickr.com/600/400/restaurant,food?random=103', // Salad
+      'https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?auto=format&fit=crop&w=600&q=80', // Tacos
+      'https://images.unsplash.com/photo-1588168333986-5078d3ae3976?auto=format&fit=crop&w=600&q=80', // Coffee shop
+      'https://images.unsplash.com/photo-1554679665-f5537f187268?auto=format&fit=crop&w=600&q=80', // Cafe facade
+      'https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?auto=format&fit=crop&w=600&q=80', // Fast food
+      'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80', // Bowl
+      'https://images.unsplash.com/photo-1481931098730-318b6f776db0?auto=format&fit=crop&w=600&q=80', // Dinner party
+      'https://loremflickr.com/600/400/restaurant,food?random=104', // Pasta
+      'https://images.unsplash.com/photo-1564834724105-918b73d1b9e0?auto=format&fit=crop&w=600&q=80', // Toast
+      'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80', // Pizza slice
+      'https://images.unsplash.com/photo-1457460866886-40ef8d4b42a0?auto=format&fit=crop&w=600&q=80', // Pastries
+      'https://loremflickr.com/600/400/restaurant,food?random=105', // Cafe inside
+      'https://loremflickr.com/600/400/restaurant,food?random=106', // Table setting
+      'https://loremflickr.com/600/400/restaurant,food?random=107', // Meat dish
+      'https://loremflickr.com/600/400/restaurant,food?random=108', // Coffee cup
+      'https://loremflickr.com/600/400/restaurant,food?random=109', // Breakfast
+      'https://images.unsplash.com/photo-1520201163981-8cc95007dd2a?auto=format&fit=crop&w=600&q=80', // Noodles
+      'https://loremflickr.com/600/400/restaurant,food?random=110', // Dessert
+      'https://loremflickr.com/600/400/restaurant,food?random=111', // Cafe exterior
+      'https://loremflickr.com/600/400/restaurant,food?random=112', // Fancy dish
+      'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?auto=format&fit=crop&w=600&q=80', // Burger and fries
+      'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?auto=format&fit=crop&w=600&q=80', // Indian food
+      'https://loremflickr.com/600/400/restaurant,food?random=113', // Sushi roll
     ];
     return images[id % images.length];
   }

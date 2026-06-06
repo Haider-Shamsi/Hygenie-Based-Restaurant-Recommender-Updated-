@@ -8,6 +8,7 @@ import 'notification_settings_screen.dart';
 import 'account_settings_screen.dart';
 import 'favorites_screen.dart';
 import 'sign_up_page.dart';
+import 'sign_in_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'OwnerDashboardScreen.dart' ;
@@ -109,7 +110,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await prefs.clear();
     if (mounted && navigator.mounted) {
       navigator.pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const CreateAccountScreen()),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
         (route) => false,
       );
     }
