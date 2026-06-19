@@ -406,7 +406,8 @@ def _cosine_similarity_dict(vec_a, vec_b):
 def _update_hygiene_from_reviews(restaurant):
     reviews = RestaurantReview.objects.filter(
         restaurant=restaurant,
-    ).exclude(moderation_status=RestaurantReview.MODERATION_REMOVED)
+        moderation_status=RestaurantReview.MODERATION_APPROVED,
+    )
 
     total = reviews.count()
     if total > 0:

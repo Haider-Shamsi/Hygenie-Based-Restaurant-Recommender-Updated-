@@ -30,21 +30,19 @@ class Command(BaseCommand):
             self.stderr.write(f'CSV file not found: {csv_path}')
             return
 
-        # Build mapping from original business names to new Lahore business names
-        old_to_new = {}
+        # Fetch all restaurants sorted by ID to match their sequential insertion order
+        restaurants = list(Restaurant.objects.all().order_by('id'))
+        
+        # Build mapping from original business names to Django Restaurant model instances
+        old_name_to_restaurant = {}
         try:
-            with open('Updated_restaurant_with_hygiene_score.csv', newline='', encoding='utf-8') as old_file, \
-                 open('lahore_restaurants.csv', newline='', encoding='utf-8') as new_file:
+            with open('Updated_restaurant_with_hygiene_score.csv', newline='', encoding='utf-8') as old_file:
                 old_reader = list(csv.DictReader(old_file))
-                new_reader = list(csv.DictReader(new_file))
-                for i in range(len(old_reader)):
+                for i in range(min(len(old_reader), len(restaurants))):
                     row_old = old_reader[i]
-                    row_new = new_reader[i % len(new_reader)]
-                    
                     old_name = row_old['BusinessName'].strip().lower()
-                    new_name = (row_new.get('Restaurant Name') or row_new.get('DBA') or '').strip()
-                    if old_name and new_name:
-                        old_to_new[old_name] = new_name
+                    if old_name:
+                        old_name_to_restaurant[old_name] = restaurants[i]
         except Exception as e:
             self.stderr.write(f"Error loading name mapping: {e}")
             return
@@ -77,13 +75,8 @@ class Command(BaseCommand):
                         continue
 
                     old_name_clean = business_name.strip().lower()
-                    mapped_name = old_to_new.get(old_name_clean)
-                    if not mapped_name:
-                        skipped += 1
-                        continue
-
-                    restaurant = Restaurant.objects.filter(business_name__iexact=mapped_name).first()
-                    if restaurant is None:
+                    restaurant = old_name_to_restaurant.get(old_name_clean)
+                    if not restaurant:
                         skipped += 1
                         continue
 

@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'config.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'helper/download_helper.dart';
 
 // --- DATA MODELS ---
 
@@ -247,18 +247,7 @@ class _AdminReportsPanelState extends State<AdminReportsPanel> {
       }
 
       final csvContent = csvRows.join('\n');
-      final bytes = utf8.encode(csvContent);
-      final base64Csv = base64Encode(bytes);
-      final dataUri = 'data:text/csv;base64,$base64Csv';
-      final uri = Uri.parse(dataUri);
-
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not trigger CSV download.')),
-        );
-      }
+      downloadCsvFile(context, 'reports_export.csv', csvContent);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Export failed: $e')),
@@ -786,15 +775,8 @@ class _AdminReportsPanelState extends State<AdminReportsPanel> {
                           if (report.ownerResponseEvidenceUrl != null) ...[
                             const SizedBox(height: 12),
                             InkWell(
-                              onTap: () async {
-                                final url = Uri.parse(report.ownerResponseEvidenceUrl!);
-                                if (await canLaunchUrl(url)) {
-                                  await launchUrl(url, mode: LaunchMode.externalApplication);
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Could not open evidence document.')),
-                                  );
-                                }
+                              onTap: () {
+                                openUrl(report.ownerResponseEvidenceUrl!);
                               },
                               child: Row(
                                 children: [

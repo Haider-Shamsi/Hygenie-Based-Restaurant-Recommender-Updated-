@@ -9,6 +9,7 @@ import 'config.dart';
 import 'AdminRestaurantsPanel.dart';
 import 'AdminReviewModerationPanel.dart';
 import 'AdminReportsPanel.dart';
+import 'sign_in_page.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   final VoidCallback onBack;
@@ -355,6 +356,47 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
+  Future<void> _handleLogout(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    try {
+      await http.post(
+        Uri.parse('${Config.baseUrl}/api/accounts/logout/'),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (e) {
+      // Ignore network errors for logout
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    if (mounted && navigator.mounted) {
+      navigator.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false,
+      );
+    }
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+        title: const Text("Confirm Logout"),
+        content: const Text("Are you sure you want to log out? You'll need to sign in again to access your account."),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () {
+              _handleLogout(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            child: const Text("Logout"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Handling placeholder full-screen states
@@ -409,7 +451,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               title: const Text('Logout'),
               onTap: () {
                 Navigator.pop(context); // Close the drawer
-                // TODO: Handle logout logic
+                _showLogoutDialog();
               },
             ),
           ],
