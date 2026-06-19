@@ -31,6 +31,8 @@ class Restaurant(models.Model):
     price_range = models.CharField(max_length=20, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
     admin_notes = models.TextField(blank=True)
+    google_place_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
+    last_google_sync = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return self.business_name
@@ -198,19 +200,23 @@ class RestaurantReview(models.Model):
         (MODERATION_DISMISSED, 'Dismissed'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='restaurant_reviews')
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='restaurant_reviews')
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='reviews')
     rating = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     comment = models.CharField(max_length=600)
     created_at = models.DateTimeField(auto_now_add=True)
     moderation_status = models.CharField(max_length=20, choices=MODERATION_CHOICES, default=MODERATION_PENDING)
     admin_note = models.TextField(blank=True)
+    is_google_review = models.BooleanField(default=False)
+    google_reviewer_name = models.CharField(max_length=255, blank=True, null=True)
+    google_review_hash = models.CharField(max_length=64, blank=True, null=True, unique=True)
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"Review<{self.user.username}:{self.restaurant_id}:{self.rating}>"
+        reviewer = self.google_reviewer_name if self.is_google_review else (self.user.username if self.user else 'Anonymous')
+        return f"Review<{reviewer}:{self.restaurant_id}:{self.rating}>"
 
 
 class HygieneIssueReport(models.Model):

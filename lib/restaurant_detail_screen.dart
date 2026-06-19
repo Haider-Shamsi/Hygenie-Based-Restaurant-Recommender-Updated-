@@ -430,14 +430,14 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
           if (_reviews.isEmpty)
             const Text('No reviews yet. Be the first to write one.', style: TextStyle(color: Colors.grey))
           else
-            ..._reviews.map((review) => _buildReviewCard(review.reviewerName, review.comment, review.rating, review.timeSince)),
+            ..._reviews.map((review) => _buildReviewCard(review)),
         ],
       ),
     );
   }
   
 
-  Widget _buildReviewCard(String user, String comment, int rating, String timeSince) {
+  Widget _buildReviewCard(_ReviewItem review) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
@@ -445,11 +445,43 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
         children: [
           Row(
             children: [
-              Expanded(child: Text(user, style: const TextStyle(fontWeight: FontWeight.bold))),
-              Text('$rating/5  $timeSince', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              Expanded(
+                child: Row(
+                  children: [
+                    Text(review.reviewerName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    if (review.isGoogleReview) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          border: Border.all(color: Colors.blue[200]!),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.g_mobiledata, size: 12, color: Colors.blue),
+                            Text(
+                              'Google',
+                              style: TextStyle(
+                                color: Colors.blue[700],
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Text('${review.rating}/5  ${review.timeSince}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
             ],
           ),
-          Text(comment, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+          const SizedBox(height: 4),
+          Text(review.comment, style: const TextStyle(color: Colors.grey, fontSize: 13)),
         ],
       ),
     );
@@ -819,12 +851,14 @@ class _ReviewItem {
   final String comment;
   final int rating;
   final String timeSince;
+  final bool isGoogleReview;
 
   const _ReviewItem({
     required this.reviewerName,
     required this.comment,
     required this.rating,
     required this.timeSince,
+    required this.isGoogleReview,
   });
 
   factory _ReviewItem.fromJson(Map<String, dynamic> json) {
@@ -833,6 +867,7 @@ class _ReviewItem {
       comment: (json['comment'] as String?) ?? '',
       rating: (json['rating'] as num?)?.toInt() ?? 0,
       timeSince: (json['time_since'] as String?) ?? 'recently',
+      isGoogleReview: json['is_google_review'] ?? false,
     );
   }
 }

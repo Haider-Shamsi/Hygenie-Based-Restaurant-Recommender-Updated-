@@ -304,10 +304,14 @@ class RestaurantReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RestaurantReview
-        fields = ['id', 'rating', 'comment', 'reviewer_name', 'created_at', 'time_since']
-        read_only_fields = ['id', 'reviewer_name', 'created_at', 'time_since']
+        fields = ['id', 'rating', 'comment', 'reviewer_name', 'created_at', 'time_since', 'is_google_review']
+        read_only_fields = ['id', 'reviewer_name', 'created_at', 'time_since', 'is_google_review']
 
     def get_reviewer_name(self, obj):
+        if obj.is_google_review:
+            return obj.google_reviewer_name or "Google Reviewer"
+        if not obj.user:
+            return "Anonymous"
         full_name = obj.user.get_full_name().strip()
         if full_name:
             return full_name

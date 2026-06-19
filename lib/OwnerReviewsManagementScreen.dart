@@ -17,6 +17,7 @@ class OwnerReview {
   bool isHelpful;
   bool isReported;
   Map<String, String>? ownerResponse;
+  final bool isGoogleReview;
 
   OwnerReview({
     required this.id,
@@ -29,6 +30,7 @@ class OwnerReview {
     required this.isHelpful,
     required this.isReported,
     this.ownerResponse,
+    this.isGoogleReview = false,
   });
 
   factory OwnerReview.fromJson(Map<String, dynamic> json) {
@@ -48,6 +50,7 @@ class OwnerReview {
               'date': json['owner_response']['date'] ?? '',
             }
           : null,
+      isGoogleReview: json['is_google_review'] ?? false,
     );
   }
 }
@@ -158,6 +161,8 @@ class _OwnerReviewsManagementScreenState extends State<OwnerReviewsManagementScr
       });
     }
   }
+
+
 
   Future<void> _sendResponse(String id, String text) async {
     try {
@@ -431,7 +436,36 @@ class _OwnerReviewsManagementScreenState extends State<OwnerReviewsManagementScr
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(review.userName, style: TextStyle(fontWeight: FontWeight.bold, color: _textDark, fontSize: 14)),
+                            Row(
+                              children: [
+                                Text(review.userName, style: TextStyle(fontWeight: FontWeight.bold, color: _textDark, fontSize: 14)),
+                                if (review.isGoogleReview) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade50,
+                                      border: Border.all(color: Colors.blue.shade200),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.g_mobiledata, size: 14, color: Colors.blue),
+                                        Text(
+                                          'Google',
+                                          style: TextStyle(
+                                            color: Colors.blue.shade700,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
                             Text(review.date, style: TextStyle(color: _textGray, fontSize: 12)),
                           ],
                         ),

@@ -146,3 +146,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Google Places API Key Configuration
+# You can paste your API key here, or set the GOOGLE_PLACES_API_KEY environment variable.
+import os
+GOOGLE_PLACES_API_KEY = os.environ.get('GOOGLE_PLACES_API_KEY', 'AIzaSyAV8r_3htluZA6TPykNM9MFhosnurBSfsw')
+

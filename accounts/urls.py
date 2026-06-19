@@ -32,6 +32,7 @@ from .views import OwnerRestaurantProfileView
 from .views import OwnerReviewResponseView
 from .views import OwnerReviewsView
 from .views import OwnerReviewFlagView
+from .views import OwnerSyncGoogleReviewsView
 from .views import OwnerInspectionRequestView
 from .views import AdminOverviewView
 from .views import AdminRestaurantsView
@@ -80,6 +81,7 @@ urlpatterns = [
     path('owner/reviews/', OwnerReviewsView.as_view(), name='owner-reviews'),
     path('owner/reviews/<int:review_id>/response/', OwnerReviewResponseView.as_view(), name='owner-review-response'),
     path('owner/reviews/<int:review_id>/flag/', OwnerReviewFlagView.as_view(), name='owner-review-flag'),
+    path('owner/reviews/sync-google/', OwnerSyncGoogleReviewsView.as_view(), name='owner-sync-google-reviews'),
     path('owner/reports/', OwnerHygieneReportsView.as_view(), name='owner-reports'),
     path('owner/reports/<int:report_id>/response/', OwnerHygieneReportResponseView.as_view(), name='owner-report-response'),
     path('owner/analytics/', OwnerAnalyticsView.as_view(), name='owner-analytics'),

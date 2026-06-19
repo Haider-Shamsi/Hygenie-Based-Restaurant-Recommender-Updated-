@@ -415,13 +415,42 @@ def _update_hygiene_from_reviews(restaurant):
         restaurant.save(update_fields=['user_rating'])
 
     try:
-        inspected_rating = float(restaurant.rating_value or 0.0)
-    except ValueError:
+        val = restaurant.rating_value.strip() if restaurant.rating_value else ''
+        if val.lower() == 'pass':
+            inspected_rating = 85.0
+        elif val.lower() == 'exempt':
+            inspected_rating = 80.0
+        elif val.lower() in ('awaiting inspection', 'awaiting_inspection'):
+            inspected_rating = 70.0
+        elif val.lower() in ('improvement required', 'improvement_required'):
+            inspected_rating = 50.0
+        else:
+            inspected_rating = float(val)
+            if inspected_rating <= 5.0:
+                inspected_rating = inspected_rating * 20.0
+    except (ValueError, AttributeError):
         inspected_rating = 0.0
 
-    user_rating = float(restaurant.user_rating or 0.0)
+    # Calculate weighted hygiene rating
+    local_reviews = reviews.filter(is_google_review=False)
+    google_reviews = reviews.filter(is_google_review=True)
+
+    local_count = local_reviews.count()
+    google_count = google_reviews.count()
+
+    if local_count > 0:
+        avg_local = float(local_reviews.aggregate(Avg('rating'))['rating__avg'] or 0.0)
+    else:
+        avg_local = float(restaurant.user_rating or (inspected_rating / 20.0 if inspected_rating > 0 else 4.0))
+
+    if google_count > 0:
+        avg_google = float(google_reviews.aggregate(Avg('rating'))['rating__avg'] or 0.0)
+        hygiene_review_rating = 0.75 * avg_local + 0.25 * avg_google
+    else:
+        hygiene_review_rating = avg_local
+
     prev_score = restaurant.hygiene_score
-    new_score = 0.7 * inspected_rating + 0.3 * (user_rating * 20.0)
+    new_score = 0.7 * inspected_rating + 0.3 * (hygiene_review_rating * 20.0)
     new_score = max(0.0, min(100.0, new_score))
 
     if not HygieneScoreHistory.objects.filter(restaurant=restaurant).exists():
@@ -1241,7 +1270,7 @@ class RestaurantDetailDataView(APIView):
         except Restaurant.DoesNotExist:
             return Response({'error': 'Restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-        reviews_qs = RestaurantReview.objects.filter(restaurant=restaurant).select_related('user')[:20]
+        reviews_qs = RestaurantReview.objects.filter(restaurant=restaurant).exclude(moderation_status=RestaurantReview.MODERATION_REMOVED).select_related('user')[:20]
         reports_count = HygieneIssueReport.objects.filter(restaurant=restaurant).count()
         menu_qs = RestaurantMenuItem.objects.filter(restaurant=restaurant, is_available=True)
         avg_rating = reviews_qs.aggregate(avg=Avg('rating'))['avg']
@@ -1263,7 +1292,7 @@ class RestaurantReviewListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, restaurant_id):
-        reviews = RestaurantReview.objects.filter(restaurant_id=restaurant_id).select_related('user')
+        reviews = RestaurantReview.objects.filter(restaurant_id=restaurant_id).exclude(moderation_status=RestaurantReview.MODERATION_REMOVED).select_related('user')
         serializer = RestaurantReviewSerializer(reviews, many=True)
         avg = reviews.aggregate(avg=Avg('rating'))['avg']
         return Response(
@@ -1488,9 +1517,15 @@ class OwnerReviewsView(APIView):
             is_helpful = review.owner_flags.filter(owner=request.user, flag_type='helpful').exists()
             is_reported = review.owner_flags.filter(owner=request.user, flag_type='report').exists()
 
+            reviewer_name = "Anonymous"
+            if review.is_google_review:
+                reviewer_name = review.google_reviewer_name or "Google Reviewer"
+            elif review.user:
+                reviewer_name = review.user.username
+
             results.append({
                 'id': str(review.id),
-                'user_name': review.user.username,
+                'user_name': reviewer_name,
                 'rating': int(review.rating or 0),
                 'date': review.created_at.strftime('%b %d, %Y'),
                 'review_text': (review.comment or '').strip(),
@@ -1499,9 +1534,188 @@ class OwnerReviewsView(APIView):
                 'is_helpful': is_helpful,
                 'is_reported': is_reported,
                 'owner_response': owner_response,
+                'is_google_review': review.is_google_review,
             })
 
         return Response({'results': results}, status=status.HTTP_200_OK)
+
+
+class OwnerSyncGoogleReviewsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        return Response({'detail': 'Only administrators can synchronize Google reviews.'}, status=status.HTTP_403_FORBIDDEN)
+
+    def _unused_post(self, request):
+        import hashlib
+        from datetime import datetime, timedelta
+        from django.utils import timezone
+        
+        restaurant = _get_owner_restaurant(request)
+        if restaurant is None:
+            return Response({'detail': 'Owner restaurant not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # 24-hour cooldown check
+        now = timezone.now()
+        if restaurant.last_google_sync:
+            cooldown_time = restaurant.last_google_sync + timedelta(days=1)
+            if now < cooldown_time:
+                remaining = cooldown_time - now
+                hours = int(remaining.total_seconds() // 3600)
+                minutes = int((remaining.total_seconds() % 3600) // 60)
+                return Response({
+                    'detail': f'Sync is limited to once every 24 hours. Please try again in {hours}h {minutes}m.',
+                    'last_sync': restaurant.last_google_sync.isoformat(),
+                    'cooldown_until': cooldown_time.isoformat()
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        api_key = getattr(settings, 'GOOGLE_PLACES_API_KEY', '').strip()
+        reviews_to_import = []
+
+        if not api_key:
+            # DEMO MODE with mock reviews
+            mock_reviews = [
+                {
+                    'author_name': 'Ahmad Khan',
+                    'rating': 5,
+                    'text': 'Clean environment, hygiene standards are high. The staff was wearing gloves and hairnets. Highly recommended!',
+                    'time': int(now.timestamp()) - 3600 * 2
+                },
+                {
+                    'author_name': 'Sara Ali',
+                    'rating': 2,
+                    'text': 'The food tasted okay, but the tables were sticky and there was dust on the cutlery. Needs better cleaning.',
+                    'time': int(now.timestamp()) - 3600 * 24
+                },
+                {
+                    'author_name': 'John Doe',
+                    'rating': 4,
+                    'text': 'Good food, decent sanitation. Had a minor wait time but overall satisfactory cleanliness.',
+                    'time': int(now.timestamp()) - 3600 * 48
+                }
+            ]
+            reviews_to_import = mock_reviews
+            mode = "demo"
+        else:
+            # REAL GOOGLE PLACES API CALLS
+            mode = "live"
+            # 1. Resolve place ID if missing
+            if not restaurant.google_place_id:
+                try:
+                    search_url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json"
+                    search_params = {
+                        'input': f"{restaurant.business_name} {restaurant.address} {restaurant.province}",
+                        'inputtype': 'textquery',
+                        'fields': 'place_id',
+                        'key': api_key
+                    }
+                    resp = requests.get(search_url, params=search_params, timeout=10)
+                    resp.raise_for_status()
+                    data = resp.json()
+                    candidates = data.get('candidates', [])
+                    if candidates:
+                        restaurant.google_place_id = candidates[0]['place_id']
+                        restaurant.save(update_fields=['google_place_id'])
+                    else:
+                        return Response({
+                            'detail': 'Could not resolve Google Place ID for this restaurant. Please check the name or address.'
+                        }, status=status.HTTP_404_NOT_FOUND)
+                except Exception as e:
+                    return Response({
+                        'detail': f'Error resolving Google Place ID: {str(e)}'
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # 2. Get reviews from Place Details API
+            try:
+                details_url = "https://maps.googleapis.com/maps/api/place/details/json"
+                details_params = {
+                    'place_id': restaurant.google_place_id,
+                    'fields': 'reviews',
+                    'key': api_key
+                }
+                resp = requests.get(details_url, params=details_params, timeout=10)
+                resp.raise_for_status()
+                data = resp.json()
+                result = data.get('result', {})
+                api_reviews = result.get('reviews', [])
+                for rev in api_reviews:
+                    reviews_to_import.append({
+                        'author_name': rev.get('author_name', 'Google User'),
+                        'rating': rev.get('rating', 3),
+                        'text': rev.get('text', ''),
+                        'time': rev.get('time')
+                    })
+            except Exception as e:
+                return Response({
+                    'detail': f'Error fetching Google reviews: {str(e)}'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Process reviews (deduplicate and import)
+        imported_count = 0
+        results_reviews = []
+        
+        for rev in reviews_to_import:
+            comment_text = rev['text'] or ''
+            author = rev['author_name']
+            rating = rev['rating']
+            
+            # Generate unique hash for deduplication
+            hash_str = f"{rating}|{comment_text}|{author}"
+            review_hash = hashlib.md5(hash_str.encode('utf-8')).hexdigest()
+            
+            # Check if already imported
+            if RestaurantReview.objects.filter(google_review_hash=review_hash).exists():
+                continue
+                
+            # Create the Google review
+            # Set moderation_status to approved to make it visible
+            review = RestaurantReview.objects.create(
+                restaurant=restaurant,
+                rating=rating,
+                comment=comment_text,
+                is_google_review=True,
+                google_reviewer_name=author,
+                google_review_hash=review_hash,
+                moderation_status=RestaurantReview.MODERATION_APPROVED
+            )
+            
+            # Update created_at timestamp to match the original review date if available
+            if rev.get('time'):
+                try:
+                    review_dt = timezone.make_aware(datetime.utcfromtimestamp(rev['time']))
+                    RestaurantReview.objects.filter(id=review.id).update(created_at=review_dt)
+                    review.created_at = review_dt
+                except Exception:
+                    pass
+            
+            imported_count += 1
+            
+            # Sentiment analysis
+            nlp_data = _predict_sentiment(comment_text)
+            results_reviews.append({
+                'author_name': author,
+                'rating': rating,
+                'comment': comment_text,
+                'sentiment': nlp_data['label']
+            })
+
+        # Recalculate hygiene score and save last sync timestamp
+        restaurant.last_google_sync = now
+        restaurant.save(update_fields=['last_google_sync'])
+        
+        _update_hygiene_from_reviews(restaurant)
+        
+        # Reload restaurant to get updated score
+        restaurant.refresh_from_db()
+
+        return Response({
+            'status': 'success',
+            'mode': mode,
+            'new_reviews_count': imported_count,
+            'new_hygiene_score': restaurant.hygiene_score,
+            'reviews_synced': results_reviews,
+            'last_sync': restaurant.last_google_sync.isoformat()
+        }, status=status.HTTP_200_OK)
 
 
 class OwnerReviewFlagView(APIView):
@@ -2334,6 +2548,243 @@ class AdminRestaurantActionView(APIView):
                     score_snapshot=int(round(float(restaurant.hygiene_score or 0.0))),
                 )
             return Response({'detail': 'Warning sent.'}, status=status.HTTP_200_OK)
+
+        if action == 'sync_google_reviews':
+            import hashlib
+            from datetime import datetime, timedelta
+            from django.utils import timezone
+            
+            # Cooldown check
+            now = timezone.now()
+            confirm = request.data.get('confirm') == True
+            
+            if restaurant.last_google_sync:
+                cooldown_time = restaurant.last_google_sync + timedelta(days=1)
+                if now < cooldown_time:
+                    remaining = cooldown_time - now
+                    hours = int(remaining.total_seconds() // 3600)
+                    minutes = int((remaining.total_seconds() % 3600) // 60)
+                    return Response({
+                        'detail': f'Sync is limited to once every 24 hours. Cooldown active for another {hours}h {minutes}m.',
+                        'last_sync': restaurant.last_google_sync.isoformat(),
+                        'cooldown_until': cooldown_time.isoformat()
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+            api_key = getattr(settings, 'GOOGLE_PLACES_API_KEY', '').strip()
+            reviews_to_import = []
+
+            if not api_key:
+                # DEMO MODE
+                mock_reviews = [
+                    {
+                        'author_name': 'Ahmad Khan',
+                        'rating': 5,
+                        'text': 'Clean environment, hygiene standards are high. The staff was wearing gloves and hairnets. Highly recommended!',
+                        'time': int(now.timestamp()) - 3600 * 2
+                    },
+                    {
+                        'author_name': 'Sara Ali',
+                        'rating': 2,
+                        'text': 'The food tasted okay, but the tables were sticky and there was dust on the cutlery. Needs better cleaning.',
+                        'time': int(now.timestamp()) - 3600 * 24
+                    },
+                    {
+                        'author_name': 'John Doe',
+                        'rating': 4,
+                        'text': 'Good food, decent sanitation. Had a minor wait time but overall satisfactory cleanliness.',
+                        'time': int(now.timestamp()) - 3600 * 48
+                    }
+                ]
+                reviews_to_import = mock_reviews
+                mode = "demo"
+            else:
+                # REAL GOOGLE PLACES API CALLS
+                mode = "live"
+                # Resolve place ID
+                if not restaurant.google_place_id:
+                    try:
+                        search_url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json"
+                        search_params = {
+                            'input': f"{restaurant.business_name} {restaurant.address} {restaurant.province}",
+                            'inputtype': 'textquery',
+                            'fields': 'place_id',
+                            'key': api_key
+                        }
+                        resp = requests.get(search_url, params=search_params, timeout=10)
+                        resp.raise_for_status()
+                        data = resp.json()
+                        candidates = data.get('candidates', [])
+                        if candidates:
+                            place_id = candidates[0]['place_id']
+                            if confirm:
+                                restaurant.google_place_id = place_id
+                                restaurant.save(update_fields=['google_place_id'])
+                        else:
+                            return Response({
+                                'detail': 'Could not resolve Google Place ID for this restaurant. Please check the name or address.'
+                            }, status=status.HTTP_404_NOT_FOUND)
+                    except Exception as e:
+                        return Response({
+                            'detail': f'Error resolving Google Place ID: {str(e)}'
+                        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                else:
+                    place_id = restaurant.google_place_id
+
+                # Fetch Details
+                try:
+                    details_url = "https://maps.googleapis.com/maps/api/place/details/json"
+                    details_params = {
+                        'place_id': place_id,
+                        'fields': 'reviews',
+                        'key': api_key
+                    }
+                    resp = requests.get(details_url, params=details_params, timeout=10)
+                    resp.raise_for_status()
+                    data = resp.json()
+                    result = data.get('result', {})
+                    api_reviews = result.get('reviews', [])
+                    for rev in api_reviews:
+                        reviews_to_import.append({
+                            'author_name': rev.get('author_name', 'Google User'),
+                            'rating': rev.get('rating', 3),
+                            'text': rev.get('text', ''),
+                            'time': rev.get('time')
+                        })
+                except Exception as e:
+                    return Response({
+                        'detail': f'Error fetching Google reviews: {str(e)}'
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # Analyze reviews
+            potential_reviews = []
+            new_reviews_count = 0
+            
+            existing_hashes = set()
+            if confirm:
+                existing_hashes = set(RestaurantReview.objects.filter(
+                    restaurant=restaurant, is_google_review=True
+                ).values_list('google_review_hash', flat=True))
+
+            for rev in reviews_to_import:
+                comment_text = rev['text'] or ''
+                author = rev['author_name']
+                rating = rev['rating']
+                
+                # Hash
+                hash_str = f"{rating}|{comment_text}|{author}"
+                review_hash = hashlib.md5(hash_str.encode('utf-8')).hexdigest()
+                
+                is_new = review_hash not in existing_hashes if confirm else not RestaurantReview.objects.filter(google_review_hash=review_hash).exists()
+                
+                if is_new:
+                    new_reviews_count += 1
+                
+                nlp_data = _predict_sentiment(comment_text)
+                
+                potential_reviews.append({
+                    'author_name': author,
+                    'rating': rating,
+                    'comment': comment_text,
+                    'sentiment': nlp_data['label'],
+                    'is_new': is_new,
+                    'hash': review_hash,
+                    'time': rev.get('time')
+                })
+
+            # Calculate potential/new hygiene score
+            reviews = RestaurantReview.objects.filter(
+                restaurant=restaurant,
+            ).exclude(moderation_status=RestaurantReview.MODERATION_REMOVED)
+
+            local_ratings = [r.rating for r in reviews if not r.is_google_review]
+            google_ratings = [r.rating for r in reviews if r.is_google_review]
+
+            if not confirm:
+                for pr in potential_reviews:
+                    if pr['is_new']:
+                        google_ratings.append(pr['rating'])
+            
+            try:
+                val = restaurant.rating_value.strip() if restaurant.rating_value else ''
+                if val.lower() == 'pass':
+                    inspected_rating = 85.0
+                elif val.lower() == 'exempt':
+                    inspected_rating = 80.0
+                elif val.lower() in ('awaiting inspection', 'awaiting_inspection'):
+                    inspected_rating = 70.0
+                elif val.lower() in ('improvement required', 'improvement_required'):
+                    inspected_rating = 50.0
+                else:
+                    inspected_rating = float(val)
+                    if inspected_rating <= 5.0:
+                        inspected_rating = inspected_rating * 20.0
+            except (ValueError, AttributeError):
+                inspected_rating = 0.0
+
+            all_ratings = local_ratings + google_ratings
+            potential_user_rating = sum(all_ratings) / len(all_ratings) if all_ratings else float(restaurant.user_rating or 0.0)
+
+            if local_ratings and google_ratings:
+                avg_local = sum(local_ratings) / len(local_ratings)
+                avg_google = sum(google_ratings) / len(google_ratings)
+                hygiene_review_rating = 0.75 * avg_local + 0.25 * avg_google
+            elif local_ratings:
+                hygiene_review_rating = sum(local_ratings) / len(local_ratings)
+            elif google_ratings:
+                avg_local = float(restaurant.user_rating or (inspected_rating / 20.0 if inspected_rating > 0 else 4.0))
+                avg_google = sum(google_ratings) / len(google_ratings)
+                hygiene_review_rating = 0.75 * avg_local + 0.25 * avg_google
+            else:
+                hygiene_review_rating = float(restaurant.user_rating or (inspected_rating / 20.0 if inspected_rating > 0 else 4.0))
+
+            potential_hygiene_score = 0.7 * inspected_rating + 0.3 * (hygiene_review_rating * 20.0)
+            potential_hygiene_score = max(0.0, min(100.0, potential_hygiene_score))
+
+            if confirm:
+                saved_count = 0
+                for pr in potential_reviews:
+                    if pr['is_new']:
+                        review = RestaurantReview.objects.create(
+                            restaurant=restaurant,
+                            rating=pr['rating'],
+                            comment=pr['comment'],
+                            is_google_review=True,
+                            google_reviewer_name=pr['author_name'],
+                            google_review_hash=pr['hash'],
+                            moderation_status=RestaurantReview.MODERATION_APPROVED
+                        )
+                        if pr.get('time'):
+                            try:
+                                review_dt = timezone.make_aware(datetime.utcfromtimestamp(pr['time']))
+                                RestaurantReview.objects.filter(id=review.id).update(created_at=review_dt)
+                            except Exception:
+                                pass
+                        saved_count += 1
+                
+                restaurant.last_google_sync = now
+                restaurant.save(update_fields=['last_google_sync'])
+                
+                _update_hygiene_from_reviews(restaurant)
+                restaurant.refresh_from_db()
+                
+                return Response({
+                    'status': 'success',
+                    'mode': mode,
+                    'new_reviews_count': saved_count,
+                    'new_hygiene_score': restaurant.hygiene_score,
+                    'last_sync': restaurant.last_google_sync.isoformat(),
+                    'detail': f'Google reviews synchronized successfully! {saved_count} new reviews imported.'
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'status': 'preview',
+                    'mode': mode,
+                    'new_reviews_count': new_reviews_count,
+                    'current_hygiene_score': restaurant.hygiene_score,
+                    'potential_hygiene_score': potential_hygiene_score,
+                    'potential_user_rating': potential_user_rating,
+                    'reviews_preview': potential_reviews
+                }, status=status.HTTP_200_OK)
 
         return Response({'detail': 'Invalid action.'}, status=status.HTTP_400_BAD_REQUEST)
 

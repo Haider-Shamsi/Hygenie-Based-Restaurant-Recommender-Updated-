@@ -67,6 +67,7 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   String _modalCuisine = 'All';
+  Future<Map<String, dynamic>?>? detailFuture;
 
   // Mock Data
   late List<AdminRestaurant> _allRestaurants;
@@ -285,6 +286,349 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
       }
     } catch (_) {
       // Keep UI state unchanged on error.
+    }
+  }
+
+  Future<Map<String, dynamic>?> _fetchSyncPreview(String id) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      final response = await http.post(
+        Uri.parse('${Config.baseUrl}/api/accounts/admin/restaurants/$id/actions/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+        body: json.encode({'action': 'sync_google_reviews'}),
+      );
+      return {
+        'statusCode': response.statusCode,
+        'body': json.decode(response.body)
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> _confirmSync(String id) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      final response = await http.post(
+        Uri.parse('${Config.baseUrl}/api/accounts/admin/restaurants/$id/actions/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Token $token',
+        },
+        body: json.encode({'action': 'sync_google_reviews', 'confirm': true}),
+      );
+      return {
+        'statusCode': response.statusCode,
+        'body': json.decode(response.body)
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _showSyncPreviewDialog(AdminRestaurant restaurant, StateSetter setModalState) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 20),
+            Text("Fetching Google reviews preview..."),
+          ],
+        ),
+      ),
+    );
+
+    final res = await _fetchSyncPreview(restaurant.id);
+    if (!mounted) return;
+    Navigator.pop(context); // Pop loading
+
+    if (res == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to load preview.'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    final statusCode = res['statusCode'];
+    final body = res['body'] as Map<String, dynamic>;
+
+    if (statusCode == 400) {
+      final detail = body['detail'] ?? 'Sync cooldown is active.';
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.access_time, color: Colors.orange),
+              SizedBox(width: 8),
+              Text("Sync Cooldown"),
+            ],
+          ),
+          content: Text(detail),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    if (statusCode != 200) {
+      final detail = body['detail'] ?? 'Error fetching preview.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(detail), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    final count = body['new_reviews_count'] ?? 0;
+    final currentScore = (body['current_hygiene_score'] ?? 0.0) as num;
+    final potentialScore = (body['potential_hygiene_score'] ?? 0.0) as num;
+    final mode = body['mode'] ?? 'live';
+    final reviews = body['reviews_preview'] as List<dynamic>? ?? [];
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        final scoreDiff = potentialScore - currentScore;
+        final diffStr = (scoreDiff >= 0 ? "+" : "") + scoreDiff.toStringAsFixed(1);
+        final diffColor = scoreDiff > 0 ? _brandTeal : (scoreDiff < 0 ? Colors.red : _textGray);
+
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              Icon(Icons.preview_outlined, color: _brandTeal),
+              const SizedBox(width: 8),
+              const Text("Sync Preview"),
+            ],
+          ),
+          content: SizedBox(
+            width: 400,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (mode == 'demo')
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
+                        border: Border.all(color: Colors.orange.shade200),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline, size: 14, color: Colors.orange.shade800),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              "Demo Mode active (no Google Places API Key set).",
+                              style: TextStyle(fontSize: 10, color: Colors.orange.shade800, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  
+                  // Score stats
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(12)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Column(
+                          children: [
+                            Text(currentScore.toStringAsFixed(1), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: _textDark)),
+                            const Text("Current Score", style: TextStyle(fontSize: 10, color: Colors.grey)),
+                          ],
+                        ),
+                        Icon(Icons.arrow_forward, color: Colors.grey.shade400, size: 16),
+                        Column(
+                          children: [
+                            Text(
+                              potentialScore.toStringAsFixed(1),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: potentialScore >= 60 ? _brandTeal : Colors.orange),
+                            ),
+                            const Text("Potential Score", style: TextStyle(fontSize: 10, color: Colors.grey)),
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            Text(
+                              diffStr,
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: diffColor),
+                            ),
+                            const Text("Difference", style: TextStyle(fontSize: 10, color: Colors.grey)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text("New Google reviews found: $count", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  const SizedBox(height: 8),
+
+                  if (reviews.isNotEmpty) ...[
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 250),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: reviews.length,
+                        itemBuilder: (context, index) {
+                          final rev = reviews[index];
+                          final name = rev['author_name'] ?? 'Google Reviewer';
+                          final rating = rev['rating'] ?? 5;
+                          final comment = rev['comment'] ?? '';
+                          final sentiment = rev['sentiment'] ?? 'Neutral';
+                          final isNew = rev['is_new'] ?? true;
+
+                          Color sentColor = Colors.orange;
+                          if (sentiment == 'Positive') sentColor = Colors.green;
+                          if (sentiment == 'Negative') sentColor = Colors.red;
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8.0),
+                            padding: const EdgeInsets.all(8.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(color: Colors.grey.shade200),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Row(
+                                        children: [
+                                          Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                                          const SizedBox(width: 4),
+                                          Row(
+                                            children: List.generate(5, (starIdx) => Icon(
+                                              Icons.star,
+                                              color: starIdx < rating ? Colors.amber : Colors.grey.shade300,
+                                              size: 10,
+                                            )),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (isNew)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                        decoration: BoxDecoration(color: _brandTeal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
+                                        child: Text("NEW", style: TextStyle(color: _brandTeal, fontSize: 8, fontWeight: FontWeight.bold)),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(comment, style: TextStyle(color: _textGray, fontSize: 10, height: 1.3)),
+                                const SizedBox(height: 4),
+                                Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                    decoration: BoxDecoration(color: sentColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
+                                    child: Text(sentiment, style: TextStyle(color: sentColor, fontSize: 8, fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ] else
+                    const Text("No unique reviews found on Google Places.", style: TextStyle(fontStyle: FontStyle.italic, fontSize: 11)),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _performConfirmSync(restaurant.id, setModalState);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _brandTeal,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text("Confirm & Apply Sync", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _performConfirmSync(String restaurantId, StateSetter setModalState) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 20),
+            Text("Applying Google reviews sync..."),
+          ],
+        ),
+      ),
+    );
+
+    final res = await _confirmSync(restaurantId);
+    if (!mounted) return;
+    Navigator.pop(context); // Pop loading
+
+    if (res == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to apply sync.'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    final statusCode = res['statusCode'];
+    final body = res['body'] as Map<String, dynamic>;
+
+    if (statusCode == 200) {
+      final msg = body['detail'] ?? 'Sync applied successfully!';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg), backgroundColor: _brandTeal),
+      );
+      // Refresh modal details
+      setModalState(() {
+        detailFuture = _fetchRestaurantDetail(restaurantId);
+      });
+      // Refresh list
+      _fetchRestaurants();
+    } else {
+      final detail = body['detail'] ?? 'Error applying sync.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(detail), backgroundColor: Colors.red),
+      );
     }
   }
 
@@ -719,7 +1063,7 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
   void _showRestaurantDetailModal(AdminRestaurant restaurant) {
     final notesController = TextEditingController();
     bool notesInitialized = false;
-    Future<Map<String, dynamic>?> detailFuture = _fetchRestaurantDetail(restaurant.id);
+    detailFuture = _fetchRestaurantDetail(restaurant.id);
 
     showDialog(
       context: context,
@@ -904,6 +1248,12 @@ class _AdminRestaurantsPanelState extends State<AdminRestaurantsPanel> {
                                     icon: const Icon(Icons.warning_amber_rounded, size: 16),
                                     label: const Text("Send Warning"),
                                     style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+                                  ),
+                                  OutlinedButton.icon(
+                                    onPressed: () => _showSyncPreviewDialog(restaurant, setModalState),
+                                    icon: const Icon(Icons.sync, size: 16),
+                                    label: const Text("Sync Google Reviews"),
+                                    style: OutlinedButton.styleFrom(foregroundColor: _brandTeal),
                                   ),
                                 ],
                               ),
