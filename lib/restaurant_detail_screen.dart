@@ -175,22 +175,105 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
             side: const BorderSide(color: Color(0xFF10B981)),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
+<<<<<<< Updated upstream
         ),
         const SizedBox(height: 16),
         _buildReviewCard("Sarah Johnson", "Absolutely fantastic experience! Kitchen was spotless."),
         _buildReviewCard("Ahmed Khan", "Best restaurant in the area for hygiene standards."),
       ],
+=======
+          const SizedBox(height: 10),
+          if (widget.restaurant.latitude != null && widget.restaurant.longitude != null)
+            TextButton.icon(
+              onPressed: () async {
+                final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=${widget.restaurant.latitude},${widget.restaurant.longitude}');
+                try {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                } catch (e) {
+                  debugPrint('Could not launch URL: $e');
+                }
+              },
+              icon: const Icon(Icons.map_outlined, color: Color(0xFF10B981), size: 18),
+              label: const Text("Open in Google Maps", style: TextStyle(color: Color(0xFF10B981))),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(50, 30),
+                alignment: Alignment.centerLeft,
+              ),
+            ),
+          const SizedBox(height: 20),
+          const Text("Recent Reviews", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          const SizedBox(height: 12),
+          // Write Review Button
+          OutlinedButton.icon(
+            onPressed: _showWriteReviewModal,
+            icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF10B981)),
+            label: const Text("Write a Review", style: TextStyle(color: Color(0xFF10B981))),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 45),
+              side: const BorderSide(color: Color(0xFF10B981)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (_reviews.isEmpty)
+            const Text('No reviews yet. Be the first to write one.', style: TextStyle(color: Colors.grey))
+          else
+            ..._reviews.map((review) => _buildReviewCard(review.reviewerName, review.comment, review.rating, review.timeSince, isGoogleReview: review.isGoogleReview)),
+        ],
+      ),
+>>>>>>> Stashed changes
     );
   }
   
 
+<<<<<<< Updated upstream
   Widget _buildReviewCard(String user, String comment) {
+=======
+  Widget _buildReviewCard(String user, String comment, int rating, String timeSince, {bool isGoogleReview = false}) {
+>>>>>>> Stashed changes
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+<<<<<<< Updated upstream
           Text(user, style: const TextStyle(fontWeight: FontWeight.bold)),
+=======
+          Row(
+            children: [
+              if (isGoogleReview) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  margin: const EdgeInsets.only(right: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.star, color: Colors.blue, size: 10),
+                      const SizedBox(width: 3),
+                      const Text(
+                        "Google",
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              Expanded(child: Text(user, style: const TextStyle(fontWeight: FontWeight.bold))),
+              Text('$rating/5  $timeSince', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            ],
+          ),
+          const SizedBox(height: 4),
+>>>>>>> Stashed changes
           Text(comment, style: const TextStyle(color: Colors.grey, fontSize: 13)),
         ],
       ),
@@ -379,6 +462,7 @@ class _ReportIssueSheet extends StatelessWidget {
               onChanged: (val) {},
               decoration: const InputDecoration(border: OutlineInputBorder()),
             ),
+<<<<<<< Updated upstream
             const SizedBox(height: 20),
             const Text("Description", style: TextStyle(fontWeight: FontWeight.bold)),
             const TextField(maxLines: 3, decoration: InputDecoration(hintText: "Describe the issue in detail...", border: OutlineInputBorder())),
@@ -387,6 +471,282 @@ class _ReportIssueSheet extends StatelessWidget {
               style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, minimumSize: const Size(double.infinity, 50)),
               onPressed: () => Navigator.pop(context),
               child: const Text("Submit Report", style: TextStyle(color: Colors.white)),
+=======
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReviewItem {
+  final String reviewerName;
+  final String comment;
+  final int rating;
+  final String timeSince;
+  final bool isGoogleReview;
+
+  const _ReviewItem({
+    required this.reviewerName,
+    required this.comment,
+    required this.rating,
+    required this.timeSince,
+    required this.isGoogleReview,
+  });
+
+  factory _ReviewItem.fromJson(Map<String, dynamic> json) {
+    return _ReviewItem(
+      reviewerName: (json['reviewer_name'] as String?) ?? 'User',
+      comment: (json['comment'] as String?) ?? '',
+      rating: (json['rating'] as num?)?.toInt() ?? 0,
+      timeSince: (json['time_since'] as String?) ?? 'recently',
+      isGoogleReview: (json['is_google_review'] as bool?) ?? false,
+    );
+  }
+}
+
+class _HygieneMetric {
+  final String label;
+  final double score;
+
+  const _HygieneMetric({required this.label, required this.score});
+
+  factory _HygieneMetric.fromJson(Map<String, dynamic> json) {
+    return _HygieneMetric(
+      label: (json['label'] as String?) ?? 'Metric',
+      score: (json['score'] as num?)?.toDouble() ?? 0,
+    );
+  }
+}
+
+class _HistoryPoint {
+  final String month;
+  final double score;
+
+  const _HistoryPoint({required this.month, required this.score});
+
+  factory _HistoryPoint.fromJson(Map<String, dynamic> json) {
+    return _HistoryPoint(
+      month: (json['month'] as String?) ?? '',
+      score: (json['score'] as num?)?.toDouble() ?? 0,
+    );
+  }
+}
+
+class _MenuItem {
+  final String name;
+  final String description;
+  final double price;
+  final double rating;
+  final int orderCount;
+  final String category;
+
+  const _MenuItem({
+    required this.name,
+    required this.description,
+    required this.price,
+    required this.rating,
+    required this.orderCount,
+    required this.category,
+  });
+
+  factory _MenuItem.fromJson(Map<String, dynamic> json) {
+    final rawPrice = json['price'];
+    final parsedPrice = rawPrice is num
+        ? rawPrice.toDouble()
+        : double.tryParse(rawPrice?.toString() ?? '') ?? 0;
+
+    return _MenuItem(
+      name: (json['name'] as String?) ?? 'Menu item',
+      description: (json['description'] as String?) ?? '',
+      price: parsedPrice,
+      rating: (json['rating'] as num?)?.toDouble() ?? 0,
+      orderCount: (json['order_count'] as num?)?.toInt() ?? 0,
+      category: (json['category'] as String?) ?? '',
+    );
+  }
+
+  String get imageUrl {
+    final lowerName = name.toLowerCase();
+    final lowerCat = category.toLowerCase();
+
+    // 1. Pizza
+    if (lowerName.contains('pizza')) {
+      return 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=500&q=80';
+    }
+    // 2. Burger & Wings
+    if (lowerName.contains('burger') || lowerName.contains('wings')) {
+      return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80';
+    }
+    // 3. Fries / Potato
+    if (lowerName.contains('fries') || lowerName.contains('chips') || lowerName.contains('potato')) {
+      return 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=500&q=80';
+    }
+    // 4. Pasta / Lasagne / Penne
+    if (lowerName.contains('pasta') || lowerName.contains('lasagne') || lowerName.contains('penne') || lowerName.contains('carbonara') || lowerName.contains('arrabbiata')) {
+      return 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=500&q=80';
+    }
+    // 5. Biryani & Rice
+    if (lowerName.contains('biryani') || lowerName.contains('rice') || lowerName.contains('pulao')) {
+      return 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?auto=format&fit=crop&w=500&q=80';
+    }
+    // 6. Indian/South Asian Curries & Bread & Kebab (Tikka, Paneer, Naan, Kebab, Samosa, Bhaji, Dal)
+    if (lowerName.contains('tikka') || lowerName.contains('paneer') || lowerName.contains('naan') || 
+        lowerName.contains('kebab') || lowerName.contains('samosa') || lowerName.contains('bhaji') || 
+        lowerName.contains('dal') || lowerName.contains('curry') || lowerCat.contains('south asian')) {
+      return 'https://images.unsplash.com/photo-1585938338392-50a5d22beb18?auto=format&fit=crop&w=500&q=80';
+    }
+    // 7. Salads & Veggie dips (Tzatziki, Hummus, Tabbouleh, Salad)
+    if (lowerName.contains('salad') || lowerName.contains('tzatziki') || lowerName.contains('hummus') || 
+        lowerName.contains('tabbouleh') || lowerName.contains('leaves') || lowerName.contains('pita') || lowerName.contains('greek salad')) {
+      return 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=500&q=80';
+    }
+    // 8. Tacos & Mexican Wraps (Tacos, Quesadilla, Burrito, Wrap, Shawarma, Nachos, Enchiladas, Fajita, Guacamole, Pico)
+    if (lowerName.contains('taco') || lowerName.contains('quesadilla') || lowerName.contains('burrito') || 
+        lowerName.contains('wrap') || lowerName.contains('shawarma') || lowerName.contains('nachos') || 
+        lowerName.contains('enchiladas') || lowerName.contains('fajita') || lowerName.contains('guacamole') || 
+        lowerName.contains('pico') || lowerCat.contains('mexican') || lowerCat.contains('mediterranean')) {
+      return 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=500&q=80';
+    }
+    // 9. Soups
+    if (lowerName.contains('soup')) {
+      return 'https://images.unsplash.com/photo-1547592165-e1d17fed6005?auto=format&fit=crop&w=500&q=80';
+    }
+    // 10. Pies & Baked (Pie, Wellington, Pasty, Pudding)
+    if (lowerName.contains('pie') || lowerName.contains('wellington') || lowerName.contains('pasty') || lowerName.contains('pudding')) {
+      return 'https://images.unsplash.com/photo-1519869325930-281384150729?auto=format&fit=crop&w=500&q=80';
+    }
+    // 11. Drinks (Coffee, Cappuccino, Lassi, Smoothie, Milkshake, Drink, Tea, Beverage)
+    if (lowerName.contains('coffee') || lowerName.contains('cappuccino') || lowerName.contains('lassi') || 
+        lowerName.contains('smoothie') || lowerName.contains('milkshake') || lowerName.contains('drink') || 
+        lowerName.contains('tea') || lowerName.contains('beverage')) {
+      return 'https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=500&q=80';
+    }
+    // 12. Desserts (Cake, Tiramisu, Baklava, Churros, Flan, Sponge, Muffin, Croissant, Scone, Donut, Dessert, Cannoli, Gulab Jamun)
+    if (lowerName.contains('cake') || lowerName.contains('tiramisu') || lowerName.contains('baklava') || 
+        lowerName.contains('churros') || lowerName.contains('flan') || lowerName.contains('sponge') || 
+        lowerName.contains('muffin') || lowerName.contains('croissant') || lowerName.contains('scone') || 
+        lowerName.contains('donut') || lowerName.contains('dessert') || lowerName.contains('cannoli') || 
+        lowerName.contains('gulab jamun')) {
+      return 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=500&q=80';
+    }
+    // 13. Eggs / Breakfast (Toast, Eggs, Benedict, Croissant)
+    if (lowerName.contains('eggs') || lowerName.contains('toast') || lowerName.contains('benedict') || lowerName.contains('breakfast')) {
+      return 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=500&q=80';
+    }
+    // 14. Chinese items
+    if (lowerCat.contains('chinese') || lowerName.contains('dumpling') || lowerName.contains('wonton') || lowerName.contains('mein') || lowerName.contains('duck') || lowerName.contains('rolls')) {
+      return 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=500&q=80';
+    }
+    
+    // Default food fallback
+    return 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=500&q=80';
+  }
+}
+
+class _MenuScreen extends StatelessWidget {
+  final String restaurantName;
+  final List<_MenuItem> items;
+
+  const _MenuScreen({required this.restaurantName, required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F8),
+      appBar: AppBar(
+        title: Text('$restaurantName Menu'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return _MenuCard(item: item);
+        },
+      ),
+    );
+  }
+}
+
+class _MenuCard extends StatelessWidget {
+  final _MenuItem item;
+
+  const _MenuCard({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                child: Image.network(
+                  item.imageUrl,
+                  height: 180,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    height: 180,
+                    width: double.infinity,
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.restaurant_menu, size: 60, color: Colors.grey),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 15,
+                right: 15,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                  child: Text(
+                    item.rating.toStringAsFixed(1),
+                    style: const TextStyle(color: Color(0xFF00C48C), fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.name,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text('PKR ${item.price.toStringAsFixed(0)}', style: const TextStyle(color: Colors.grey)),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  item.description.isEmpty ? 'No description available.' : item.description,
+                  style: const TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+                const SizedBox(height: 6),
+                Text('Rating ${item.rating.toStringAsFixed(1)}', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+              ],
             ),
           ],
         ),
