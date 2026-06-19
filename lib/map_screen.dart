@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 import 'home_screen.dart';
 import 'models/restaurant.dart';
 import 'config.dart';
@@ -25,7 +26,7 @@ class _MapScreenState extends State<MapScreen> {
     text: "70",
   );
   final TextEditingController _cuisineController = TextEditingController();
-  final TextEditingController _radiusController = TextEditingController();
+  final TextEditingController _radiusController = TextEditingController(text: "10.0");
   List<Marker> _markers = [];
   List<Restaurant> _restaurants = [];
   bool _isLoading = false;
@@ -132,7 +133,7 @@ class _MapScreenState extends State<MapScreen> {
   void _applyFiltersAndMarkers() {
     final base = _userLocation ?? const LatLng(31.5204, 74.3587);
     final minHygiene = double.tryParse(_hygieneController.text) ?? 0.0;
-    final radiusKm = double.tryParse(_radiusController.text) ?? 5.0;
+    final radiusKm = double.tryParse(_radiusController.text) ?? 10.0;
     final cuisine = _cuisineController.text.trim().toLowerCase();
 
     final markers = <Marker>[
@@ -172,17 +173,27 @@ class _MapScreenState extends State<MapScreen> {
           point: LatLng(lat, lon),
           width: 40,
           height: 40,
-          child: Tooltip(
-            message:
-                '${restaurant.businessName}\n${restaurant.category ?? restaurant.businessType}\nHygiene: ${restaurant.hygieneScore.toStringAsFixed(0)}\nDistance: ${distanceKm.toStringAsFixed(1)} km',
-            child: Icon(
-              Icons.location_on,
-              color: restaurant.hygieneScore >= 85
-                  ? Colors.green
-                  : restaurant.hygieneScore >= 70
-                      ? Colors.orange
-                      : Colors.red,
-              size: 36,
+          child: GestureDetector(
+            onTap: () async {
+              final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lon');
+              try {
+                await launchUrl(url, mode: LaunchMode.externalApplication);
+              } catch (e) {
+                debugPrint('Could not launch URL: $e');
+              }
+            },
+            child: Tooltip(
+              message:
+                  '${restaurant.businessName}\n${restaurant.category ?? restaurant.businessType}\nHygiene: ${restaurant.hygieneScore.toStringAsFixed(0)}\nDistance: ${distanceKm.toStringAsFixed(1)} km',
+              child: Icon(
+                Icons.location_on,
+                color: restaurant.hygieneScore >= 85
+                    ? Colors.green
+                    : restaurant.hygieneScore >= 70
+                        ? Colors.orange
+                        : Colors.red,
+                size: 36,
+              ),
             ),
           ),
         ),

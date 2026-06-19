@@ -64,8 +64,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       var response = await http.get(Uri.parse('${Config.baseUrl}/api/accounts/profile/'), headers: headers);
 
       if (response.statusCode == 401) {
-        final uriWithAuth = await Config.uriWithAuth('/api/accounts/profile/');
-        response = await http.get(uriWithAuth);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+        if (!mounted) return;
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (route) => false,
+        );
+        return;
       }
 
       if (response.statusCode != 200) {

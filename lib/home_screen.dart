@@ -15,6 +15,7 @@ import 'favorites_screen.dart';
 import 'profile_screen.dart'; 
 import 'config.dart';
 import 'models/dish_recommendation.dart';
+import 'sign_in_page.dart';
 
 class RestaurantListScreen extends StatefulWidget {
   const RestaurantListScreen({super.key});
@@ -196,12 +197,15 @@ class _HomeTabContentState extends State<HomeTabContent> {
           _isLoadingRecommended = false;
         });
       } else if (response.statusCode == 401 || response.statusCode == 403) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
         if (!mounted) return;
-        setState(() {
-          _recommendedRestaurants = [];
-          _recommendedError = 'Session expired. Please sign in again.';
-          _isLoadingRecommended = false;
-        });
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (route) => false,
+        );
+        return;
       } else {
         if (!mounted) return;
         setState(() {
@@ -252,12 +256,15 @@ class _HomeTabContentState extends State<HomeTabContent> {
           _isLoadingDishes = false;
         });
       } else if (response.statusCode == 401 || response.statusCode == 403) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
         if (!mounted) return;
-        setState(() {
-          _recommendedDishes = [];
-          _recommendedDishesError = 'Session expired. Please sign in again.';
-          _isLoadingDishes = false;
-        });
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (route) => false,
+        );
+        return;
       } else {
         if (!mounted) return;
         setState(() {

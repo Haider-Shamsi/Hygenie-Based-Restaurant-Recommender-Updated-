@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'models/restaurant.dart';
 import 'config.dart';
 class RestaurantDetailScreen extends StatefulWidget {
@@ -369,32 +370,69 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
   }
 
   Widget _buildOverviewTab() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text("About", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-        const SizedBox(height: 8),
-        Text(widget.restaurant.description ?? 'No description available.', style: const TextStyle(color: Colors.grey)),
-        const SizedBox(height: 20),
-        const Text("Recent Reviews", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-        const SizedBox(height: 12),
-        // Write Review Button
-        OutlinedButton.icon(
-          onPressed: _showWriteReviewModal,
-          icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF10B981)),
-          label: const Text("Write a Review", style: TextStyle(color: Color(0xFF10B981))),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 45),
-            side: const BorderSide(color: Color(0xFF10B981)),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("About", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          const SizedBox(height: 8),
+          Text(widget.restaurant.description ?? 'No description available.', style: const TextStyle(color: Colors.grey)),
+          const SizedBox(height: 20),
+          const Text("Location", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.location_on, color: Colors.grey, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  widget.restaurant.address,
+                  style: const TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: 16),
-        if (_reviews.isEmpty)
-          const Text('No reviews yet. Be the first to write one.', style: TextStyle(color: Colors.grey))
-        else
-          ..._reviews.map((review) => _buildReviewCard(review.reviewerName, review.comment, review.rating, review.timeSince)),
-      ],
+          const SizedBox(height: 10),
+          if (widget.restaurant.latitude != null && widget.restaurant.longitude != null)
+            TextButton.icon(
+              onPressed: () async {
+                final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=${widget.restaurant.latitude},${widget.restaurant.longitude}');
+                try {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                } catch (e) {
+                  debugPrint('Could not launch URL: $e');
+                }
+              },
+              icon: const Icon(Icons.map_outlined, color: Color(0xFF10B981), size: 18),
+              label: const Text("Open in Google Maps", style: TextStyle(color: Color(0xFF10B981))),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(50, 30),
+                alignment: Alignment.centerLeft,
+              ),
+            ),
+          const SizedBox(height: 20),
+          const Text("Recent Reviews", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          const SizedBox(height: 12),
+          // Write Review Button
+          OutlinedButton.icon(
+            onPressed: _showWriteReviewModal,
+            icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF10B981)),
+            label: const Text("Write a Review", style: TextStyle(color: Color(0xFF10B981))),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 45),
+              side: const BorderSide(color: Color(0xFF10B981)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (_reviews.isEmpty)
+            const Text('No reviews yet. Be the first to write one.', style: TextStyle(color: Colors.grey))
+          else
+            ..._reviews.map((review) => _buildReviewCard(review.reviewerName, review.comment, review.rating, review.timeSince)),
+        ],
+      ),
     );
   }
   
@@ -422,33 +460,35 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Ti
       return const Center(child: Text('No hygiene breakdown available.'));
     }
 
-    return Column(
-      children: _hygieneBreakdown.map((item) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(item.label),
-                  Text("${item.score.toInt()}/100", 
-                      style: const TextStyle(color: Color(0xFF059669), fontWeight: FontWeight.bold)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              LinearProgressIndicator(
-                value: item.score / 100.0,
-                backgroundColor: Colors.grey[200],
-                color: const Color(0xFF10B981),
-                minHeight: 8,
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
+    return SingleChildScrollView(
+      child: Column(
+        children: _hygieneBreakdown.map((item) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(item.label),
+                    Text("${item.score.toInt()}/100", 
+                        style: const TextStyle(color: Color(0xFF059669), fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                LinearProgressIndicator(
+                  value: item.score / 100.0,
+                  backgroundColor: Colors.grey[200],
+                  color: const Color(0xFF10B981),
+                  minHeight: 8,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
