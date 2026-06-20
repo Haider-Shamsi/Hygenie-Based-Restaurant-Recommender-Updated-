@@ -10,6 +10,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'home_screen.dart';
 import 'sign_up_page.dart';
 import 'widgets/platform_google_sign_in_button.dart';
+import 'OwnerDashboardScreen.dart';
+import 'AdminDashboardScreen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -93,10 +95,27 @@ class _LoginScreenState extends State<LoginScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Logged in as $userEmail')),
             );
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const RestaurantListScreen()),
-            );
+            
+            if (userEmail.endsWith('@owner.com')) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => OwnerDashboardScreen(onBack: () {
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const RestaurantListScreen()));
+                })),
+              );
+            } else if (userEmail.endsWith('@admin.com')) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => AdminDashboardScreen(onBack: () {
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const RestaurantListScreen()));
+                })),
+              );
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const RestaurantListScreen()),
+              );
+            }
           }
         } else {
           final body = jsonDecode(response.body);
@@ -211,7 +230,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const Text("Don't have an account? ", style: TextStyle(color: Color(0xFF718096))),
                         TextButton(
                           onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateAccountScreen()));
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const CreateAccountScreen()));
                           },
                           child: const Text("Sign Up", style: TextStyle(color: Color(0xFF00C48C), fontWeight: FontWeight.bold)),
                         ),
@@ -298,13 +317,31 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setString('auth_token', data['token']);
       }
       if (mounted) {
+        final userEmail = data['user']['email'].toString();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Signed in with Google as ${data['user']['email']}')),
+          SnackBar(content: Text('Signed in with Google as $userEmail')),
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const RestaurantListScreen()),
-        );
+        
+        if (userEmail.endsWith('@owner.com')) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => OwnerDashboardScreen(onBack: () {
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const RestaurantListScreen()));
+            })),
+          );
+        } else if (userEmail.endsWith('@admin.com')) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => AdminDashboardScreen(onBack: () {
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const RestaurantListScreen()));
+            })),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const RestaurantListScreen()),
+          );
+        }
       }
     } else {
       final error = jsonDecode(response.body)['detail'] ?? 'Google sign-in failed';
@@ -321,8 +358,13 @@ class _LoginScreenState extends State<LoginScreen> {
       keyboardType: type,
       validator: (value) {
         if (value?.isEmpty ?? true) return 'This field is required';
-        if (type == TextInputType.emailAddress && !value!.contains('@')) {
-          return 'Enter a valid email';
+        if (type == TextInputType.emailAddress) {
+          if (!value!.endsWith('@gmail.com') && !value.endsWith('@owner.com') && !value.endsWith('@admin.com') && !value!.endsWith('@xd.com')) {
+            return 'Must be @gmail.com or @owner.com';
+          }
+        } else if (isPassword) {
+          if (value!.length < 2) return 'Password must be at least 8 characters';
+          if (!RegExp(r'[0-9]').hasMatch(value)) return 'Password must contain a number';
         }
         return null;
       },

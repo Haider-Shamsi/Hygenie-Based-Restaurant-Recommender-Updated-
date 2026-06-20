@@ -12,6 +12,8 @@ import 'home_screen.dart';
 import 'otp_page.dart';
 import 'sign_in_page.dart';
 import 'widgets/platform_google_sign_in_button.dart';
+import 'OwnerDashboardScreen.dart';
+import 'AdminDashboardScreen.dart';
 
 // Define your app's main color scheme
 const Color appTeal = Color(0xFF67B5A3);
@@ -34,7 +36,13 @@ class CommonWidgets {
           children: [
             IconButton(
               icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.maybePop(context),
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                } else {
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+                }
+              },
             ),
           ],
         ),
@@ -312,10 +320,27 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Signed in with Google as $userEmail')),
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const RestaurantListScreen()),
-        );
+        
+        if (userEmail.endsWith('@owner.com')) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => OwnerDashboardScreen(onBack: () {
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const RestaurantListScreen()));
+            })),
+          );
+        } else if (userEmail.endsWith('@admin.com')) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => AdminDashboardScreen(onBack: () {
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const RestaurantListScreen()));
+            })),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const RestaurantListScreen()),
+          );
+        }
       }
     } else {
       String error = 'Google sign-in failed';
@@ -369,7 +394,13 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
         final response = await http.post(
           Uri.parse('${Config.baseUrl}/api/accounts/signup/'),
           headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'username': email, 'password': password}),
+          body: jsonEncode({
+            'username': email, 
+            'password': password,
+            'email': email,
+            'full_name': _fullNameController.text.trim(),
+            'phone_number': _mobileController.text.trim(),
+          }),
         );
         setState(() {
           _isLoading = false;
@@ -379,7 +410,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
           final otp = data['otp'];
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Account created! OTP: $otp')), // For development
+              SnackBar(
+                content: Text('Account created! OTP: $otp'),
+                duration: const Duration(seconds: 25),
+              ), 
             );
             Navigator.pushReplacement(
               context,
@@ -443,12 +477,12 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         CommonWidgets.buildLabeledTextField(
                           context,
                           label: 'Email Address',
-                          hintText: 'your.email@example.com',
+                          hintText: 'your.email@gmail.com',
                           controller: _emailController,
                           validator: (value) {
                             if (value == null || value.isEmpty) return 'Email is required';
-                            if (!RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(value)) {
-                              return 'Invalid email address';
+                            if (!value.endsWith('@gmail.com') && !value.endsWith('@owner.com') && !value.endsWith('@admin.com')) {
+                              return 'Must be @gmail.com or @owner.com';
                             }
                             return null;
                           },
@@ -456,9 +490,13 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         CommonWidgets.buildLabeledTextField(
                           context,
                           label: 'Mobile Number',
-                          hintText: '+1 (555) 123-4567',
+                          hintText: '03XXXXXXXXX',
                           controller: _mobileController,
-                          validator: (value) => value == null || value.isEmpty ? 'Mobile number is required' : null,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) return 'Mobile number is required';
+                            if (!RegExp(r'^03\d{9}$').hasMatch(value)) return 'Must be 11 digits starting with 03';
+                            return null;
+                          },
                         ),
                         CommonWidgets.buildLabeledTextField(
                           context,
@@ -468,7 +506,12 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           isPassword: true,
                           isPasswordVisible: _isPasswordVisible,
                           onPasswordVisibilityToggle: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
-                          validator: (value) => value == null || value.isEmpty ? 'Password is required' : null,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) return 'Password is required';
+                            if (value.length < 8) return 'Password must be at least 8 characters';
+                            if (!RegExp(r'[0-9]').hasMatch(value)) return 'Password must contain a number';
+                            return null;
+                          },
                         ),
                         CommonWidgets.buildLabeledTextField(
                           context,

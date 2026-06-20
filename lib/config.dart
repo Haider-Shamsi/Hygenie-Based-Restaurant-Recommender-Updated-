@@ -10,7 +10,7 @@ class Config {
    static const String _productionUrl = 'http://abdullahgilani.pythonanywhere.com';
 
   static String get baseUrl {
-    return _localUrl;
+    return _productionUrl;
   }
   //static const String baseUrl = 'http://127.0.0.1:8000';
 

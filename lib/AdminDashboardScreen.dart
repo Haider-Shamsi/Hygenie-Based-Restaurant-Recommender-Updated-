@@ -438,14 +438,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 widget.onBack(); // Switch to customer
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.bug_report_outlined, color: Colors.orange),
-              title: const Text('Report an Issue'),
-              onTap: () {
-                Navigator.pop(context); // Close the drawer
-                // TODO: Navigate to report issue screen
-              },
-            ),
+
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text('Logout'),
